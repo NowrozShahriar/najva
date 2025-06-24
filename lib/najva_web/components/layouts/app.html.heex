@@ -1,0 +1,79 @@
+<% # CSS Classes
+main_container =
+  "mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse bg-bg-secondary sm:flex-row sm:p-0.5"
+
+navpanel =
+  "mt-0.5 flex justify-evenly bg-bg-primary p-0.5 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg"
+
+navpanel_child = "m-0.5 size-12 rounded-xl bg-bg-primary p-1"
+
+navpanel_icon = "size-full bg-fg-primary hover:bg-black"
+
+listpane =
+  "listpane h-full min-w-72 bg-bg-primary p-2 sm:m-0.5 sm:h-auto sm:rounded-lg xl:min-w-80 2xl:min-w-96"
+
+listpane_root =
+  "h-full w-full bg-bg-primary p-2 sm:m-0.5 sm:h-auto sm:rounded-lg md:min-w-80 md:max-w-96 2xl:min-w-96"
+
+title = "px-3 pb-5 pt-4 text-3xl font-semibold text-text-primary"
+
+search_field =
+  "w-full rounded-full border-none bg-bg-secondary px-4 py-2 text-text-primary placeholder-text-inert focus:ring-2 focus:ring-fg-primary"
+
+mainpanel = "h-full w-full bg-bg-primary p-1 sm:m-0.5 sm:h-auto sm:rounded-lg"
+
+mainpanel_root = "hidden h-auto w-full bg-bg-primary sm:m-0.5 sm:rounded-lg md:block" %>
+
+<main class={main_container}>
+  
+<!-- Navigation bar: vertical on desktop, horizontal on mobile -->
+  <nav class={navpanel}>
+    
+<!-- Account -->
+    <.link href="/login" title="Account" class={navpanel_child}>
+      <.icon name="hero-user-circle" class={navpanel_icon} />
+    </.link>
+    
+<!-- Chats -->
+    <button phx-click="" title="Chats" class={navpanel_child}>
+      <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
+    </button>
+    
+<!-- Groups (currently commented out) -->
+    <!-- <button phx-click="" title="Groups" class={navpanel_child}>
+      <.icon name="hero-user-group" class={navpanel_icon} />
+    </button> -->
+
+<!-- Favorites -->
+    <button phx-click="" title="Favorites" class={navpanel_child}>
+      <.icon name="hero-heart" class={navpanel_icon} />
+    </button>
+    
+<!-- Archive (only visible on desktop) -->
+    <button phx-click="" title="Archive" class={navpanel_child <> " hidden sm:block"}>
+      <.icon name="hero-inbox-stack" class={navpanel_icon} />
+    </button>
+    
+<!-- Contacts -->
+    <button phx-click="" title="Contacts" class={navpanel_child}>
+      <.icon name="hero-bookmark-square" class={navpanel_icon} />
+    </button>
+    
+<!-- Settings -->
+    <.link navigate="" title="Settings" class={navpanel_child}>
+      <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
+    </.link>
+  </nav>
+  
+<!-- ListPane -->
+  <div class={if @live_action != :root, do: listpane, else: listpane_root}>
+    <h1 class={title}>Najva</h1>
+    <input type="text" placeholder="Search..." class={search_field} />
+  </div>
+  
+<!-- MainPanel -->
+  <div class={if @live_action != :root, do: mainpanel, else: mainpanel_root}>
+    <.flash_group flash={@flash} />
+    {@inner_content}
+  </div>
+</main>
