@@ -11,16 +11,16 @@ defmodule NajvaWeb.Layouts do
 
   embed_templates "layouts/*"
 
-  @doc """
-  Renders the app layout
-
-  ## Examples
-
-      <Layouts.app flash={@flash}>
-        <h1>Content</h1>
-      </Layout.app>
-
-  """
+#   @doc """
+#   Renders the app layout
+# 
+#   ## Examples
+#
+#       <Layouts.app flash={@flash}>
+#         <h1>Content</h1>
+#       </Layout.app>
+#
+#   """
 #   attr :flash, :map, required: true, doc: "the map of flash messages"
 #
 #   attr :current_scope, :map,
