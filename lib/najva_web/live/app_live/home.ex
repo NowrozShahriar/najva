@@ -7,11 +7,11 @@ defmodule NajvaWeb.AppLive.Home do
 
   def render(assigns) do
     ~H"""
-    <div class="text-white">
+    <Layouts.app flash={@flash} live_action={@live_action}>
       <.link navigate="/">Home</.link>
       <p>Check the console for debug information.</p>
-    </div>
-    <NajvaWeb.Components.visibility hide_class="listpane" />
+    </Layouts.app>
+    <%!-- <NajvaWeb.Components.visibility hide_class="listpane" /> --%>
     """
   end
 end
