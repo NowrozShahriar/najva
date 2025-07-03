@@ -7,7 +7,10 @@ defmodule NajvaWeb.AppLive.Root do
 
   def render(assigns) do
     ~H"""
-    <div class="chat-root m-1 text-white" />
+    <Layouts.app flash={@flash} live_action={@live_action}>
+      <%!-- <div class="chat-root m-1 text-white" /> --%>
+    </Layouts.app>
+    <%!-- <NajvaWeb.Components.visibility hide_class="listpane" /> --%>
     """
   end
 end
