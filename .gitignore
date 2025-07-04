@@ -35,5 +35,6 @@ najva-*.tar
 npm-debug.log
 /assets/node_modules/
 
-.elixir_ls
-.vscode
+/.elixir_ls/
+/.vscode/
+tailwind.config.js
