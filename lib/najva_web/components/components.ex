@@ -21,6 +21,14 @@ defmodule NajvaWeb.Components do
     """
   end
 
+  @doc """
+  buttons from list for Layouts.theme_toggle.
+
+  ## Example
+
+      <.theme_button theme={[garden, forest]} />
+  """
+
   attr :themes, :list, required: true
 
   def theme_button(assigns) do
