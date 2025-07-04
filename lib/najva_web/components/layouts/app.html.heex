@@ -1,31 +1,22 @@
 <% # CSS Classes
-main_container =
-  "mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse bg-base-200 sm:flex-row sm:p-0.5"
-
-navpanel =
-  "mt-0.5 flex justify-evenly bg-base-100 p-0.5 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg"
-
-navpanel_child = "m-0.5 size-12 rounded-xl p-1 hover:bg-neutral hover:text-neutral-content"
-
-navpanel_child_active =
-  " bg-accent text-accent-content"
-
-navpanel_icon = "size-full"
-
-listpane =
-  "h-full w-full bg-base-100 p-2 sm:m-0.5 sm:h-auto sm:rounded-lg"
-
-listpane_other = " hidden md:block min-w-72 max-w-80 xl:min-w-80 xl:max-w-96 2xl:min-w-96"
-
-listpane_root =
-  " md:min-w-80 md:max-w-96 2xl:min-w-96"
-
-search_field =
-  "w-full rounded-full bg-base-200 px-4 py-1 border border-2 border-base-200 hover:border-neutral focus:bg-base-300 focus:outline-none focus: focus:border-accent"
-
-mainpanel = "h-full w-full bg-base-100 p-1 sm:m-0.5 sm:h-auto sm:rounded-lg"
-
-mainpanel_root = " hidden md:block" %>
+  main_container =
+    "bg-base-200 mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse sm:flex-row sm:p-0.5"
+  navpanel =
+    "bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg"
+  navpanel_child = "hover:bg-neutral hover:text-neutral-content m-0.5 size-12 rounded-xl p-1"
+  navpanel_child_active =
+    " bg-accent text-accent-content"
+  navpanel_icon = "size-full"
+  listpane =
+    "bg-base-100 h-full w-full p-2 sm:m-0.5 sm:h-auto sm:rounded-lg"
+  listpane_other = " hidden min-w-72 max-w-80 md:block xl:min-w-80 xl:max-w-96 2xl:min-w-96"
+  listpane_root =
+    " md:min-w-80 md:max-w-96 2xl:min-w-96"
+  search_field =
+    "bg-base-200 border-base-200 hover:border-neutral focus:bg-base-300 focus: focus:border-accent w-full rounded-full border-2 px-4 py-1 focus:outline-none"
+  mainpanel = "bg-base-100 h-full w-full p-1 sm:m-0.5 sm:h-auto sm:rounded-lg"
+  mainpanel_root = " hidden md:block" 
+%>
 
 <main class={main_container}>
   
@@ -56,7 +47,7 @@ mainpanel_root = " hidden md:block" %>
       <.icon name="hero-bookmark-square" class={navpanel_icon} />
     </button>
     
-    <!-- <hr class="my-2 text-base-300 hidden sm:block" /> -->
+    <!-- <hr class="text-base-300 my-2 hidden sm:block" /> -->
 <!-- Settings -->
     <.link navigate="" title="Settings" class={navpanel_child}>
       <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
@@ -68,24 +59,24 @@ mainpanel_root = " hidden md:block" %>
     <div class="flex items-center justify-between pb-2">
       <h1 class="px-3 py-2 text-3xl font-bold">Najva</h1>
       <div class="flex items-center">
-        <button type="button" class="rounded-xl pl-1.5 pr-0.5 mr-0.5 py-1 border border-2 border-base-100 hover:border-neutral flex items-center">
-          <span class="block truncate max-w-[129px] xl:max-w-[183px]">jabberid@xmpp.server</span>
+        <button type="button" class="border-base-100 hover:border-neutral mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5">
+          <p class={["truncate max-w-32 sm:max-w-48", @live_action != :root && " md:max-w-32 xl:max-w-48"]}>jabberid@xmpp.server</p>
           <.icon name="hero-chevron-down" />
         </button>
       <!-- Account -->
-        <.link navigate="/home" title="Account" class=" size-11 rounded-full border border-2 border-base-100 hover:border-neutral">
+        <.link navigate="/home" title="Account" class="border-base-100 hover:border-neutral size-11 rounded-full border-2">
           <.icon name="hero-user-circle" class="size-full" />
         </.link>
       </div>
     </div>
     <input type="text" placeholder="Search..." class={search_field} />
-    <hr class="my-2 text-base-300" />
+    <hr class="text-base-300 my-2" />
     <div></div>
     <Layouts.theme_toggle />
   </div>
   
 <!-- MainPanel -->
-  <div class={if @live_action != :root, do: mainpanel, else: mainpanel <> mainpanel_root}>
+  <div class={[mainpanel, @live_action == :root && mainpanel_root]}>
     <.flash_group flash={@flash} />
     {render_slot(@inner_block)}
   </div>
