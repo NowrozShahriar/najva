@@ -7,52 +7,14 @@ defmodule NajvaWeb.Layouts do
   application router. The "app" layout is rendered as component
   in regular views and live views.
   """
+  import NajvaWeb.Components
   use NajvaWeb, :html
 
   embed_templates "layouts/*"
 
-  #   attr :flash, :map, required: true, doc: "the map of flash messages"
-  #
-  #   attr :current_scope, :map,
-  #     default: nil,
-  #     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
-  #
-  #   slot :inner_block, required: true
-  #
   #   def app(assigns) do
   #     ~H"""
-  #     <header class="navbar px-4 sm:px-6 lg:px-8">
-  #       <div class="flex-1">
-  #         <a href="/" class="flex-1 flex w-fit items-center gap-2">
-  #           <img src={~p"/images/logo.svg"} width="36" />
-  #           <span class="text-sm font-semibold">v{Application.spec(:phoenix, :vsn)}</span>
-  #         </a>
-  #       </div>
-  #       <div class="flex-none">
-  #         <ul class="flex flex-column px-1 space-x-4 items-center">
-  #           <li>
-  #             <a href="https://phoenixframework.org/" class="btn btn-ghost">Website</a>
-  #           </li>
-  #           <li>
-  #             <a href="https://github.com/phoenixframework/phoenix" class="btn btn-ghost">GitHub</a>
-  #           </li>
-  #           <li>
-  #             <.theme_toggle />
-  #           </li>
-  #           <li>
-  #             <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-  #               Get Started <span aria-hidden="true">&rarr;</span>
-  #             </a>
-  #           </li>
-  #         </ul>
-  #       </div>
-  #     </header>
-  #
-  #     <main class="px-4 py-20 sm:px-6 lg:px-8">
-  #       <div class="mx-auto max-w-2xl space-y-4">
-  #         {render_slot(@inner_block)}
-  #       </div>
-  #     </main>
+  #     <main></main>
   #     """
   #   end
 
@@ -122,147 +84,46 @@ defmodule NajvaWeb.Layouts do
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-
+      <.theme_button theme="cupcake" />
+      <.theme_button theme="bumblebee" />
+      <.theme_button theme="emerald" />
+      <.theme_button theme="corporate" />
+      <.theme_button theme="retro" />
+      <.theme_button theme="cyberpunk" />
+      <.theme_button theme="valentine" />
+      <.theme_button theme="garden" />
+      <.theme_button theme="lofi" />
+      <.theme_button theme="pastel" />
+      <.theme_button theme="fantasy" />
+      <.theme_button theme="wireframe" />
+      <.theme_button theme="cmyk" />
+      <.theme_button theme="autumn" />
+      <.theme_button theme="acid" />
+      <.theme_button theme="lemonade" />
+      <.theme_button theme="winter" />
+      <.theme_button theme="nord" />
+      <.theme_button theme="caramellatte" />
+      <.theme_button theme="silk" />
       <button
         phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dark"})}
         class="flex p-2 cursor-pointer"
       >
         <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "cupcake"})}
-        class="flex p-2 cursor-pointer"
-      >
-        cupcake
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "bumblebee"})}
-        class="flex p-2 cursor-pointer"
-      >
-        bumblebee
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "corporate"})}
-        class="flex p-2 cursor-pointer"
-      >
-        corporate
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "garden"})}
-        class="flex p-2 cursor-pointer"
-      >
-        garden
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "pastel"})}
-        class="flex p-2 cursor-pointer"
-      >
-        pastel
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "wireframe"})}
-        class="flex p-2 cursor-pointer"
-      >
-        wireframe
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "cmyk"})}
-        class="flex p-2 cursor-pointer"
-      >
-        cmyk
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "autumn"})}
-        class="flex p-2 cursor-pointer"
-      >
-        autumn
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "nord"})}
-        class="flex p-2 cursor-pointer"
-      >
-        nord
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "caramellatte"})}
-        class="flex p-2 cursor-pointer"
-      >
-        caramellatte
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "retro"})}
-        class="flex p-2 cursor-pointer"
-      >
-        retro
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "business"})}
-        class="flex p-2 cursor-pointer"
-      >
-        business
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "halloween"})}
-        class="flex p-2 cursor-pointer"
-      >
-        halloween
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "forest"})}
-        class="flex p-2 cursor-pointer"
-      >
-        forest
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "black"})}
-        class="flex p-2 cursor-pointer"
-      >
-        black
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "luxury"})}
-        class="flex p-2 cursor-pointer"
-      >
-        luxury
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dracula"})}
-        class="flex p-2 cursor-pointer"
-      >
-        dracula
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "night"})}
-        class="flex p-2 cursor-pointer"
-      >
-        night
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "coffee"})}
-        class="flex p-2 cursor-pointer"
-      >
-        coffee
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dim"})}
-        class="flex p-2 cursor-pointer"
-      >
-        dim
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "sunset"})}
-        class="flex p-2 cursor-pointer"
-      >
-        sunset
-      </button>
-      <button
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "abyss"})}
-        class="flex p-2 cursor-pointer"
-      >
-        abyss
-      </button>
+      <.theme_button theme="synthwave" />
+      <.theme_button theme="halloween" />
+      <.theme_button theme="forest" />
+      <.theme_button theme="aqua" />
+      <.theme_button theme="black" />
+      <.theme_button theme="luxury" />
+      <.theme_button theme="dracula" />
+      <.theme_button theme="business" />
+      <.theme_button theme="night" />
+      <.theme_button theme="coffee" />
+      <.theme_button theme="dim" />
+      <.theme_button theme="sunset" />
+      <.theme_button theme="abyss" />
     </div>
-    <NajvaWeb.Components.visibility hide_class="listpane" />
     """
   end
 end
