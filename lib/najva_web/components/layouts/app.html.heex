@@ -8,7 +8,7 @@ navpanel =
 navpanel_child = "m-0.5 size-12 rounded-xl p-1 hover:bg-neutral hover:text-neutral-content"
 
 navpanel_child_active =
-  " bg-primary text-primary-content hover:bg-primary hover:text-primary-content"
+  " bg-accent text-accent-content"
 
 navpanel_icon = "size-full"
 
@@ -20,10 +20,10 @@ listpane_other = " hidden md:block min-w-72 max-w-80 xl:min-w-80 xl:max-w-96 2xl
 listpane_root =
   " md:min-w-80 md:max-w-96 2xl:min-w-96"
 
-title = "px-3 pb-5 pt-4 text-3xl font-bold text-"
+
 
 search_field =
-  "w-full rounded-full bg-base-200 px-4 py-2 focus:bg-base-300 focus:outline-none"
+  "w-full rounded-full bg-base-200 px-4 py-1 border border-2 border-base-200 hover:border-neutral focus:bg-base-300 focus:outline-none focus: focus:border-accent"
 
 mainpanel = "h-full w-full bg-base-100 p-1 sm:m-0.5 sm:h-auto sm:rounded-lg"
 
@@ -33,21 +33,15 @@ mainpanel_root = " hidden md:block" %>
   
 <!-- Navigation bar: vertical on desktop, horizontal on mobile -->
   <nav class={navpanel}>
-    
-<!-- Account -->
-    <.link navigate="/home" title="Account" class={navpanel_child}>
-      <.icon name="hero-user-circle" class={navpanel_icon} />
-    </.link>
-    
 <!-- Chats -->
     <button phx-click="" title="Chats" class={navpanel_child}>
       <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
     </button>
     
-<!-- Groups (currently commented out) -->
-    <!-- <button phx-click="" title="Groups" class={navpanel_child}>
+<!-- Groups -->
+    <button phx-click="" title="Groups" class={navpanel_child}>
       <.icon name="hero-user-group" class={navpanel_icon} />
-    </button> -->
+    </button>
 
 <!-- Favorites -->
     <button phx-click="" title="Favorites" class={navpanel_child}>
@@ -64,6 +58,7 @@ mainpanel_root = " hidden md:block" %>
       <.icon name="hero-bookmark-square" class={navpanel_icon} />
     </button>
     
+    <!-- <hr class="my-2 text-base-300 hidden sm:block" /> -->
 <!-- Settings -->
     <.link navigate="" title="Settings" class={navpanel_child}>
       <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
@@ -72,7 +67,19 @@ mainpanel_root = " hidden md:block" %>
   
 <!-- ListPane -->
   <div class={listpane <> if @live_action != :root, do: listpane_other, else: listpane_root}>
-    <h1 class={title}>Najva</h1>
+    <div class="flex items-center justify-between pb-2">
+      <h1 class="px-3 py-2 text-3xl font-bold">Najva</h1>
+      <div class="flex items-center">
+        <button type="button" class="rounded-xl pl-3 pr-2 py-1 border border-2 border-base-100 hover:border-neutral flex items-center">
+          <span class="block truncate max-w-[119px] xl:max-w-[183px]">jabberid@xmpp.server</span>
+          <.icon name="hero-chevron-down" />
+        </button>
+      <!-- Account -->
+        <.link navigate="/home" title="Account" class=" size-11 rounded-full border border-2 border-base-100 hover:border-neutral">
+          <.icon name="hero-user-circle" class="size-full" />
+        </.link>
+      </div>
+    </div>
     <input type="text" placeholder="Search..." class={search_field} />
     <hr class="my-2 text-base-300" />
     <div></div>
