@@ -15,5 +15,4 @@ defmodule NajvaWeb.AppLive.Settings do
     </Layouts.app>
     """
   end
-
 end
