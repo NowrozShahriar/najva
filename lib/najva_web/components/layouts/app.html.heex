@@ -14,61 +14,65 @@
   navpanel_child_inactive = " hover:bg-secondary hover:text-secondary-content"
   navpanel_icon = "size-full" %>
   <nav class={navpanel}>
-      <!-- Chats -->
-      <% active_list = :favorites %>
-      <button
-        phx-click="set_active_list"
-        phx-value="chats"
-        title="Chats"
-        class={navpanel_child <> if active_list == :chats, do: navpanel_child_active, else: navpanel_child_inactive}
-      >
-        <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
-      </button>
-      
-      <!-- Groups -->
-      <button
-        phx-click="set_active_list"
-        phx-value="groups"
-        title="Groups"
-        class={navpanel_child <> if active_list != :groups, do: navpanel_child_inactive, else: navpanel_child_active}
-      >
-        <.icon name="hero-user-group" class={navpanel_icon} />
-      </button>
-      
-      <!-- Favorites -->
-      <button
-        phx-click="set_active_list"
-        phx-value="favorites"
-        title="Favorites"
-        class={navpanel_child <> if active_list != :favorites, do: navpanel_child_inactive, else: navpanel_child_active}
-      >
-        <.icon name="hero-heart" class={navpanel_icon} />
-      </button>
-      
-      <!-- Archive (only visible on desktop) -->
-      <button
-        phx-click="set_active_list"
-        phx-value="archive"
-        title="Archive"
-        class={navpanel_child <> " hidden sm:block" <> if active_list != :archive, do: navpanel_child_inactive, else: navpanel_child_active}
-      >
-        <.icon name="hero-inbox-stack" class={navpanel_icon} />
-      </button>
-      
-      <!-- Contacts -->
-      <button
-        phx-click="set_active_list"
-        phx-value="contacts"
-        title="Contacts"
-        class={navpanel_child <> if active_list != :contacts, do: navpanel_child_inactive, else: navpanel_child_active}
-      >
-        <.icon name="hero-bookmark-square" class={navpanel_icon} />
-      </button>
+    <!-- Chats -->
+    <% active_list = :favorites %>
+    <button
+      phx-click="set_active_list"
+      phx-value="chats"
+      title="Chats"
+      class={navpanel_child <> if active_list == :chats, do: navpanel_child_active, else: navpanel_child_inactive}
+    >
+      <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
+    </button>
+    
+<!-- Groups -->
+    <button
+      phx-click="set_active_list"
+      phx-value="groups"
+      title="Groups"
+      class={navpanel_child <> if active_list != :groups, do: navpanel_child_inactive, else: navpanel_child_active}
+    >
+      <.icon name="hero-user-group" class={navpanel_icon} />
+    </button>
+    
+<!-- Favorites -->
+    <button
+      phx-click="set_active_list"
+      phx-value="favorites"
+      title="Favorites"
+      class={navpanel_child <> if active_list != :favorites, do: navpanel_child_inactive, else: navpanel_child_active}
+    >
+      <.icon name="hero-heart" class={navpanel_icon} />
+    </button>
+    
+<!-- Archive (only visible on desktop) -->
+    <button
+      phx-click="set_active_list"
+      phx-value="archive"
+      title="Archive"
+      class={navpanel_child <> " hidden sm:block" <> if active_list != :archive, do: navpanel_child_inactive, else: navpanel_child_active}
+    >
+      <.icon name="hero-inbox-stack" class={navpanel_icon} />
+    </button>
+    
+<!-- Contacts -->
+    <button
+      phx-click="set_active_list"
+      phx-value="contacts"
+      title="Contacts"
+      class={navpanel_child <> if active_list != :contacts, do: navpanel_child_inactive, else: navpanel_child_active}
+    >
+      <.icon name="hero-bookmark-square" class={navpanel_icon} />
+    </button>
     <!-- <hr class="text-base-300 my-2 hidden sm:block" /> -->
       <!-- Settings -->
-      <.link navigate="/settings" title="Settings" class={navpanel_child <> " sm:mt-auto" <> if @live_action != :settings, do: navpanel_child_inactive, else: navpanel_child_active}>
-        <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
-      </.link>
+    <.link
+      navigate="/settings"
+      title="Settings"
+      class={navpanel_child <> " sm:mt-auto" <> if @live_action != :settings, do: navpanel_child_inactive, else: navpanel_child_active}
+    >
+      <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
+    </.link>
   </nav>
   
 <!-- ListPane -->
