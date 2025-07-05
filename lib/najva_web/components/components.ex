@@ -26,12 +26,12 @@ defmodule NajvaWeb.Components do
 
   ## Example
 
-      <.theme_button theme={[garden, forest]} />
+      <.theme_buttons themes={["garden", "forest"]} />
   """
 
   attr :themes, :list, required: true
 
-  def theme_button(assigns) do
+  def theme_buttons(assigns) do
     ~H"""
     <button
       :for={theme <- @themes}
