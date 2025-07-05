@@ -77,52 +77,59 @@ defmodule NajvaWeb.Layouts do
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-
       <button
         phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "light"})}
         class="flex p-2 cursor-pointer"
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-      <.theme_button theme="cupcake" />
-      <.theme_button theme="bumblebee" />
-      <.theme_button theme="emerald" />
-      <.theme_button theme="corporate" />
-      <.theme_button theme="retro" />
-      <.theme_button theme="cyberpunk" />
-      <.theme_button theme="valentine" />
-      <.theme_button theme="garden" />
-      <.theme_button theme="lofi" />
-      <.theme_button theme="pastel" />
-      <.theme_button theme="fantasy" />
-      <.theme_button theme="wireframe" />
-      <.theme_button theme="cmyk" />
-      <.theme_button theme="autumn" />
-      <.theme_button theme="acid" />
-      <.theme_button theme="lemonade" />
-      <.theme_button theme="winter" />
-      <.theme_button theme="nord" />
-      <.theme_button theme="caramellatte" />
-      <.theme_button theme="silk" />
       <button
         phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dark"})}
         class="flex p-2 cursor-pointer"
       >
         <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
-      <.theme_button theme="synthwave" />
-      <.theme_button theme="halloween" />
-      <.theme_button theme="forest" />
-      <.theme_button theme="aqua" />
-      <.theme_button theme="black" />
-      <.theme_button theme="luxury" />
-      <.theme_button theme="dracula" />
-      <.theme_button theme="business" />
-      <.theme_button theme="night" />
-      <.theme_button theme="coffee" />
-      <.theme_button theme="dim" />
-      <.theme_button theme="sunset" />
-      <.theme_button theme="abyss" />
+
+      <% light_themes = [
+        "cupcake",
+        "bumblebee",
+        "emerald",
+        "corporate",
+        "retro",
+        "cyberpunk",
+        "valentine",
+        "garden",
+        "lofi",
+        "pastel",
+        "fantasy",
+        "wireframe",
+        "cmyk",
+        "autumn",
+        "acid",
+        "lemonade",
+        "winter",
+        "nord",
+        "caramellatte",
+        "silk"
+      ] %>
+      <.theme_buttons themes={light_themes} />
+
+      <% dark_themes = [
+        "synthwave",
+        "halloween",
+        "forest",
+        "aqua",
+        "black",
+        "luxury",
+        "dracula",
+        "business",
+        "night",
+        "coffee",
+        "dim",
+        "sunset",
+        "abyss"
+      ] %>
+      <.theme_buttons themes={dark_themes} />
     </div>
     """
   end

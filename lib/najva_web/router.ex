@@ -19,7 +19,7 @@ defmodule NajvaWeb.Router do
 
     live "/", AppLive.Root, :root
     live "/home", AppLive.Home, :home
-
+    live "/settings", AppLive.Settings, :settings
   end
 
   # Other scopes may use custom stacks.
