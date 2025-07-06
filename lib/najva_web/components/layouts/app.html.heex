@@ -4,23 +4,36 @@
   
 <!-- Navigation bar: vertical on desktop, horizontal on mobile -->
   <% navpanel =
-    "bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:py-4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg"
+    "bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:py4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg"
 
-  navpanel_child = "m-0.5 size-12 rounded-xl p-1"
+  navpanel_child = "m-0.5 size-11 rounded-xl p-1"
 
   navpanel_child_active =
-    " bg-primary text-primary-content hover:bg-primary hover:text-primary-content"
+    " bg-accent text-accent-content hover:bg-accent hover:text-accent-content"
 
-  navpanel_child_inactive = " hover:bg-secondary hover:text-secondary-content"
+  navpanel_child_inactive =
+    " hover:text-accent"
+
   navpanel_icon = "size-full" %>
   <nav class={navpanel}>
-    <!-- Chats -->
-    <% active_list = :favorites %>
+    
+<!-- All Chats -->
+    <% active_list = :all_chats %>
     <button
       phx-click="set_active_list"
       phx-value="chats"
-      title="Chats"
-      class={navpanel_child <> if active_list == :chats, do: navpanel_child_active, else: navpanel_child_inactive}
+      title="All chats"
+      class={navpanel_child <> if active_list == :all_chats, do: navpanel_child_active, else: navpanel_child_inactive}
+    >
+      <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
+    </button>
+    
+<!-- Inbox -->
+    <button
+      phx-click="set_active_list"
+      phx-value="inbox"
+      title="Inbox"
+      class={navpanel_child <> if active_list == :inbox, do: navpanel_child_active, else: navpanel_child_inactive}
     >
       <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
     </button>
@@ -52,7 +65,7 @@
       title="Archive"
       class={navpanel_child <> " hidden sm:block" <> if active_list != :archive, do: navpanel_child_inactive, else: navpanel_child_active}
     >
-      <.icon name="hero-inbox-stack" class={navpanel_icon} />
+      <.icon name="hero-archive-box" class={navpanel_icon} />
     </button>
     
 <!-- Contacts -->
@@ -64,15 +77,30 @@
     >
       <.icon name="hero-bookmark-square" class={navpanel_icon} />
     </button>
-    <!-- <hr class="text-base-300 my-2 hidden sm:block" /> -->
-      <!-- Settings -->
+    
+<!-- <hr class="text-base-300 my-2 hidden sm:block" /> -->
+
+  <!-- Settings -->
     <.link
+      :if={@live_action != :settings}
       navigate="/settings"
       title="Settings"
-      class={navpanel_child <> " sm:mt-auto" <> if @live_action != :settings, do: navpanel_child_inactive, else: navpanel_child_active}
+      class={
+        navpanel_child <> " sm:mt-auto sm:mb-2" <> if @live_action != :settings, do: " hover:text-accent", else: " text-accent"
+      }
     >
       <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
     </.link>
+    <!-- Settings Back Button -->
+    <button
+      :if={@live_action == :settings}
+      id="settings-back-btn"
+      phx-hook="BackButton"
+      title="Settings"
+      class={navpanel_child <> " sm:mt-auto sm:mb-2 text-accent"}
+    >
+      <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
+    </button>
   </nav>
   
 <!-- ListPane -->
@@ -88,12 +116,12 @@
   title = "px-3 py-2 text-3xl font-bold"
 
   account_switcher =
-    "border-base-100 hover:border-secondary mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5"
+    "border-base-100 hover:border-neutral mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5"
 
-  user_icon = "border-base-100 hover:border-secondary size-11 rounded-full border-2"
+  user_icon = "border-base-100 hover:border-neutral size-11 rounded-full border-2"
 
   search_field =
-    "bg-base-200 border-base-200 hover:border-secondary focus:bg-base-300 focus: focus:border-primary w-full rounded-full border-2 px-4 py-1 focus:outline-none" %>
+    "bg-base-200 border-base-200 hover:border-neutral focus:bg-base-300 focus:border-accent w-full rounded-full border-2 px-4 py-1 focus:outline-none" %>
   <div class={listpane <> if @live_action != :root, do: listpane_other, else: listpane_root}>
     <div class={header}>
       <.link navigate="/" class={title}>Najva</.link>
