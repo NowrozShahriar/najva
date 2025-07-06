@@ -24,10 +24,54 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
+
+// najva_web hooks
+let Hooks = {}
+
+Hooks.BackButton = {
+  mounted() {
+    this.el.addEventListener("click", (e) => {
+      e.preventDefault()
+      window.history.back()
+    })
+  }
+}
+
+Hooks.ThemeIndicator = {
+  mounted() {
+    this.highlightCurrentTheme()
+
+    this.handleSetTheme = () => this.highlightCurrentTheme()
+    this.handleStorageChange = (e) => {
+      if (e.key === "phx:theme") {
+        this.highlightCurrentTheme()
+      }
+    }
+
+    window.addEventListener("phx:set-theme", this.handleSetTheme)
+    window.addEventListener("storage", this.handleStorageChange)
+  },
+  updated() {
+    this.highlightCurrentTheme()
+  },
+  destroyed() {
+    window.removeEventListener("phx:set-theme", this.handleSetTheme)
+    window.removeEventListener("storage", this.handleStorageChange)
+  },
+  highlightCurrentTheme() {
+    const theme = localStorage.getItem("phx:theme") || "system"
+    this.el.querySelectorAll(".theme-btn").forEach(btn => {
+      btn.id === `theme-button-${theme}` ? btn.classList.add("bg-accent", "text-accent-content") : btn.classList.remove("bg-accent", "text-accent-content")
+    })
+  }
+}
+
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: {_csrf_token: csrfToken}, 
+  hooks: Hooks
 })
 
 // Show progress bar on live navigation and form submits
@@ -78,4 +122,3 @@ if (process.env.NODE_ENV === "development") {
     window.liveReloader = reloader
   })
 }
-

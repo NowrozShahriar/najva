@@ -1,25 +1,25 @@
 defmodule NajvaWeb.Components do
   use Phoenix.Component
 
-  @doc """
-  Button component for Layouts.theme_toggle.
-
-  ## Example
-
-      <.theme_button theme={@theme} />
-  """
-  attr :theme, :string, required: true
-
-  def theme_button(assigns) do
-    ~H"""
-    <button
-      phx-click={Phoenix.LiveView.JS.dispatch("phx:set-theme", detail: %{theme: @theme})}
-      class="flex p-2 cursor-pointer"
-    >
-      {@theme}
-    </button>
-    """
-  end
+  #   @doc """
+  #   Button component for Layouts.theme_toggle.
+  #
+  #   ## Example
+  #
+  #       <.theme_button theme={@theme} />
+  #   """
+  #   attr :theme, :string, required: true
+  #
+  #   def theme_button(assigns) do
+  #     ~H"""
+  #     <button
+  #       phx-click={Phoenix.LiveView.JS.dispatch("phx:set-theme", detail: %{theme: @theme})}
+  #       class="flex p-2 cursor-pointer"
+  #     >
+  #       {@theme}
+  #     </button>
+  #     """
+  #   end
 
   @doc """
   buttons from list for Layouts.theme_toggle.
@@ -35,8 +35,9 @@ defmodule NajvaWeb.Components do
     ~H"""
     <button
       :for={theme <- @themes}
+      id={"theme-button-#{theme}"}
       phx-click={Phoenix.LiveView.JS.dispatch("phx:set-theme", detail: %{theme: theme})}
-      class="flex p-2 cursor-pointer"
+      class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
     >
       {theme}
     </button>

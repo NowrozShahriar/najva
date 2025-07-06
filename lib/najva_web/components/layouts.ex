@@ -68,24 +68,31 @@ defmodule NajvaWeb.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class=" flex flex-wrap items-center bg-base-200 rounded-2xl p-2">
+    <div
+      id="theme-manager"
+      phx-hook="ThemeIndicator"
+      class=" flex flex-wrap items-center bg-base-200 rounded-2xl p-2"
+    >
       <%!-- <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" /> --%>
 
       <button
+        id="theme-button-system"
         phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "system"})}
-        class="flex p-2 cursor-pointer"
+        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
       <button
+        id="theme-button-light"
         phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "light"})}
-        class="flex p-2 cursor-pointer"
+        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
       <button
+        id="theme-button-dark"
         phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dark"})}
-        class="flex p-2 cursor-pointer"
+        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
       >
         <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
       </button>
