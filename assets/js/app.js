@@ -30,10 +30,14 @@ let Hooks = {}
 
 Hooks.BackButton = {
   mounted() {
-    this.el.addEventListener("click", (e) => {
+    this.goBack = (e) => {
       e.preventDefault()
       window.history.back()
-    })
+    }
+    this.el.addEventListener("click", this.goBack)
+  },
+  destroyed() {
+    this.el.removeEventListener("click", this.goBack)
   }
 }
 

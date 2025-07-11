@@ -13,7 +13,8 @@ This is a [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/) project with
 
 ---
 
-🎯 **Current Roadmap:**  
+🎯 **Current Roadmap:** 
+- Complete the UI structure. 
 - Integrate login and display chat list.
 - Display previous clean-text chats properly.
 - Send clean-text messages.

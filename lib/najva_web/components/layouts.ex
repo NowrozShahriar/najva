@@ -12,12 +12,6 @@ defmodule NajvaWeb.Layouts do
 
   embed_templates "layouts/*"
 
-  #   def app(assigns) do
-  #     ~H"""
-  #     <main></main>
-  #     """
-  #   end
-
   @doc """
   Shows the flash group with standard titles and content.
 
@@ -87,14 +81,7 @@ defmodule NajvaWeb.Layouts do
         phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "light"})}
         class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
       >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-      <button
-        id="theme-button-dark"
-        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dark"})}
-        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" />
+        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" /> light
       </button>
 
       <% light_themes = [
@@ -120,6 +107,14 @@ defmodule NajvaWeb.Layouts do
         "silk"
       ] %>
       <.theme_buttons themes={light_themes} />
+
+      <button
+        id="theme-button-dark"
+        phx-click={JS.dispatch("phx:set-theme", detail: %{theme: "dark"})}
+        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
+      >
+        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" /> dark
+      </button>
 
       <% dark_themes = [
         "synthwave",

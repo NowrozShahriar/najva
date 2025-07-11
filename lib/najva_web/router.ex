@@ -18,7 +18,7 @@ defmodule NajvaWeb.Router do
     pipe_through :browser
 
     live "/", AppLive.Root, :root
-    live "/home", AppLive.Home, :home
+    live "/account", AppLive.Account, :account
     live "/settings", AppLive.Settings, :settings
   end
 
