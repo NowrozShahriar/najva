@@ -12,7 +12,7 @@
     " bg-accent text-accent-content hover:bg-accent hover:text-accent-content"
 
   navpanel_child_inactive =
-    " hover:text-accent"
+    " hover:bg-neutral hover:text-neutral-content"
 
   navpanel_icon = "size-full" %>
   <nav class={navpanel}>
@@ -82,25 +82,16 @@
 
   <!-- Settings -->
     <.link
-      :if={@live_action != :settings}
-      navigate="/settings"
+      navigate={if @live_action != :settings, do: "/settings", else: ""}
+      phx-hook={if @live_action == :settings, do: "BackButton", else: ""}
+      id="settings-btn"
       title="Settings"
       class={
-        navpanel_child <> " sm:mt-auto sm:mb-2" <> if @live_action != :settings, do: " hover:text-accent", else: " text-accent"
+        navpanel_child <> " sm:mt-auto sm:mb-2" <> if @live_action != :settings, do: " hover:text-neutral-content hover:bg-neutral", else: " text-accent"
       }
     >
       <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
     </.link>
-    <!-- Settings Back Button -->
-    <button
-      :if={@live_action == :settings}
-      id="settings-back-btn"
-      phx-hook="BackButton"
-      title="Settings"
-      class={navpanel_child <> " sm:mt-auto sm:mb-2 text-accent"}
-    >
-      <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
-    </button>
   </nav>
   
 <!-- ListPane -->
@@ -118,7 +109,7 @@
   account_switcher =
     "border-base-100 hover:border-neutral mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5"
 
-  user_icon = "border-base-100 hover:border-neutral size-11 rounded-full border-2"
+  user_icon = "size-11 rounded-full border-2"
 
   search_field =
     "bg-base-200 border-base-200 hover:border-neutral focus:bg-base-300 focus:border-accent w-full rounded-full border-2 px-4 py-1 focus:outline-none" %>
@@ -127,7 +118,7 @@
       <.link navigate="/" class={title}>Najva</.link>
       <div class="flex items-center">
         <!-- Account switcher -->
-        <button type="button" title="Switch account" class={account_switcher}>
+        <button type="button" title="Switch accounts" class={account_switcher}>
           <p class={[
             "max-w-32 truncate pr-0.5 sm:max-w-48",
             @live_action != :root && " md:max-w-32 xl:max-w-48"
@@ -137,7 +128,13 @@
           <.icon name="hero-chevron-down" />
         </button>
         <!-- Profile icon -->
-        <.link navigate="/home" title="Profile" class={user_icon}>
+        <.link
+          navigate={if @live_action != :account, do: "/account", else: ""}
+          phx-hook={if @live_action == :account, do: "BackButton", else: ""}
+          id="account-btn"
+          title="Account"
+          class={user_icon <> if @live_action != :account, do: " border-base-100 hover:border-neutral hover:bg-neutral hover:text-neutral-content", else: " border-accent"}
+        >
           <.icon name="hero-user-circle" class="size-full" />
         </.link>
       </div>
