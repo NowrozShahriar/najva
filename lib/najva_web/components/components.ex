@@ -1,6 +1,6 @@
 defmodule NajvaWeb.Components do
   use Phoenix.Component
-
+  import NajvaWeb.CoreComponents
   #   @doc """
   #   Button component for Layouts.theme_toggle.
   #
@@ -28,7 +28,6 @@ defmodule NajvaWeb.Components do
 
       <.theme_buttons themes={["garden", "forest"]} />
   """
-
   attr :themes, :list, required: true
 
   def theme_buttons(assigns) do
@@ -44,20 +43,320 @@ defmodule NajvaWeb.Components do
     """
   end
 
-  # This component is used to hide the list pane on small screens.
-  # It can be included in any LiveView or HTML template where you want to control the visibility of the list pane.
-  attr :hide_class, :string, required: true
-  attr :width, :string, default: "768px"
+  @doc """
+  """
+  attr :live_action, :atom, required: true
 
-  def visibility(assigns) do
+  def navbar(assigns) do
     ~H"""
-    <style>
-      @media (max-width: <%= @width %>) {
-        .<%= @hide_class %> {
-          display: none;
-        }
+    <!-- Navigation bar: vertical on desktop, horizontal on mobile -->
+    <% navpanel =
+      " bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:py4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg "
+
+    navpanel_child = " m-0.5 size-11 rounded-xl p-1 "
+
+    navpanel_child_active =
+      " bg-accent text-accent-content hover:bg-accent hover:text-accent-content "
+
+    navpanel_child_inactive =
+      " hover:bg-neutral hover:text-neutral-content "
+
+    navpanel_icon = " size-full " %>
+    <nav class={navpanel}>
+      
+    <!-- All Chats -->
+      <% active_list = :all_chats %>
+      <button
+        phx-click="set_active_list"
+        phx-value="chats"
+        title="All chats"
+        class={navpanel_child <> if active_list == :all_chats, do: navpanel_child_active, else: navpanel_child_inactive}
+      >
+        <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
+      </button>
+      
+    <!-- Inbox -->
+      <button
+        phx-click="set_active_list"
+        phx-value="inbox"
+        title="Inbox"
+        class={navpanel_child <> if active_list == :inbox, do: navpanel_child_active, else: navpanel_child_inactive}
+      >
+        <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
+      </button>
+      
+    <!-- Groups -->
+      <button
+        phx-click="set_active_list"
+        phx-value="groups"
+        title="Groups"
+        class={navpanel_child <> if active_list != :groups, do: navpanel_child_inactive, else: navpanel_child_active}
+      >
+        <.icon name="hero-user-group" class={navpanel_icon} />
+      </button>
+      
+    <!-- Favorites -->
+      <button
+        phx-click="set_active_list"
+        phx-value="favorites"
+        title="Favorites"
+        class={navpanel_child <> if active_list != :favorites, do: navpanel_child_inactive, else: navpanel_child_active}
+      >
+        <.icon name="hero-heart" class={navpanel_icon} />
+      </button>
+      
+    <!-- Archive (only visible on desktop) -->
+      <button
+        phx-click="set_active_list"
+        phx-value="archive"
+        title="Archive"
+        class={navpanel_child <> " hidden sm:block" <> if active_list != :archive, do: navpanel_child_inactive, else: navpanel_child_active}
+      >
+        <.icon name="hero-archive-box" class={navpanel_icon} />
+      </button>
+      
+    <!-- Contacts -->
+      <button
+        phx-click="set_active_list"
+        phx-value="contacts"
+        title="Contacts"
+        class={navpanel_child <> if active_list != :contacts, do: navpanel_child_inactive, else: navpanel_child_active}
+      >
+        <.icon name="hero-bookmark-square" class={navpanel_icon} />
+      </button>
+      
+    <!-- Settings -->
+      <.link
+        navigate={if @live_action != :settings, do: "/settings", else: ""}
+        phx-hook={@live_action == :settings && "BackButton"}
+        id="settings-btn"
+        title="Settings"
+        class={
+        navpanel_child <> " sm:mt-auto sm:mb-2" <> if @live_action != :settings, do: " hover:text-neutral-content hover:bg-neutral", else: " text-accent bg-base-200"
       }
-    </style>
+      >
+        <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
+      </.link>
+    </nav>
     """
   end
+
+  @doc """
+
+  """
+  attr :live_action, :atom, required: true
+
+  def heading(assigns) do
+    ~H"""
+    <% header =
+      " flex items-center justify-between pb-2 "
+
+    title =
+      " px-3 py-2 text-3xl font-bold "
+
+    account_switcher =
+      " border-base-100 min-w-0 hover:border-neutral mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5 "
+
+    profile_icon =
+      " size-11 flex-shrink-0 rounded-full border-2 "
+
+    profile_icon_active =
+      " border-accent bg-base-200 "
+
+    profile_icon_inactive =
+      " border-base-100 hover:border-neutral hover:bg-neutral hover:text-neutral-content "
+
+    search_field =
+      " bg-base-200 border-base-200 hover:border-neutral focus:border-accent w-full rounded-full border-2 px-4 py-1 focus:outline-none " %>
+
+    <div class={header}>
+      <.link navigate="/" class={title}>Najva</.link>
+
+      <div class="flex min-w-0 items-center">
+        <!-- Account switcher -->
+        <button type="button" title="Switch accounts" class={account_switcher}>
+          <p class={[
+            "max-w-32 truncate pr-0.5 sm:max-w-48",
+            @live_action != :root && " md:max-w-32 xl:max-w-48"
+          ]}>
+            jabberid@xmpp.server
+          </p>
+          <.icon name="hero-chevron-down" class="flex-shrink-0" />
+        </button>
+        
+    <!-- Profile icon -->
+        <.link
+          navigate={if @live_action != :account, do: "/account", else: ""}
+          phx-hook={@live_action == :account && "BackButton"}
+          id="account-btn"
+          title="Account"
+          class={profile_icon <> if @live_action != :account, do: profile_icon_inactive, else: profile_icon_active}
+        >
+          <.icon name="hero-user-circle" class="size-full" />
+        </.link>
+      </div>
+    </div>
+
+    <!-- Search box -->
+    <input type="text" placeholder="Search..." class={search_field} />
+    <hr class="text-base-300 my-2" />
+    """
+  end
+
+  @doc """
+  Renders a list of chats in the list pane.
+  It expects a map of chats where keys are JIDs and values are maps
+  containing chat details like `:name`, `:last_message`, and `:timestamp`.
+
+  ## Example
+
+      <.list_chats chats={@chats} />
+  """
+
+  # attr :chats, :map, required: true
+
+  def list_chats(assigns) do
+    ~H"""
+    <% chats = %{
+      "friend1@server.com" => %{
+        name: "Alice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat@conference.server.com" => %{
+        name: "Project Team",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend2@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
+      "friend3@server.com" => %{
+        name: "mAlice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat1@conference.server.com" => %{
+        name: "Project Team1",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend4@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
+      "friend5@server.com" => %{
+        name: "Alice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat3@conference.server.com" => %{
+        name: "Project Team2",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend6@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
+      "friend7@server.com" => %{
+        name: "Alice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat4@conference.server.com" => %{
+        name: "Project Team3",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend8@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
+      "friend9@server.com" => %{
+        name: "Alice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat5@conference.server.com" => %{
+        name: "Project Team",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend10@server.com" => %{
+        name: "Bob",
+        last_message: "Sounds good.",
+        timestamp: "Yesterday"
+      },
+      "friend11@server.com" => %{
+        name: "Alice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat6@conference.server.com" => %{
+        name: "Project Team",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend12@server.com" => %{
+        name: "Bob",
+        last_message: "Sounds good.",
+        timestamp: "Yesterday"
+      },
+      "friend13@server.com" => %{
+        name: "Alice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat7@conference.server.com" => %{
+        name: "Project Team",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend14@server.com" => %{
+        name: "Bob",
+        last_message: "Sounds good.",
+        timestamp: "Yesterday"
+      },
+      "friend15@server.com" => %{
+        name: "Alice",
+        last_message: "See you tomorrow!",
+        timestamp: "11:45"
+      },
+      "groupchat8@conference.server.com" => %{
+        name: "Project Team",
+        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
+        timestamp: "10:02"
+      },
+      "friend16@server.com" => %{
+        name: "Bob",
+        last_message: "Sounds good.",
+        timestamp: "Yesterday"
+      }
+    } %>
+    <div class="flex-1 flex flex-col overflow-y-auto p-1 space-y-1">
+      <div
+        :for={{_jid, chat} <- chats}
+        class="grid grid-cols-[auto_1fr_auto] gap-x-4 items-center px-3 py-2 sm:p-1 hover:bg-base-200 cursor-pointer rounded-2xl"
+      >
+        <div class="size-12 bg-secondary rounded-xl flex items-center justify-center text-primary-content font-bold text-xl">
+          {String.at(chat.name, 0)}
+        </div>
+        <div class="flex flex-col overflow-hidden">
+          <div class="font-bold">{chat.name}</div>
+          <div class="text-sm truncate">{chat.last_message}</div>
+        </div>
+        <div class="text-xs self-start pt-1">
+          {chat.timestamp}
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  # This component is used to hide the list pane on small screens.
+  # It can be included in any LiveView or HTML template where you want to control the visibility of the list pane.
+  #   attr :hide_class, :string, required: true
+  #   attr :width, :string, default: "768px"
+  #
+  #   def visibility(assigns) do
+  #     ~H"""
+  #     <style>
+  #       @media (max-width: <%= @width %>) {
+  #         .<%= @hide_class %> {
+  #           display: none;
+  #         }
+  #       }
+  #     </style>
+  #     """
+  #   end
 end
