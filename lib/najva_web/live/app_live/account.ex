@@ -7,7 +7,7 @@ defmodule NajvaWeb.AppLive.Account do
 
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} live_action={@live_action}>
+    <Layouts.app flash={@flash} live_action={@live_action} chats={@chats}>
       <h1>Account</h1>
       <p>Check the console for debug information.</p>
     </Layouts.app>

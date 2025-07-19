@@ -1,10 +1,11 @@
 <.flash_group flash={@flash} />
+
 <% main_container =
   " bg-base-200 mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse sm:flex-row sm:p-0.5 " %>
 <main class={main_container}>
   
 <!-- NavBar -->
-  <.navbar live_action={@live_action} />
+  <.navbar live_action={@live_action} active_list={@active_list} />
   
 <!-- ListPane -->
   <% listpane =
@@ -23,7 +24,7 @@
     </div>
     
 <!-- chat list -->
-    <.list_chats />
+    <.list_chats chat_list={@chat_list} />
   </div>
   
 <!-- MainPanel -->

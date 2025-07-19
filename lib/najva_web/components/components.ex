@@ -46,6 +46,7 @@ defmodule NajvaWeb.Components do
   @doc """
   """
   attr :live_action, :atom, required: true
+  attr :active_list, :atom, required: true
 
   def navbar(assigns) do
     ~H"""
@@ -65,12 +66,11 @@ defmodule NajvaWeb.Components do
     <nav class={navpanel}>
 
     <!-- All Chats -->
-      <% active_list = :all_chats %>
       <button
         phx-click="set_active_list"
-        phx-value="chats"
+        phx-value="all_chats"
         title="All chats"
-        class={navpanel_child <> if active_list == :all_chats, do: navpanel_child_active, else: navpanel_child_inactive}
+        class={navpanel_child <> if @active_list == :all_chats, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
       </button>
@@ -80,7 +80,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="inbox"
         title="Inbox"
-        class={navpanel_child <> if active_list == :inbox, do: navpanel_child_active, else: navpanel_child_inactive}
+        class={navpanel_child <> if @active_list != :inbox, do: navpanel_child_inactive, else: navpanel_child_active}
       >
         <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
       </button>
@@ -90,7 +90,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="groups"
         title="Groups"
-        class={navpanel_child <> if active_list != :groups, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> if @active_list != :groups, do: navpanel_child_inactive, else: navpanel_child_active}
       >
         <.icon name="hero-user-group" class={navpanel_icon} />
       </button>
@@ -100,7 +100,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="favorites"
         title="Favorites"
-        class={navpanel_child <> if active_list != :favorites, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> if @active_list != :favorites, do: navpanel_child_inactive, else: navpanel_child_active}
       >
         <.icon name="hero-heart" class={navpanel_icon} />
       </button>
@@ -110,7 +110,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="archive"
         title="Archive"
-        class={navpanel_child <> " hidden sm:block" <> if active_list != :archive, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> " hidden sm:block" <> if @active_list != :archive, do: navpanel_child_inactive, else: navpanel_child_active}
       >
         <.icon name="hero-archive-box" class={navpanel_icon} />
       </button>
@@ -120,7 +120,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="contacts"
         title="Contacts"
-        class={navpanel_child <> if active_list != :contacts, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> if @active_list != :contacts, do: navpanel_child_inactive, else: navpanel_child_active}
       >
         <.icon name="hero-bookmark-square" class={navpanel_icon} />
       </button>
@@ -210,122 +210,15 @@ defmodule NajvaWeb.Components do
 
   ## Example
 
-      <.list_chats chats={@chats} />
+      <.list_chats chat_list={@chat_list} />
   """
-
-  # attr :chats, :map, required: true
+  attr :chat_list, :map, required: true
 
   def list_chats(assigns) do
     ~H"""
-    <% chats = %{
-      "friend1@server.com" => %{
-        name: "Alice",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat@conference.server.com" => %{
-        name: "Project Team",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend2@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
-      "friend3@server.com" => %{
-        name: "mAlice",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat1@conference.server.com" => %{
-        name: "Project Team1",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend4@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
-      "friend5@server.com" => %{
-        name: "Alice",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat3@conference.server.com" => %{
-        name: "Project Team2",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend6@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
-      "friend7@server.com" => %{
-        name: "Alice",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat4@conference.server.com" => %{
-        name: "Project Team3",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend8@server.com" => %{name: "Bob", last_message: "Sounds good.", timestamp: "Yesterday"},
-      "friend9@server.com" => %{
-        name: "Alice",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat5@conference.server.com" => %{
-        name: "Project Team",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend10@server.com" => %{
-        name: "Bob",
-        last_message: "Sounds good.",
-        timestamp: "Yesterday"
-      },
-      "friend11@server.com" => %{
-        name: "Alice",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat6@conference.server.com" => %{
-        name: "Project Team",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend12@server.com" => %{
-        name: "Bob",
-        last_message: "Sounds good.",
-        timestamp: "Yesterday"
-      },
-      "friend13@server.com" => %{
-        name: "Alixe",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat7@conference.server.com" => %{
-        name: "Project Team",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend14@server.com" => %{
-        name: "Bob",
-        last_message: "Sounds good.",
-        timestamp: "Yesterday"
-      },
-      "friend15@server.com" => %{
-        name: "Alice",
-        last_message: "See you tomorrow!",
-        timestamp: "11:45"
-      },
-      "groupchat8@conference.server.com" => %{
-        name: "Project Team",
-        last_message: "Don't forget the meeting. It is very important and we have a lot to discuss.",
-        timestamp: "10:02"
-      },
-      "friend16@server.com" => %{
-        name: "Bob",
-        last_message: "Sounds good.",
-        timestamp: "Yesterday"
-      }
-    } %>
     <div class="flex-1 flex flex-col overflow-y-auto p-1 space-y-1">
       <div
-        :for={{_jid, chat} <- chats}
+        :for={{_jid, chat} <- @chat_list}
         class="grid grid-cols-[auto_1fr_auto] gap-x-4 items-center px-3 py-2 sm:p-1 hover:bg-base-200 cursor-pointer rounded-2xl"
       >
         <div class="size-12 bg-secondary rounded-xl flex items-center justify-center text-primary-content font-bold text-xl">

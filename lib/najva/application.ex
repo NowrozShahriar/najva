@@ -13,6 +13,8 @@ defmodule Najva.Application do
       {Phoenix.PubSub, name: Najva.PubSub},
       # Start a worker by calling: Najva.Worker.start_link(arg)
       # {Najva.Worker, arg},
+      # Start the XMPP client
+      # Najva.XmppClient,
       # Start to serve requests, typically the last entry
       NajvaWeb.Endpoint
     ]

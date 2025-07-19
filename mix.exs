@@ -20,7 +20,7 @@ defmodule Najva.MixProject do
   def application do
     [
       mod: {Najva.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ssl, :public_key]
     ]
   end
 
