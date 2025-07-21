@@ -34,12 +34,12 @@ defmodule Najva.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.8.0-rc.3", override: true},
-      {:phoenix_html, "~> 4.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 1.0.9"},
-      {:floki, ">= 0.30.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
-      {:esbuild, "~> 0.9", runtime: Mix.env() == :dev},
+      {:phoenix_html, "~> 4.2"},
+      {:phoenix_live_reload, "~> 1.6", only: :dev},
+      {:phoenix_live_view, "~> 1.0.17"},
+      {:floki, ">= 0.38.0", only: :test},
+      {:phoenix_live_dashboard, "~> 0.8.7"},
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:heroicons,
        github: "tailwindlabs/heroicons",
@@ -48,13 +48,13 @@ defmodule Najva.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
+      {:telemetry_metrics, "~> 1.1"},
+      {:telemetry_poller, "~> 1.2"},
       {:gettext, "~> 0.26"},
-      {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"},
-      {:xmpp, "~> 1.10"}
+      {:jason, "~> 1.4"},
+      {:dns_cluster, "~> 0.1.3"},
+      {:bandit, "~> 1.7"},
+      {:xmpp, "~> 1.11"}
       # {:tidewave, "~> 0.1", only: :dev}
     ]
   end

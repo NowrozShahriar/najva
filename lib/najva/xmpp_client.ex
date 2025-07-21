@@ -4,24 +4,24 @@ defmodule Najva.XmppClient do
 
   # The xmpp library is from Erlang, so we need to include its record definitions to work with them in Elixir.
 
-  @xmpp_include_path "deps/xmpp/include"
+  @xmpp_include_path "deps/xmpp/include/xmpp.hrl"
   @record_opts [includes: [@xmpp_include_path]]
 
   require Record
-  Record.defrecordp :jid, Record.extract(:jid, from: Path.join(@xmpp_include_path, "jid.hrl"))
+  Record.defrecordp :jid, Record.extract(:jid, from: @xmpp_include_path)
   # All records below are from xmpp_codec.hrl, which includes other files.
-  Record.defrecordp :stream_features, Record.extract(:stream_features, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :starttls, Record.extract(:starttls, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :starttls_proceed, Record.extract(:starttls_proceed, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :sasl_failure, Record.extract(:sasl_failure, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :sasl_success, Record.extract(:sasl_success, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :sasl_auth, Record.extract(:sasl_auth, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :iq, Record.extract(:iq, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :bind, Record.extract(:bind, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :presence, Record.extract(:presence, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :message, Record.extract(:message, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :text, Record.extract(:text, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
-  Record.defrecordp :sasl_mechanisms, Record.extract(:sasl_mechanisms, [from: Path.join(@xmpp_include_path, "xmpp_codec.hrl")] ++ @record_opts)
+  Record.defrecordp :stream_features, Record.extract(:stream_features, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :starttls, Record.extract(:starttls, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :starttls_proceed, Record.extract(:starttls_proceed, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :sasl_failure, Record.extract(:sasl_failure, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :sasl_success, Record.extract(:sasl_success, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :sasl_auth, Record.extract(:sasl_auth, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :iq, Record.extract(:iq, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :bind, Record.extract(:bind, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :presence, Record.extract(:presence, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :message, Record.extract(:message, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :text, Record.extract(:text, [from: @xmpp_include_path] ++ @record_opts)
+  Record.defrecordp :sasl_mechanisms, Record.extract(:sasl_mechanisms, [from: @xmpp_include_path] ++ @record_opts)
 
   @doc "Starts the XMPP client GenServer."
   def start_link(opts) do
