@@ -20,7 +20,7 @@ defmodule Najva.MixProject do
   def application do
     [
       mod: {Najva.Application, []},
-      extra_applications: [:logger, :runtime_tools, :ssl, :public_key]
+      extra_applications: [:logger, :runtime_tools, :ssl, :public_key, :xmpp]
     ]
   end
 
@@ -33,7 +33,7 @@ defmodule Najva.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.8.0-rc.3", override: true},
+      {:phoenix, "~> 1.8.0-rc.4", override: true},
       {:phoenix_html, "~> 4.2"},
       {:phoenix_live_reload, "~> 1.6", only: :dev},
       {:phoenix_live_view, "~> 1.0.17"},
@@ -54,8 +54,8 @@ defmodule Najva.MixProject do
       {:jason, "~> 1.4"},
       {:dns_cluster, "~> 0.1.3"},
       {:bandit, "~> 1.7"},
-      {:xmpp, "~> 1.11"}
-      # {:tidewave, "~> 0.1", only: :dev}
+      {:xmpp, "~> 1.11"},
+      {:tidewave, "~> 0.2", only: :dev}
     ]
   end
 

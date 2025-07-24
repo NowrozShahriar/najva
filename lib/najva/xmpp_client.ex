@@ -30,7 +30,7 @@ defmodule Najva.XmppClient do
 
   @impl true
   def init(_opts) do
-    jid_str = "test1@xmpp.social"
+    jid_str = "najva_test0@xmpp.social"
     password = "12345678"
     host = "xmpp.social"
     port = 5222
