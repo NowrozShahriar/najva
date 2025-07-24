@@ -49,7 +49,7 @@ defmodule Najva.MixProject do
        compile: false,
        depth: 1},
       {:telemetry_metrics, "~> 1.1"},
-      {:telemetry_poller, "~> 1.2"},
+      {:telemetry_poller, "~> 1.3"},
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.4"},
       {:dns_cluster, "~> 0.1.3"},
