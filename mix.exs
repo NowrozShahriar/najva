@@ -33,14 +33,14 @@ defmodule Najva.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.8.0"},
+      {:phoenix, "~> 1.8"},
       {:phoenix_html, "~> 4.2"},
       {:phoenix_live_reload, "~> 1.6", only: :dev},
-      {:phoenix_live_view, "~> 1.0.17"},
+      {:phoenix_live_view, "~> 1.1"},
       {:floki, ">= 0.38.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.7"},
-      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.10.0", runtime: Mix.env() == :dev},
+      {:tailwind, "~> 0.3.1", runtime: Mix.env() == :dev},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",
@@ -50,12 +50,12 @@ defmodule Najva.MixProject do
        depth: 1},
       {:telemetry_metrics, "~> 1.1"},
       {:telemetry_poller, "~> 1.3"},
-      {:gettext, "~> 0.26"},
+      {:gettext, "~> 0.26.2"},
       {:jason, "~> 1.4"},
-      {:dns_cluster, "~> 0.1.3"},
+      {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.7"},
       {:xmpp, "~> 1.11"},
-      {:tidewave, "~> 0.2", only: :dev}
+      {:tidewave, "~> 0.3.2", only: :dev}
     ]
   end
 
