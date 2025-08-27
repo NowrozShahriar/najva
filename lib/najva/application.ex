@@ -11,10 +11,14 @@ defmodule Najva.Application do
       NajvaWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:najva, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Najva.PubSub},
+      # Message store for keeping recent messages
+      Najva.MessageStore,
+      # Start the XMPP client with test credentials; later this will come from user session
+      {Najva.XmppClient,
+       [jid: "najva_test0@xmpp.social", password: "12345678", host: "xmpp.social", port: 5222]},
       # Start a worker by calling: Najva.Worker.start_link(arg)
       # {Najva.Worker, arg},
       # Start the XMPP client
-      # Najva.XmppClient,
       # Start to serve requests, typically the last entry
       NajvaWeb.Endpoint
     ]

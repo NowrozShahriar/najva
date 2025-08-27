@@ -64,7 +64,7 @@ defmodule NajvaWeb.Components do
 
     navpanel_icon = " size-full " %>
     <nav class={navpanel}>
-
+      
     <!-- All Chats -->
       <button
         phx-click="set_active_list"
@@ -74,7 +74,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
       </button>
-
+      
     <!-- Inbox -->
       <button
         phx-click="set_active_list"
@@ -84,7 +84,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
       </button>
-
+      
     <!-- Groups -->
       <button
         phx-click="set_active_list"
@@ -94,7 +94,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-user-group" class={navpanel_icon} />
       </button>
-
+      
     <!-- Favorites -->
       <button
         phx-click="set_active_list"
@@ -104,7 +104,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-heart" class={navpanel_icon} />
       </button>
-
+      
     <!-- Archive (only visible on desktop) -->
       <button
         phx-click="set_active_list"
@@ -114,7 +114,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-archive-box" class={navpanel_icon} />
       </button>
-
+      
     <!-- Contacts -->
       <button
         phx-click="set_active_list"
@@ -124,7 +124,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-bookmark-square" class={navpanel_icon} />
       </button>
-
+      
     <!-- Settings -->
       <.link
         navigate={if @live_action != :settings, do: "/settings", else: ""}
@@ -183,7 +183,7 @@ defmodule NajvaWeb.Components do
           </p>
           <.icon name="hero-chevron-down" class="flex-shrink-0" />
         </button>
-
+        
     <!-- Profile icon -->
         <.link
           navigate={if @live_action != :account, do: "/account", else: ""}
