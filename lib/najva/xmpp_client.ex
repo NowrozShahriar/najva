@@ -89,10 +89,9 @@ defmodule Najva.XmppClient do
 
     @impl true
     def handle_info(:connect, state) do
-        host = to_charlist(state.host)
         socket_opts = [:binary, packet: :raw, active: :once, keepalive: true]
 
-        case :gen_tcp.connect(host, state.port, socket_opts) do
+        case :gen_tcp.connect(state.host, state.port, socket_opts) do
             {:ok, sock} ->
                 Logger.info("Najva.XmppClient: tcp connected")
                 new_state = %{state | socket: sock}

@@ -12,7 +12,7 @@ defmodule Najva.Application do
       {DNSCluster, query: Application.get_env(:najva, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Najva.PubSub},
       # Message store for keeping recent messages
-      Najva.MessageStore,
+      # Najva.MessageStore,
       # Start the XMPP client with test credentials; later this will come from user session
       {Najva.XmppClient,
        [jid: "najva_test0@xmpp.social", password: "12345678", host: "xmpp.social", port: 5222]},
