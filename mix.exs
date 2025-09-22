@@ -55,7 +55,8 @@ defmodule Najva.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.7"},
       {:xmpp, "~> 1.11"},
-      {:tidewave, "~> 0.3.2", only: :dev}
+      {:tidewave, "~> 0.3.2", only: :dev},
+      {:timex, "~> 3.7"}
     ]
   end
 
