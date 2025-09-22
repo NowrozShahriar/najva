@@ -99,17 +99,17 @@ defmodule Najva.XmppClient do
 	def handle_info({:ssl, socket, data}, %{socket: socket} = state),
 		do: parse_and_continue(state, data, :ssl)
 
-	# Step 8, 12, 18
+	# Step 8, 12, 18, 24
 	@impl true
 	def handle_info({:xmlstreamelement, element}, state) do
-		Logger.info("XmppClient XML element received: #{inspect(element)}")
+		Logger.debug("XmppClient XML element received: #{inspect(element)}")
 		handle_element(element, state)
 	end
 
-	# Step 7, 17
+	# Step 7, 17, 23
 	@impl true
-	def handle_info({:xmlstreamstart, "stream:stream", attrs}, state) do
-		Logger.info("XmppClient: XML stream started: #{inspect(attrs)}")
+	def handle_info({:xmlstreamstart, _name, _attrs} = header_response, state) do
+		Logger.notice("XmppClient: new XML stream started: #{inspect(header_response)}")
 		{:noreply, state}
 	end
 
@@ -136,16 +136,6 @@ defmodule Najva.XmppClient do
 		{:noreply, state}
 	end
 
-	# Step 3, 15
-	defp send_stream_header(state) do
-		header =
-			"<stream:stream to='#{state.host}' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"
-
-		# Step 3.5, 15.5
-		Logger.info("XmppClient: requesting new XML stream")
-		send_data(state, header)
-	end
-
 	# Step 6
 	defp parse_and_continue(state, data, transport) do
 		new_stream_state = :fxml_stream.parse(state.stream_state, data)
@@ -158,7 +148,19 @@ defmodule Najva.XmppClient do
 		{:noreply, %{state | stream_state: new_stream_state}}
 	end
 
-	# Step 16
+	# Step 3, 15, 26
+	defp send_stream_header(state) do
+		header =
+			"<stream:stream to='#{state.host}' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"
+		Logger.info("XmppClient: sending stream header")
+		send_data(state, header)
+	end
+
+	# Step 27
+	defp send_data(%{connection_state: :authenticated, socket: sock}, data),
+		do: :ssl.send(sock, data)
+
+	# Step 16, 22
 	defp send_data(%{connection_state: :tls_active, socket: sock}, data),
 		do: :ssl.send(sock, data)
 
@@ -169,12 +171,13 @@ defmodule Najva.XmppClient do
 	# defp send_element(state, element) do
 	# 	xml = :xmpp.encode(element)
 	# 	bin = :fxml.element_to_binary(xml)
-	# 	send_data(state, bin)
+	# 	send_data(state, bin) |> IO.inspect(label: "sent element")
 	# end
 
-	# Step 9, 19?
+	# Step 9, 19, 25
 	defp handle_element({:xmlel, "stream:features", attrs, children}, state) do
 		{:stream_features, features} = :xmpp.decode({:xmlel, "stream:features", attrs, children})
+		Logger.info("XmppClient: received stream features: #{inspect(features)}")
 		handle_features(features, state)
 	end
 
@@ -184,6 +187,7 @@ defmodule Najva.XmppClient do
 		handle_starttls_proceed(state)
 	end
 
+	# Step 24
 	defp handle_element({:xmlel, "success", _attrs, _children}, state) do
 		Logger.info("XmppClient: SASL success, restarting stream")
 		handle_sasl_success(state)
@@ -219,14 +223,21 @@ defmodule Najva.XmppClient do
 
 	# Step 10
 	defp handle_features(features, state) do
-		if features[:starttls] do
-			Logger.info("XmppClient: STARTTLS supported, initiating...")
+		cond do
 			# Step 10.5
-			send_data(state, "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>")
-			{:noreply, %{state | connection_state: :tls_negotiating}}
-		else
-			Logger.error("XmppClient: STARTTLS not supported or required.")
-			{:stop, :tls_not_supported, state}
+			features[:starttls] && state.connection_state != :tls_active ->
+				Logger.info("XmppClient: STARTTLS supported, initiating...")
+				send_data(state, "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>")
+				{:noreply, %{state | connection_state: :tls_negotiating}}
+
+			# Step 20
+			features[:sasl_mechanisms] ->
+				Logger.info("XmppClient: SASL mechanisms available.")
+				handle_sasl(features[:sasl_mechanisms], state)
+
+			true ->
+				Logger.error("XmppClient: STARTTLS not supported or required.")
+				{:stop, :tls_not_supported, state}
 		end
 	end
 
@@ -254,6 +265,20 @@ defmodule Najva.XmppClient do
 		end
 	end
 
+	# Step 21
+	defp handle_sasl(mechanisms, state) do
+		if "PLAIN" in mechanisms do
+			Logger.info("XmppClient: PLAIN authentication supported, authenticating...")
+			auth_string = Base.encode64("\0#{state.jid}\0#{state.password}")
+			send_data(state, "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>#{auth_string}</auth>")
+			{:noreply, state}
+		else
+			Logger.error("XmppClient: PLAIN authentication not supported.")
+			{:stop, :plain_auth_not_supported, state}
+		end
+	end
+
+	# Step 25
 	defp handle_sasl_success(state) do
 		Logger.info("XmppClient: SASL success")
 		# After successful auth, we restart the stream.
@@ -262,7 +287,7 @@ defmodule Najva.XmppClient do
 			| stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
 				connection_state: :authenticated
 		}
-
+		# Step 25.5
 		send_stream_header(new_state)
 		{:noreply, new_state}
 	end
