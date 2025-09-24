@@ -12,13 +12,14 @@ defmodule Najva.Application do
       {DNSCluster, query: Application.get_env(:najva, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Najva.PubSub},
       # Start the XMPP client with test credentials; later this will come from user session
-      {Najva.XmppClient,
-       [
-         jid: "najva_test0@conversations.im",
-         password: "random_password",
-         host: "conversations.im",
-         port: 5222
-       ]},
+      # {Najva.XmppClient,
+      #  [
+      #    jid: "najva_test0@conversations.im",
+      #    password: "random_password",
+      #    host: "conversations.im",
+      #    #  host: "xmpp.earth", # has SCRAM-SHA-256-PLUS
+      #    port: 5222
+      #  ]},
       # Start a worker by calling: Najva.Worker.start_link(arg)
       # {Najva.Worker, arg},
       # Start to serve requests, typically the last entry
