@@ -6,6 +6,23 @@ defmodule Najva do
   Contexts are also responsible for managing your data, regardless
   if it comes from the database, an external API or others.
   """
+
+  def start() do
+    Najva.XmppClient.start_link(
+      jid: "najva_test0@conversations.im",
+      password: "random_password",
+      host: "conversations.im",
+      # host: "xmpp.earth", # has SCRAM-SHA-256-PLUS
+      port: 5222
+    )
+  end
+
+  def restart() do
+    GenServer.stop(Najva.XmppClient)
+    Process.sleep(2000)
+    start()
+  end
+
   def listpane_content() do
     %{
       "friend1@server.com" => %{

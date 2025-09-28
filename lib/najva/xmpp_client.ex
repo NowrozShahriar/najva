@@ -67,7 +67,7 @@ defmodule Najva.XmppClient do
   @impl true
   def init(opts) do
     # {:ok, timestamp} = Timex.now() |> Timex.format("%y%m%d%H%M%S", :strftime)
-    resource = "/Najva-#{System.os_time(:second) |> Integer.to_string(36)}"
+    resource = "Najva-#{System.os_time(:second) |> Integer.to_string(36)}"
 
     # Step 0
     state = %{
@@ -110,7 +110,7 @@ defmodule Najva.XmppClient do
 
   @impl true
   def handle_info({:ssl, socket, data}, %{socket: socket} = state) do
-    Logger.debug(data)
+    Logger.info("XmppClient: received #{inspect(data)} \n")
     parse_and_continue(state, data, :ssl)
   end
 
@@ -136,8 +136,10 @@ defmodule Najva.XmppClient do
 
   # Step 5
   @impl true
-  def handle_info({:tcp, socket, data}, %{socket: socket} = state),
-    do: parse_and_continue(state, data, :tcp)
+  def handle_info({:tcp, socket, data}, %{socket: socket} = state) do
+    Logger.warning("XmppClient: tcp received #{inspect(data)} \n")
+    parse_and_continue(state, data, :tcp)
+  end
 
   @impl true
   def handle_info({:tcp_closed, socket}, %{socket: socket} = state) do
@@ -165,9 +167,8 @@ defmodule Najva.XmppClient do
 
   # Step 27, 33
   def send_data(%{connection_state: :authenticated, socket: sock}, data),
+    # |> IO.inspect(label: "sent data")
     do: :ssl.send(sock, data)
-
-  # |> IO.inspect(label: "sent data")
 
   # Step 16, 22
   def send_data(%{connection_state: :tls_active, socket: sock}, data),
