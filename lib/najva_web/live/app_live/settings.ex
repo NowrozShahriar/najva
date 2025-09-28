@@ -7,7 +7,7 @@ defmodule NajvaWeb.AppLive.Settings do
 
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} live_action={@live_action} chats={@chats}>
+    <Layouts.app flash={@flash} live_action={@live_action}>
       <div class="lg:w-2/3 xl:w-1/2 mx-auto">
         <h1 class="font-semibold text-2xl p-4">Settings</h1>
         <Layouts.theme_toggle />
