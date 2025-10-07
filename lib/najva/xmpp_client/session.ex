@@ -138,7 +138,7 @@ defmodule Najva.XmppClient.Session do
 
   # Step 36
   def handle_bind_result(jid, state) do
-    Logger.info("XmppClient.Session: session aquired #{inspect(jid)}")
+    # Logger.info("XmppClient.Session: session aquired #{inspect(jid)}\n")
     new_state = %{state | jid: jid}
     # Step 37
     XmppClient.send_element(new_state, presence())
