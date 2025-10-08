@@ -24,6 +24,13 @@ defmodule Fxmap do
   It converts element and attribute names to atoms and strips any XML namespace
   prefixes (e.g., "prefix:name" becomes `:name`).
 
+  ## Performance
+
+  This function is approximately 4x slower than `decode_raw/1` due to the
+  runtime conversion of strings to atoms. It is recommended to use `decode/1`
+  primarily for development and testing. For production environments,
+  `decode_raw/1` is the recommended choice for better performance.
+
   ## Example
 
       iex> xml = {:xmlel, "message", [{"to", "user@example.com"}], [{:xmlel, "body", [], [{:xmlcdata, "Hello"}]}]}
@@ -66,8 +73,8 @@ defmodule Fxmap do
       iex> Fxmap.decode_raw(xml)
       %{
         "ns:message" => %{
-          "_@attrs" => %{"to" => "user@example.com"},
-          "body" => %{"_@cdata" => "Hello"}
+          "@attrs" => %{"to" => "user@example.com"},
+          "body" => %{"@cdata" => "Hello"}
         }
       }
 
@@ -80,16 +87,16 @@ defmodule Fxmap do
     do: {
       name,
       unless attrs == [] do
-        Map.put(%{}, "_@attrs", Map.new(attrs))
+        Map.put(%{}, "@attrs", Map.new(attrs))
       else
         %{}
       end
       |> handle_children(children, &decode_r/1)
     }
 
-  defp decode_r({:xmlcdata, content}), do: {"_@cdata", content}
+  defp decode_r({:xmlcdata, content}), do: {"@cdata", content}
   defp decode_r({:xmlstreamelement, element}), do: decode_r(element)
-  defp decode_r({:xmlstreamstart, name, attrs}), do: {name, %{"_@attrs" => Map.new(attrs)}}
+  defp decode_r({:xmlstreamstart, name, attrs}), do: {name, %{"@attrs" => Map.new(attrs)}}
   defp decode_r(_), do: {:error, :unknown_format}
 
   # --- Helpers ---

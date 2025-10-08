@@ -56,7 +56,8 @@ defmodule Najva.MixProject do
       {:bandit, "~> 1.7"},
       {:xmpp, "~> 1.11"},
       {:tidewave, "~> 0.3.2", only: :dev},
-      {:timex, "~> 3.7"}
+      {:timex, "~> 3.7"},
+      {:benchee_html, "~> 1.0", only: :dev}
     ]
   end
 
