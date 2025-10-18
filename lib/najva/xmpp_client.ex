@@ -132,7 +132,7 @@ defmodule Najva.XmppClient do
 
       # Step 8, 12, 18, 29, 34
       {:xmlstreamelement, element} ->
-        Logger.info("XmppClient XML element received: #{:xmpp.decode(element) |> inspect()}\n")
+        Logger.info("XmppClient XML element received: #{Fxmap.decode(element) |> inspect()}\n")
         handle_element(element, state)
 
       # Step 7, 17, 28
@@ -198,7 +198,6 @@ defmodule Najva.XmppClient do
   def send_element(state, record) do
     xmlel = :xmpp.encode(record)
     xml = :fxml.element_to_binary(xmlel)
-    # Logger.debug("XmppClient: sending element: #{inspect(xml)}")
     send_data(state, xml)
   end
 

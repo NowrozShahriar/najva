@@ -56,22 +56,22 @@ defmodule FxmapTest do
           parent: [
             %{
               mixed_content: %{
-                _@cdata: ["cdata2", "cdata1"],
-                _@attrs: %{type: "data"},
+                cdata!: ["cdata2", "cdata1"],
+                attrs!: %{type: "data"},
                 sub_element: :sub_element
               }
             },
             %{
-              _@attrs: %{attr1: "value1"},
+              attrs!: %{attr1: "value1"},
               child1: %{
-                _@attrs: %{c: "v3", a: "v", b: "v2"},
-                nested: [%{_@attrs: %{id: "s2"}}, %{_@cdata: "deeply nested cdata"}]
+                attrs!: %{c: "v3", a: "v", b: "v2"},
+                nested: [%{attrs!: %{id: "s2"}}, %{cdata!: "deeply nested cdata"}]
               }
             }
           ],
-          text_only: %{_@cdata: "plain text content"},
+          text_only: %{cdata!: "plain text content"},
           empty_tag: :empty_tag,
-          empty_with_attr: %{_@attrs: %{flag: "true"}}
+          empty_with_attr: %{attrs!: %{flag: "true"}}
         }
       }
 
@@ -84,27 +84,27 @@ defmodule FxmapTest do
       expected_map = %{
         "root" => %{
           "empty_tag" => "empty_tag",
-          "empty_with_attr" => %{"_@attrs" => %{"flag" => "true"}},
+          "empty_with_attr" => %{"@attrs" => %{"flag" => "true"}},
           "parent" => [
             %{
               "mixed_content" => %{
-                "_@attrs" => %{"type" => "data"},
-                "_@cdata" => ["cdata2", "cdata1"],
+                "@attrs" => %{"type" => "data"},
+                "@cdata" => ["cdata2", "cdata1"],
                 "sub_element" => "sub_element"
               }
             },
             %{
-              "_@attrs" => %{"attr1" => "value1"},
+              "@attrs" => %{"attr1" => "value1"},
               "child1" => %{
-                "_@attrs" => %{"a" => "v", "b" => "v2", "c" => "v3"},
+                "@attrs" => %{"a" => "v", "b" => "v2", "c" => "v3"},
                 "nested" => [
-                  %{"_@attrs" => %{"id" => "s2"}},
-                  %{"_@cdata" => "deeply nested cdata"}
+                  %{"@attrs" => %{"id" => "s2"}},
+                  %{"@cdata" => "deeply nested cdata"}
                 ]
               }
             }
           ],
-          "text_only" => %{"_@cdata" => "plain text content"}
+          "text_only" => %{"@cdata" => "plain text content"}
         }
       }
 
