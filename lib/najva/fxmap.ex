@@ -37,8 +37,8 @@ defmodule Fxmap do
       iex> Fxmap.decode(xml)
       %{
         message: %{
-          attrs!: %{to: "user@example.com"},
-          body: %{cdata!: "Hello"}
+          _@attrs: %{to: "user@example.com"},
+          body: %{_@cdata: "Hello"}
         }
       }
   """
@@ -53,7 +53,7 @@ defmodule Fxmap do
       |> handle_children(children, &decode_s/1)
     }
 
-  defp decode_s({:xmlcdata, content}), do: {:cdata!, content}
+  defp decode_s({:xmlcdata, content}), do: {:_@cdata, content}
   defp decode_s({:xmlstreamelement, element}), do: decode_s(element)
   defp decode_s({:xmlstreamstart, name, attrs}), do: {atomize(name), handle_attrs(attrs)}
   defp decode_s(_), do: {:error, :unknown_format}
@@ -114,7 +114,7 @@ defmodule Fxmap do
   defp handle_attrs(attrs) do
     Map.put(
       %{},
-      :attrs!,
+      :_@attrs,
       Map.new(attrs, fn {k, v} -> {atomize(k), v} end)
     )
   end

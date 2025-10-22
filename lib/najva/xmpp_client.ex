@@ -81,30 +81,49 @@ defmodule Najva.XmppClient do
   # ]
 
   @doc "Start the XMPP client. Options: :jid, :password, :host, :port"
-  def start_link(opts) when is_list(opts) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, opts, name: {:global, opts.jid})
   end
 
   @impl true
   def init(opts) do
-    resource = "Najva-#{System.os_time(:second) |> Integer.to_string(36)}"
     # Step 0
     state = %{
-      jid: opts[:jid],
-      password: opts[:password],
-      resource: resource,
-      host: opts[:host],
-      port: opts[:port],
+      jid: opts.jid,
+      password: opts.password,
+      resource: opts.resource,
+      host: opts.host,
       connection_state: :connecting,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      socket: nil
+      socket: nil,
+      live_view_pids: MapSet.new()
     }
 
     # Step 1
-    # Logger.info("XmppClient: connecting to #{state.host}:#{state.port}")
+    # Logger.info("XmppClient: connecting to #{state.host}")
     send(self(), :connect)
     {:ok, state}
+  end
+
+  @doc "Loads all chats from the archive."
+  def load_archive() do
+    # Using call to get a reply, but can be a cast if you don't need to wait.
+    GenServer.call(__MODULE__, :load_archive)
+  end
+
+  @impl true
+  def handle_call(:load_archive, _from, state) do
+    query_id = "mam-" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
+
+    mam_query = mam_query(id: query_id)
+    mam_iq = iq(type: :set, id: query_id, sub_els: [mam_query])
+
+    send_element(state, mam_iq)
+
+    # Here we are just acknowledging the request was sent.
+    # The results will arrive as separate messages.
+    {:reply, :ok, state}
   end
 
   @impl true
@@ -114,7 +133,7 @@ defmodule Najva.XmppClient do
       :connect ->
         socket_opts = [:binary, packet: :raw, active: :once, keepalive: true]
 
-        case :gen_tcp.connect(to_charlist(state.host), state.port, socket_opts) do
+        case :gen_tcp.connect(to_charlist(state.host), 5222, socket_opts) do
           {:ok, sock} ->
             # Logger.info("XmppClient: tcp connected, revieved socket #{inspect(sock)}")
             new_state = %{state | socket: sock}
@@ -122,17 +141,17 @@ defmodule Najva.XmppClient do
             {:noreply, new_state}
 
           {:error, reason} ->
-            Logger.error("XmppClient: connect error #{inspect(reason)}")
+            Logger.error("XmppClient: connect error to #{state.host} - #{inspect(reason)}")
             {:stop, {:tcp_connect_failed, reason}, state}
         end
 
       {:ssl, socket, data} when socket == state.socket ->
-        # Logger.info("XmppClient: received #{inspect(data)}\n")
+        # Logger.info("XmppClient: XML received\n#{inspect(data)}\n")
         parse_and_continue(state, data, :ssl)
 
       # Step 8, 12, 18, 29, 34
       {:xmlstreamelement, element} ->
-        Logger.info("XmppClient XML element received: #{Fxmap.decode(element) |> inspect()}\n")
+        # Logger.info("XmppClient XML element received:\n#{Fxmap.decode(element) |> inspect()}\n")
         handle_element(element, state)
 
       # Step 7, 17, 28
@@ -168,7 +187,11 @@ defmodule Najva.XmppClient do
       :tcp -> :inet.setopts(state.socket, active: :once)
     end
 
-    {:noreply, %{state | stream_state: new_stream_state}}
+    if new_stream_state == state.stream_state do
+      {:noreply, state}
+    else
+      {:noreply, %{state | stream_state: new_stream_state}}
+    end
   end
 
   # Step 4, 11, 16, 22, 27, 33
@@ -210,16 +233,35 @@ defmodule Najva.XmppClient do
       iq(type: :result, sub_els: [bind(jid: jid)]) ->
         Session.handle_bind_result(jid(jid), state)
 
-      _ ->
+      # MAM result
+      iq(type: :result, sub_els: [mam_fin(complete: "true") = fin]) ->
+        Logger.info("XmppClient: MAM query finished: #{inspect(fin)}")
+
+      # You can notify the UI that all messages have been loaded.
+
+      # Other IQ results
+      iq(type: :result, id: "mam-" <> _rest) ->
+        Logger.debug("XmppClient: Received an intermediate MAM IQ result.")
+
+      iq() ->
         Logger.debug("XmppClient: unhandled IQ: #{inspect(iq)}")
     end
 
     {:noreply, state}
   end
 
-  def handle_element({:xmlel, "message", _attrs, _children}, state) do
-    # message = :xmpp.decode({:xmlel, "message", attrs, children})
-    # Logger.debug("XmppClient: received message: #{inspect(message)}")
+  def handle_element({:xmlel, "message", _attrs, _children} = element, state) do
+    %{message: message} = Fxmap.decode(element)
+
+    case Map.has_key?(message, :fin) do
+      false ->
+        Logger.info("XmppClient: received message\n#{inspect(message)}\n")
+        # -------------------------------------------
+        # now the task is to post these on the pubsub
+        # -------------------------------------------
+      true -> Logger.info("XmppClient: MAM query finished #{message.fin.attrs!.complete}")
+    end
+
     {:noreply, state}
   end
 

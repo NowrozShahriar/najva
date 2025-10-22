@@ -8,19 +8,22 @@ defmodule Najva do
   """
 
   def start() do
-    Najva.XmppClient.start_link(
+    Najva.XmppClient.start_link(%{
       jid: "najva_test0@conversations.im",
       password: "random_password",
       host: "conversations.im",
-      # host: "xmpp.earth", # has SCRAM-SHA-256-PLUS
-      port: 5222
-    )
+      resource: "Najva"
+      # host: "xmpp.earth" has SCRAM-SHA-256-PLUS
+    })
   end
 
-  def restart() do
-    GenServer.stop(Najva.XmppClient)
-    Process.sleep(2000)
-    start()
+  def start1() do
+    Najva.XmppClient.start_link(%{
+      jid: "najva_test1@conversations.im",
+      password: "random_password",
+      host: "conversations.im",
+      resource: "Najva"
+    })
   end
 
   def listpane_content() do
