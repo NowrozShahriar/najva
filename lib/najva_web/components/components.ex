@@ -215,26 +215,24 @@ defmodule NajvaWeb.Components do
       <.list_chats chat_list={@chat_list} />
   """
 
-  # attr :chat_list, :map, required: true
+  attr :chat_list, :map, required: true
 
   def list_chats(assigns) do
-    chat_list = Najva.listpane_content()
-
     ~H"""
     <div class="flex-1 flex flex-col overflow-y-auto p-1 space-y-1">
       <div
-        :for={{_jid, chat} <- chat_list}
+        :for={message <- @chat_list}
         class="grid grid-cols-[auto_1fr_auto] gap-x-4 items-center px-3 py-2 sm:p-1 hover:bg-base-200 cursor-pointer rounded-2xl"
       >
         <div class="size-12 bg-secondary rounded-xl flex items-center justify-center text-primary-content font-bold text-xl">
-          {String.at(chat.name, 0)}
+          {String.at(message["@attrs"]["from"], 0)}
         </div>
         <div class="flex flex-col overflow-hidden">
-          <div class="font-bold">{chat.name}</div>
-          <div class="text-sm truncate">{chat.last_message}</div>
+          <div class="font-bold">{message["@attrs"]["from"] |> String.split("/") |> hd()}</div>
+          <div class="text-sm truncate">{message["body"]["@cdata"]}</div>
         </div>
         <div class="text-xs self-start pt-1">
-          {chat.timestamp}
+          {message["stanza-id"]["@attrs"]["id"]}
         </div>
       </div>
     </div>

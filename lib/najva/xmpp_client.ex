@@ -1,5 +1,6 @@
 defmodule Najva.XmppClient do
   use GenServer
+  alias Phoenix.PubSub
   alias Najva.XmppClient.Session
   require Logger
   require Record
@@ -80,6 +81,9 @@ defmodule Najva.XmppClient do
   # 	complete: "false" # "false", "true", or nil (was 'undefined' in Erlang)
   # ]
 
+  # 59 seconds
+  @ping_interval 59_000
+
   @doc "Start the XMPP client. Options: :jid, :password, :host, :port"
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: {:global, opts.jid})
@@ -96,8 +100,8 @@ defmodule Najva.XmppClient do
       connection_state: :connecting,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      socket: nil,
-      live_view_pids: MapSet.new()
+      socket: nil
+      # live_view_pids: MapSet.new()
     }
 
     # Step 1
@@ -126,6 +130,30 @@ defmodule Najva.XmppClient do
     {:reply, :ok, state}
   end
 
+  #   def retract_message(message_id) do
+  #     GenServer.call(__MODULE__, {:retract_message, message_id})
+  #   end
+  #
+  #   @impl true
+  #   def handle_call({:retract_message, message_id}, _from, state) do
+  #     retract_message_id = "retract-#{:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)}"
+  #
+  #     xml = """
+  #       <message
+  #           from='najva_test0@conversations.im/Najva'
+  #           to='najva_test1@conversations.im'
+  #           type='chat'
+  #           id='#{retract_message_id}'>
+  #         <retract xmlns='urn:xmpp:message-retract:1' id='#{message_id}'/>
+  #         <body xmlns='jabber:client'>/me retracted a message.</body>
+  #         <store xmlns='urn:xmpp:hints'/>
+  #       </message>
+  #     """
+  #
+  #     res = send_data(state, xml)
+  #     {:reply, res, state}
+  #   end
+
   @impl true
   def handle_info(msg, state) do
     case msg do
@@ -151,7 +179,7 @@ defmodule Najva.XmppClient do
 
       # Step 8, 12, 18, 29, 34
       {:xmlstreamelement, element} ->
-        # Logger.info("XmppClient XML element received:\n#{Fxmap.decode(element) |> inspect()}\n")
+        Logger.info("XmppClient XML element received:\n#{Fxmap.decode(element) |> inspect()}\n")
         handle_element(element, state)
 
       # Step 7, 17, 28
@@ -165,12 +193,20 @@ defmodule Najva.XmppClient do
 
       # Step 5
       {:tcp, socket, data} when socket == state.socket ->
-        Logger.warning("XmppClient: tcp received #{inspect(data)}\n")
+        # Logger.warning("XmppClient: tcp received #{inspect(data)}\n")
         parse_and_continue(state, data, :tcp)
 
       {:tcp_closed, socket} when socket == state.socket ->
         Logger.warning("XmppClient: tcp closed")
         {:stop, :normal, state}
+
+      :ping ->
+        # Send a whitespace ping to keep the connection alive
+        send_data(state, " ")
+
+        # send_data(state, "<iq type='get' to='#{state.host}' id='ping-#{System.unique_integer()}'><ping xmlns='urn:xmpp:ping'/></iq>")
+        schedule_ping()
+        {:noreply, state}
 
       _ ->
         Logger.debug("XmppClient UNHANDLED: #{inspect(msg)}")
@@ -231,13 +267,8 @@ defmodule Najva.XmppClient do
     case iq do
       # Bind result
       iq(type: :result, sub_els: [bind(jid: jid)]) ->
+        schedule_ping()
         Session.handle_bind_result(jid(jid), state)
-
-      # MAM result
-      iq(type: :result, sub_els: [mam_fin(complete: "true") = fin]) ->
-        Logger.info("XmppClient: MAM query finished: #{inspect(fin)}")
-
-      # You can notify the UI that all messages have been loaded.
 
       # Other IQ results
       iq(type: :result, id: "mam-" <> _rest) ->
@@ -251,15 +282,26 @@ defmodule Najva.XmppClient do
   end
 
   def handle_element({:xmlel, "message", _attrs, _children} = element, state) do
-    %{message: message} = Fxmap.decode(element)
+    %{"message" => message} = Fxmap.decode_raw(element)
 
-    case Map.has_key?(message, :fin) do
-      false ->
-        Logger.info("XmppClient: received message\n#{inspect(message)}\n")
-        # -------------------------------------------
-        # now the task is to post these on the pubsub
-        # -------------------------------------------
-      true -> Logger.info("XmppClient: MAM query finished #{message.fin.attrs!.complete}")
+    cond do
+      # Handle MAM query finished messages
+      Map.has_key?(message, :fin) ->
+        Logger.info("XmppClient: MAM query finished #{message.fin.attrs!.complete}")
+        # You might want to broadcast a specific event for MAM completion
+        # PubSub.broadcast(Najva.PubSub, state.jid, {:mam_finished, message})
+        {:noreply, state}
+
+      # Handle forwarded/archived messages (e.g., from MAM query results)
+      forwarded_message = get_in(message, ["result", "forwarded", "message"]) ->
+        Logger.info("XmppClient: received forwarded message\n#{inspect(forwarded_message)}\n")
+        PubSub.broadcast(Najva.PubSub, state.jid, {:message, forwarded_message})
+        {:noreply, state}
+
+      # Handle all other messages (e.g., regular chat messages)
+      true ->
+        Logger.info("XmppClient: received regular message\n#{inspect(message)}\n")
+        PubSub.broadcast(Najva.PubSub, state.jid, {:message, message})
     end
 
     {:noreply, state}
@@ -297,5 +339,9 @@ defmodule Najva.XmppClient do
         Logger.debug("XmppClient: unhandled XML element: #{inspect(element)}")
         {:noreply, state}
     end
+  end
+
+  defp schedule_ping do
+    Process.send_after(self(), :ping, @ping_interval)
   end
 end

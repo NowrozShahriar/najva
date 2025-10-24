@@ -107,8 +107,9 @@ defmodule Najva.XmppClient.Session do
   # Step 21
   def handle_sasl(mechanisms, state) do
     if "PLAIN" in mechanisms do
+      [username | _] = String.split(state.jid, "@")
       # Logger.info("XmppClient.Session: PLAIN authentication supported, authenticating...")
-      auth_string = Base.encode64("\0#{state.jid}\0#{state.password}")
+      auth_string = Base.encode64("\0#{username}\0#{state.password}")
 
       XmppClient.send_data(
         state,
