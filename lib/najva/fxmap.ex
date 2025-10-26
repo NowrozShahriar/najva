@@ -36,26 +36,29 @@ defmodule Fxmap do
       iex> xml = {:xmlel, "message", [{"to", "user@example.com"}], [{:xmlel, "body", [], [{:xmlcdata, "Hello"}]}]}
       iex> Fxmap.decode(xml)
       %{
-        message: %{
-          attrs!: %{to: "user@example.com"},
-          body: %{cdata!: "Hello"}
+        "message" => %{
+          "@to" => "user@example.com",
+          "body" => %{"@cdata" => "Hello"}
         }
       }
   """
   def decode(xml_tuple), do: Map.new([decode_s(xml_tuple)])
 
-  defp decode_s({:xmlel, name, [], []}), do: atomize(name) |> then(&{&1, &1})
+  defp decode_s({:xmlel, name, [], []}), do: {name, name}
 
   defp decode_s({:xmlel, name, attrs, children}),
     do: {
-      atomize(name),
-      handle_attrs(attrs)
+      name,
+      Map.new(attrs, fn {k, v} -> {"@" <> k, v} end)
       |> handle_children(children, &decode_s/1)
     }
 
-  defp decode_s({:xmlcdata, content}), do: {:cdata!, content}
+  defp decode_s({:xmlcdata, content}), do: {"@cdata", content}
   defp decode_s({:xmlstreamelement, element}), do: decode_s(element)
-  defp decode_s({:xmlstreamstart, name, attrs}), do: {atomize(name), handle_attrs(attrs)}
+
+  defp decode_s({:xmlstreamstart, name, attrs}),
+    do: {name, Map.new(attrs, fn {k, v} -> {"@" <> k, v} end)}
+
   defp decode_s(_), do: {:error, :unknown_format}
 
   # --- Verbose Mode ---
@@ -101,23 +104,23 @@ defmodule Fxmap do
 
   # --- Helpers ---
   # ---------------
-  defp atomize(key) do
-    # case :binary.split(key, ":") do
-    #   [local] -> String.to_atom(local)
-    #   [_prefix, local] -> atomize(local)
-    # end
-    String.to_atom(key)
-  end
-
-  defp handle_attrs([]), do: %{}
-
-  defp handle_attrs(attrs) do
-    Map.put(
-      %{},
-      :attrs!,
-      Map.new(attrs, fn {k, v} -> {atomize(k), v} end)
-    )
-  end
+  #   defp atomize(key) do
+  #     # case :binary.split(key, ":") do
+  #     #   [local] -> String.to_atom(local)
+  #     #   [_prefix, local] -> atomize(local)
+  #     # end
+  #     String.to_atom(key)
+  #   end
+  #
+  #   defp handle_attrs([]), do: %{}
+  #
+  #   defp handle_attrs(attrs) do
+  #     # Map.put(
+  #     #   %{},
+  #     #   :attrs!,
+  #     Map.new(attrs, fn {k, v} -> {atomize("@" <> k), v} end)
+  #     # )
+  #   end
 
   defp handle_children(map, [], _), do: map
 

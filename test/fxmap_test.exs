@@ -51,27 +51,55 @@ defmodule FxmapTest do
 
   describe "decode/1" do
     test "correctly decodes complex XML tuples into a map with atom keys" do
+      # expected_map = %{
+      #   root: %{
+      #     parent: [
+      #       %{
+      #         mixed_content: %{
+      #           cdata!: ["cdata2", "cdata1"],
+      #           attrs!: %{type: "data"},
+      #           sub_element: :sub_element
+      #         }
+      #       },
+      #       %{
+      #         attrs!: %{attr1: "value1"},
+      #         child1: %{
+      #           attrs!: %{c: "v3", a: "v", b: "v2"},
+      #           nested: [%{attrs!: %{id: "s2"}}, %{cdata!: "deeply nested cdata"}]
+      #         }
+      #       }
+      #     ],
+      #     text_only: %{cdata!: "plain text content"},
+      #     empty_tag: :empty_tag,
+      #     empty_with_attr: %{attrs!: %{flag: "true"}}
+      #   }
+      # }
       expected_map = %{
-        root: %{
-          parent: [
+        "root" => %{
+          "empty_tag" => "empty_tag",
+          "empty_with_attr" => %{"@flag" => "true"},
+          "parent" => [
             %{
-              mixed_content: %{
-                cdata!: ["cdata2", "cdata1"],
-                attrs!: %{type: "data"},
-                sub_element: :sub_element
+              "mixed_content" => %{
+                "@type" => "data",
+                "@cdata" => ["cdata2", "cdata1"],
+                "sub_element" => "sub_element"
               }
             },
             %{
-              attrs!: %{attr1: "value1"},
-              child1: %{
-                attrs!: %{c: "v3", a: "v", b: "v2"},
-                nested: [%{attrs!: %{id: "s2"}}, %{cdata!: "deeply nested cdata"}]
+              "@attr1" => "value1",
+              "child1" => %{
+                "@a" => "v",
+                "@b" => "v2",
+                "@c" => "v3",
+                "nested" => [
+                  %{"@id" => "s2"},
+                  %{"@cdata" => "deeply nested cdata"}
+                ]
               }
             }
           ],
-          text_only: %{cdata!: "plain text content"},
-          empty_tag: :empty_tag,
-          empty_with_attr: %{attrs!: %{flag: "true"}}
+          "text_only" => %{"@cdata" => "plain text content"}
         }
       }
 

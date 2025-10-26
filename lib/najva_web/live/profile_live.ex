@@ -1,4 +1,4 @@
-defmodule NajvaWeb.AppLive.Settings do
+defmodule NajvaWeb.ProfileLive do
   use NajvaWeb, :live_view
 
   def mount(_params, _session, socket) do
@@ -8,10 +8,8 @@ defmodule NajvaWeb.AppLive.Settings do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} live_action={@live_action}>
-      <div class="lg:w-2/3 xl:w-1/2 mx-auto">
-        <h1 class="font-semibold text-2xl p-4">Settings</h1>
-        <Layouts.theme_toggle />
-      </div>
+      <h1>Account</h1>
+      <p>Check the console for debug information.</p>
     </Layouts.app>
     """
   end

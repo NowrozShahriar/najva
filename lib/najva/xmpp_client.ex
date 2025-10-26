@@ -100,8 +100,9 @@ defmodule Najva.XmppClient do
       connection_state: :connecting,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      socket: nil
+      socket: nil,
       # live_view_pids: MapSet.new()
+      chat_map: %{}
     }
 
     # Step 1
@@ -179,7 +180,7 @@ defmodule Najva.XmppClient do
 
       # Step 8, 12, 18, 29, 34
       {:xmlstreamelement, element} ->
-        Logger.info("XmppClient XML element received:\n#{Fxmap.decode(element) |> inspect()}\n")
+        # Logger.info("XmppClient XML element received:\n#{inspect(element)}\n")
         handle_element(element, state)
 
       # Step 7, 17, 28
@@ -282,29 +283,36 @@ defmodule Najva.XmppClient do
   end
 
   def handle_element({:xmlel, "message", _attrs, _children} = element, state) do
-    %{"message" => message} = Fxmap.decode_raw(element)
+    %{"message" => message} = Fxmap.decode(element)
 
-    cond do
-      # Handle MAM query finished messages
-      Map.has_key?(message, :fin) ->
-        Logger.info("XmppClient: MAM query finished #{message.fin.attrs!.complete}")
-        # You might want to broadcast a specific event for MAM completion
-        # PubSub.broadcast(Najva.PubSub, state.jid, {:mam_finished, message})
-        {:noreply, state}
+    new_state =
+      cond do
+        Map.has_key?(message, "fin") ->
+          # Handle MAM query finished messages
+          Logger.info("XmppClient: MAM query finished #{inspect(state.chat_map)}")
+          PubSub.broadcast(Najva.PubSub, state.jid, {:mam_finished, state.chat_map})
+          %{state | chat_map: %{}}
 
-      # Handle forwarded/archived messages (e.g., from MAM query results)
-      forwarded_message = get_in(message, ["result", "forwarded", "message"]) ->
-        Logger.info("XmppClient: received forwarded message\n#{inspect(forwarded_message)}\n")
-        PubSub.broadcast(Najva.PubSub, state.jid, {:message, forwarded_message})
-        {:noreply, state}
+        msg_content = get_in(message, ["result", "forwarded", "message"]) ->
+          # Handle forwarded/archived messages (e.g., from MAM query results)
+          # Logger.info("XmppClient: received forwarded message\n#{inspect(msg_content)}\n")
+          {chat_id, filtered_msg} = handle_message(state, msg_content)
 
-      # Handle all other messages (e.g., regular chat messages)
-      true ->
-        Logger.info("XmppClient: received regular message\n#{inspect(message)}\n")
-        PubSub.broadcast(Najva.PubSub, state.jid, {:message, message})
-    end
+          # Add the new message to the list for the correct chat_id
+          %{state | chat_map: Map.put(state.chat_map, chat_id, filtered_msg)}
 
-    {:noreply, state}
+        Map.has_key?(message, "body") ->
+          # Logger.info("XmppClient: received regular message\n#{inspect(message)}\n")
+          message = handle_message(state, message)
+          PubSub.broadcast(Najva.PubSub, state.jid, {:message, message})
+          state
+
+        true ->
+          Logger.debug("XmppClient: unhandled message: #{inspect(message)}")
+          state
+      end
+
+    {:noreply, new_state}
   end
 
   def handle_element({:xmlel, "presence", _attrs, _children}, state) do
@@ -343,5 +351,19 @@ defmodule Najva.XmppClient do
 
   defp schedule_ping do
     Process.send_after(self(), :ping, @ping_interval)
+  end
+
+  def handle_message(state, message) do
+    from = String.split(message["@from"], "/") |> hd()
+    chat_id = if from == state.jid, do: message["@to"], else: from
+
+    filtered_msg = %{
+      from: message["@from"],
+      to: message["@to"],
+      text: message["body"]["@cdata"],
+      time: String.to_integer(message["archived"]["@id"])
+    }
+
+    {chat_id, filtered_msg}
   end
 end

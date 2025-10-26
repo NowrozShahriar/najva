@@ -17,9 +17,9 @@ defmodule NajvaWeb.Router do
   scope "/", NajvaWeb do
     pipe_through :browser
 
-    live "/", AppLive.Root, :root
-    live "/account", AppLive.Account, :account
-    live "/settings", AppLive.Settings, :settings
+    live "/", RootLive, :root
+    live "/profile", ProfileLive, :profile
+    live "/settings", SettingsLive, :settings
   end
 
   # Other scopes may use custom stacks.
