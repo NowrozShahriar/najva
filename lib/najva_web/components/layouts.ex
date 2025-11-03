@@ -7,8 +7,8 @@ defmodule NajvaWeb.Layouts do
   application router. The "app" layout is rendered as component
   in regular views and live views.
   """
-  import NajvaWeb.Components
   use NajvaWeb, :html
+  import NajvaWeb.Components
 
   embed_templates "layouts/*"
 

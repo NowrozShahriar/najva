@@ -22,24 +22,25 @@ import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
+import {hooks as colocatedHooks} from "phoenix-colocated/najva"
 import topbar from "../vendor/topbar"
 
 
 // najva_web hooks
 let Hooks = {}
 
-Hooks.BackButton = {
-  mounted() {
-    this.goBack = (e) => {
-      e.preventDefault()
-      window.history.back()
-    }
-    this.el.addEventListener("click", this.goBack)
-  },
-  destroyed() {
-    this.el.removeEventListener("click", this.goBack)
-  }
-}
+// Hooks.BackButton = {
+//   mounted() {
+//     this.goBack = (e) => {
+//       e.preventDefault()
+//       window.history.back()
+//     }
+//     this.el.addEventListener("click", this.goBack)
+//   },
+//   destroyed() {
+//     this.el.removeEventListener("click", this.goBack)
+//   }
+// }
 
 Hooks.ThemeIndicator = {
   mounted() {
@@ -75,7 +76,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken}, 
-  hooks: Hooks
+  hooks: {...Hooks, ...colocatedHooks}
 })
 
 // Show progress bar on live navigation and form submits

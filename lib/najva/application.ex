@@ -9,6 +9,7 @@ defmodule Najva.Application do
   def start(_type, _args) do
     children = [
       NajvaWeb.Telemetry,
+      Najva.Repo,
       {DNSCluster, query: Application.get_env(:najva, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Najva.PubSub},
       # Start a worker by calling: Najva.Worker.start_link(arg)
