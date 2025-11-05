@@ -41,10 +41,10 @@ defmodule Najva.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.8.1"},
-      {:phoenix_ecto, "~> 4.5"},
+      {:phoenix_ecto, "~> 4.6"},
       {:ecto_sql, "~> 3.13"},
       {:postgrex, ">= 0.0.0"},
-      {:phoenix_html, "~> 4.2"},
+      {:phoenix_html, "~> 4.3"},
       {:phoenix_live_reload, "~> 1.6", only: :dev},
       {:phoenix_live_view, "~> 1.1"},
       {:lazy_html, ">= 0.1.0", only: :test},
@@ -58,14 +58,14 @@ defmodule Najva.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
+      {:telemetry_metrics, "~> 1.1"},
+      {:telemetry_poller, "~> 1.3"},
       {:gettext, "~> 0.26"},
-      {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"},
+      {:jason, "~> 1.4"},
+      {:dns_cluster, "~> 0.2"},
+      {:bandit, "~> 1.8"},
       {:xmpp, "~> 1.11"},
-      {:tidewave, "~> 0.3.2", only: :dev},
+      {:tidewave, "~> 0.3", only: :dev},
       # {:timex, "~> 3.7"},
       {:benchee_html, "~> 1.0", only: :dev}
     ]
