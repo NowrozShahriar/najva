@@ -44,7 +44,7 @@ Make sure both are installed and available in your system's PATH.
 3. Run the following commands:
 
 ```bash
-mix deps.get
+mix setup
 mix phx.server
 ```
 
