@@ -49,8 +49,6 @@ defmodule NajvaWeb.Components do
   # attr :active_list, :atom, required: true
 
   def navbar(assigns) do
-    active_list = :all_chats
-
     ~H"""
     <!-- Navigation bar: vertical on desktop, horizontal on mobile -->
     <% navpanel =
@@ -72,7 +70,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="all_chats"
         title="All chats"
-        class={navpanel_child <> if active_list == :all_chats, do: navpanel_child_active, else: navpanel_child_inactive}
+        class={navpanel_child <> navpanel_child_active}
       >
         <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
       </button>
@@ -82,7 +80,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="inbox"
         title="Inbox"
-        class={navpanel_child <> if active_list != :inbox, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> navpanel_child_inactive}
       >
         <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
       </button>
@@ -92,7 +90,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="groups"
         title="Groups"
-        class={navpanel_child <> if active_list != :groups, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> navpanel_child_inactive}
       >
         <.icon name="hero-user-group" class={navpanel_icon} />
       </button>
@@ -102,7 +100,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="favorites"
         title="Favorites"
-        class={navpanel_child <> if active_list != :favorites, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> navpanel_child_inactive}
       >
         <.icon name="hero-heart" class={navpanel_icon} />
       </button>
@@ -112,7 +110,7 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="archive"
         title="Archive"
-        class={navpanel_child <> " hidden sm:block" <> if active_list != :archive, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> " hidden sm:block" <> navpanel_child_inactive}
       >
         <.icon name="hero-archive-box" class={navpanel_icon} />
       </button>
@@ -122,15 +120,14 @@ defmodule NajvaWeb.Components do
         phx-click="set_active_list"
         phx-value="contacts"
         title="Contacts"
-        class={navpanel_child <> if active_list != :contacts, do: navpanel_child_inactive, else: navpanel_child_active}
+        class={navpanel_child <> navpanel_child_inactive}
       >
         <.icon name="hero-bookmark-square" class={navpanel_icon} />
       </button>
       
     <!-- Settings -->
       <.link
-        navigate={if @live_action != :settings, do: "/settings", else: ""}
-        phx-hook={@live_action == :settings && "BackButton"}
+        patch={if @live_action != :settings, do: "/settings", else: "/"}
         id="settings-btn"
         title="Settings"
         class={
@@ -188,11 +185,10 @@ defmodule NajvaWeb.Components do
         
     <!-- Profile icon -->
         <.link
-          navigate={if @live_action != :account, do: "/profile", else: ""}
-          phx-hook={@live_action == :account && "BackButton"}
+          patch="/login"
           id="account-btn"
           title="Account"
-          class={profile_icon <> if @live_action != :account, do: profile_icon_inactive, else: profile_icon_active}
+          class={profile_icon <> if @live_action != :profile, do: profile_icon_inactive, else: profile_icon_active}
         >
           <.icon name="hero-user-circle" class="size-full" />
         </.link>
@@ -232,7 +228,7 @@ defmodule NajvaWeb.Components do
           <div class="text-sm truncate">{message.text}</div>
         </div>
         <div class="text-xs self-start pt-1">
-          {message.time |> DateTime.from_unix!(:microseconds) |> Calendar.strftime("%H:%M")}
+          {message.time |> DateTime.from_unix!(:microsecond) |> Calendar.strftime("%H:%M")}
         </div>
       </div>
     </div>

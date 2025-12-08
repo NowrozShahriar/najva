@@ -18,8 +18,19 @@ defmodule NajvaWeb.Router do
     pipe_through :browser
 
     live "/", RootLive, :root
-    live "/profile", ProfileLive, :profile
-    live "/settings", SettingsLive, :settings
+    live "/profile", RootLive, :profile
+    live "/settings", RootLive, :settings
+  end
+
+  scope "/", NajvaWeb do
+    pipe_through :browser
+
+    live "/login", AuthLive.Login, :login
+    live "/register", AuthLive.Register, :register
+
+    post "/login", SessionController, :create
+    post "/register", RegistrationController, :create
+    delete "/logout", SessionController, :delete
   end
 
   # Other scopes may use custom stacks.

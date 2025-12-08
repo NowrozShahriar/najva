@@ -20,9 +20,21 @@ defmodule NajvaWeb.RootLive do
       live_action={@live_action}
       chat_list={@chat_list}
     >
-      <%!-- <div class="chat-root m-1 text-white" /> --%>
+      <div :if={@live_action == :profile}>
+        <h1>Account</h1>
+        <p>Check the console for debug information.</p>
+      </div>
+      <div :if={@live_action == :settings} class="lg:w-2/3 xl:w-1/2 mx-auto">
+        <h1 class="font-semibold text-2xl p-4">Settings</h1>
+        <Layouts.theme_toggle />
+      </div>
     </Layouts.app>
     """
+  end
+
+  @impl true
+  def handle_params(_params, _url, socket) do
+    {:noreply, socket}
   end
 
   @impl true
