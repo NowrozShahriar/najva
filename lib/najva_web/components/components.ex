@@ -66,14 +66,15 @@ defmodule NajvaWeb.Components do
     <nav class={navpanel}>
       
     <!-- All Chats -->
-      <button
+      <.link
+        patch="/"
         phx-click="set_active_list"
         phx-value="all_chats"
         title="All chats"
-        class={navpanel_child <> navpanel_child_active}
+        class={navpanel_child <> if @live_action == :root, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
-      </button>
+      </.link>
       
     <!-- Inbox -->
       <button
@@ -127,7 +128,7 @@ defmodule NajvaWeb.Components do
       
     <!-- Settings -->
       <.link
-        patch={if @live_action != :settings, do: "/settings", else: "/"}
+        patch="/settings"
         id="settings-btn"
         title="Settings"
         class={
