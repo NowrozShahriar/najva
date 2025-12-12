@@ -28,9 +28,9 @@ defmodule NajvaWeb.Router do
     live "/login", AuthLive.Login, :login
     live "/register", AuthLive.Register, :register
 
-    post "/login", SessionController, :create
-    post "/register", RegistrationController, :create
-    delete "/logout", SessionController, :delete
+    post "/login", SessionController, :login
+    post "/register", SessionController, :register
+    delete "/logout", SessionController, :logout
   end
 
   # Other scopes may use custom stacks.
