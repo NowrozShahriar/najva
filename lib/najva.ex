@@ -10,9 +10,7 @@ defmodule Najva do
   def start() do
     Najva.XmppClient.start_link(%{
       jid: "najva_test@xmpp.earth",
-      password: "random_password",
-      host: "xmpp.earth",
-      resource: "Najva"
+      password: "random_password"
     })
   end
 
@@ -23,9 +21,7 @@ defmodule Najva do
   def start0() do
     Najva.XmppClient.start_link(%{
       jid: "najva_test0@conversations.im",
-      password: "random_password",
-      host: "conversations.im",
-      resource: "Najva"
+      password: "random_password"
     })
   end
 
@@ -36,9 +32,7 @@ defmodule Najva do
   def start1() do
     Najva.XmppClient.start_link(%{
       jid: "najva_test1@conversations.im",
-      password: "random_password",
-      host: "conversations.im",
-      resource: "Najva"
+      password: "random_password"
     })
   end
 

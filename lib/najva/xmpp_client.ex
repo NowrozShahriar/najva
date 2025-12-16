@@ -34,20 +34,6 @@ defmodule Najva.XmppClient do
   # 	resource: ""
   # ]
 
-  Record.defrecordp(:message, Record.extract(:message, from: @xmpp_include_path))
-  # defrecordp :message, [
-  #   id: "",                # binary(), default: ""
-  #   type: :normal,         # atom(), default: :normal
-  #   lang: "",              # binary(), default: ""
-  #   from: nil,             # nil or JID struct
-  #   to: nil,               # nil or JID struct
-  #   subject: [],           # list of text records
-  #   body: [],              # list of text records
-  #   thread: nil,           # nil or message_thread
-  #   sub_els: [],           # list of xmpp_element or xmlel
-  #   meta: %{}              # map, default: empty map
-  # ]
-
   Record.defrecordp(:mam_query, Record.extract(:mam_query, from: @xmpp_include_path))
   # defrecordp :mam_query, [
   #   xmlns: "",                # binary(), default: ""
@@ -95,14 +81,12 @@ defmodule Najva.XmppClient do
     state = %{
       jid: opts.jid,
       password: opts.password,
-      resource: opts.resource,
-      host: opts.host,
+      resource: "Najva",
+      host: String.split(opts.jid, "@") |> Enum.at(1),
       connection_state: :connecting,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      socket: nil,
-      # live_view_pids: MapSet.new()
-      chat_map: %{}
+      socket: nil
     }
 
     # Step 1
