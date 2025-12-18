@@ -1,10 +1,8 @@
-defmodule Najva.XmppClient.Session do
-  alias Najva.XmppClient
+defmodule Najva.XmppClient.Helpers do
   require Logger
   require Record
-
+  alias Najva.XmppClient.Encryption
   @xmpp_include_path "deps/xmpp/include/xmpp.hrl"
-  # @records_path [from: "deps/xmpp/include/xmpp.hrl", includes: ["deps/xmpp/include/xmpp.hrl"]]
 
   Record.defrecordp(
     :iq,
@@ -46,33 +44,58 @@ defmodule Najva.XmppClient.Session do
     # ]
   )
 
-  # Step 3, 15, 26
-  def send_stream_header(state) do
-    header =
-      "<stream:stream to='#{state.host}' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"
-
-    XmppClient.send_data(state, header)
+  def send_element(state, record) do
+    xmlel = :xmpp.encode(record)
+    xml = :fxml.element_to_binary(xmlel)
+    send_data(state, xml)
   end
 
-  # Step 10
+  def send_data(state, data) do
+    case state.connection_state do
+      :bound -> send_ssl(state.socket, data)
+      :authenticated -> send_ssl(state.socket, data)
+      :tls_active -> send_ssl(state.socket, data)
+      :connecting -> send_tcp(state.socket, data)
+    end
+  end
+
+  def parse_and_continue(state, data, transport) do
+    new_stream_state = :fxml_stream.parse(state.stream_state, data)
+
+    case transport do
+      :ssl -> :ssl.setopts(state.socket, active: :once)
+      :tcp -> :inet.setopts(state.socket, active: :once)
+    end
+
+    if new_stream_state == state.stream_state do
+      {:noreply, state}
+    else
+      {:noreply, %{state | stream_state: new_stream_state}}
+    end
+  end
+
+  def send_stream_header(state) do
+    send_data(
+      state,
+      "<stream:stream to='#{state.host}' xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' version='1.0'>"
+    )
+  end
+
   def handle_features(features, state) do
     cond do
-      # Step 10.5
       features[:starttls] ->
         # Logger.info("XmppClient.Session: STARTTLS supported, initiating...")
-        XmppClient.send_data(state, "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>")
+        send_data(state, "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>")
         {:noreply, %{state | connection_state: :tls_negotiating}}
 
-      # Step 20
       features[:sasl_mechanisms] ->
         # Logger.info("XmppClient.Session: SASL mechanisms available.")
         handle_sasl(features[:sasl_mechanisms], state)
 
-      # Step 31
       Enum.find(features, &match?({:bind, _, _}, &1)) ->
         bind_iq = iq(type: :set, id: "bind_1", sub_els: [bind(resource: state.resource)])
         # Logger.debug("XmppClient.Session: sending bind IQ: #{inspect(bind_iq)}")
-        XmppClient.send_element(state, bind_iq)
+        send_element(state, bind_iq)
         {:noreply, state}
 
       true ->
@@ -81,12 +104,10 @@ defmodule Najva.XmppClient.Session do
     end
   end
 
-  # Step 14
   def handle_starttls_proceed(state) do
     # Logger.info("XmppClient.Session: TLS negotiation proceeding, upgrading socket...")
     case :ssl.connect(state.socket, [{:active, :once}, {:verify, :verify_none}], 5_000) do
       {:ok, tls_sock} ->
-        # Step 14.5
         new_state = %{
           state
           | socket: tls_sock,
@@ -94,7 +115,6 @@ defmodule Najva.XmppClient.Session do
             stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server])
         }
 
-        # Step 14.6
         send_stream_header(new_state)
         {:noreply, new_state}
 
@@ -104,14 +124,13 @@ defmodule Najva.XmppClient.Session do
     end
   end
 
-  # Step 21
   def handle_sasl(mechanisms, state) do
     if "PLAIN" in mechanisms do
       [username | _] = String.split(state.jid, "@")
       # Logger.info("XmppClient.Session: PLAIN authentication supported, authenticating...")
       auth_string = Base.encode64("\0#{username}\0#{state.password}")
 
-      XmppClient.send_data(
+      send_data(
         state,
         "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='PLAIN'>#{auth_string}</auth>"
       )
@@ -123,7 +142,6 @@ defmodule Najva.XmppClient.Session do
     end
   end
 
-  # Step 25
   def handle_sasl_success(state) do
     # After successful auth, we restart the stream.
     new_state = %{
@@ -132,17 +150,47 @@ defmodule Najva.XmppClient.Session do
         connection_state: :authenticated
     }
 
-    # Step 25.5
     send_stream_header(new_state)
     {:noreply, new_state}
   end
 
-  # Step 36
   def handle_bind_result(jid, state) do
     # Logger.info("XmppClient.Session: session aquired #{inspect(jid)}\n")
-    new_state = %{state | jid: jid}
-    # Step 37
-    XmppClient.send_element(new_state, presence())
+    new_state = %{state | jid: jid, connection_state: :bound}
+
+    # Notify caller if one is waiting
+    if state.caller_pid do
+      case Encryption.generate_and_update_key(state.jid) do
+        {:ok, key} ->
+          encrypted_password = Encryption.encrypt(state.password, key)
+          send(state.caller_pid, {:connection_complete, encrypted_password})
+
+        {:error, reason} ->
+          send(state.caller_pid, {:connection_failed, reason})
+      end
+    end
+
+    send_element(new_state, presence())
     {:noreply, new_state}
+  end
+
+  defp send_ssl(socket, data) do
+    case :ssl.send(socket, data) do
+      :ok ->
+        Logger.debug("XmppClient: sent #{inspect(data)}")
+
+      {:error, reason} ->
+        Logger.error("XmppClient: ssl send error #{inspect(reason)}")
+    end
+  end
+
+  defp send_tcp(socket, data) do
+    case :gen_tcp.send(socket, data) do
+      :ok ->
+        Logger.warning("XmppClient: sent with tcp #{inspect(data)}")
+
+      {:error, reason} ->
+        Logger.error("XmppClient: tcp send error #{inspect(reason)}")
+    end
   end
 end
