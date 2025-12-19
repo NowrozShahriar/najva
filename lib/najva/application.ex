@@ -14,6 +14,9 @@ defmodule Najva.Application do
       {Phoenix.PubSub, name: Najva.PubSub},
       # Start a worker by calling: Najva.Worker.start_link(arg)
       # {Najva.Worker, arg},
+      # Start Horde modules
+      Najva.HordeRegistry,
+      Najva.HordeSupervisor,
       # Start to serve requests, typically the last entry
       NajvaWeb.Endpoint
     ]

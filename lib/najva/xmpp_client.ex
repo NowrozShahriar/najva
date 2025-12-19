@@ -1,11 +1,11 @@
 defmodule Najva.XmppClient do
   use GenServer
-  alias Phoenix.PubSub
-  alias Najva.XmppClient.Session
+  import Najva.XmppClient.Helpers
   require Logger
+  alias Phoenix.PubSub
   require Record
-
   @xmpp_include_path "deps/xmpp/include/xmpp.hrl"
+  @ping_interval 59_000
 
   Record.defrecordp(:jid, Record.extract(:jid, from: @xmpp_include_path))
   # defrecordp :jid, [
@@ -67,26 +67,24 @@ defmodule Najva.XmppClient do
   # 	complete: "false" # "false", "true", or nil (was 'undefined' in Erlang)
   # ]
 
-  # 59 seconds
-  @ping_interval 59_000
-
   @doc "Start the XMPP client. Options: :jid, :password, :host, :port"
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: {:global, opts.jid})
+    GenServer.start_link(__MODULE__, opts, name: {:global, opts[:jid]})
   end
 
   @impl true
   def init(opts) do
     # Step 0
     state = %{
-      jid: opts.jid,
-      password: opts.password,
+      jid: opts[:jid],
+      password: opts[:password],
       resource: "Najva",
-      host: String.split(opts.jid, "@") |> Enum.at(1),
+      host: String.split(opts[:jid], "@") |> Enum.at(1),
       connection_state: :connecting,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      socket: nil
+      socket: nil,
+      chat_map: %{}
     }
 
     # Step 1
@@ -94,50 +92,6 @@ defmodule Najva.XmppClient do
     send(self(), :connect)
     {:ok, state}
   end
-
-  @doc "Loads all chats from the archive."
-  def load_archive() do
-    # Using call to get a reply, but can be a cast if you don't need to wait.
-    GenServer.call(__MODULE__, :load_archive)
-  end
-
-  @impl true
-  def handle_call(:load_archive, _from, state) do
-    query_id = "mam-" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
-
-    mam_query = mam_query(id: query_id)
-    mam_iq = iq(type: :set, id: query_id, sub_els: [mam_query])
-
-    send_element(state, mam_iq)
-
-    # Here we are just acknowledging the request was sent.
-    # The results will arrive as separate messages.
-    {:reply, :ok, state}
-  end
-
-  #   def retract_message(message_id) do
-  #     GenServer.call(__MODULE__, {:retract_message, message_id})
-  #   end
-  #
-  #   @impl true
-  #   def handle_call({:retract_message, message_id}, _from, state) do
-  #     retract_message_id = "retract-#{:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)}"
-  #
-  #     xml = """
-  #       <message
-  #           from='najva_test0@conversations.im/Najva'
-  #           to='najva_test1@conversations.im'
-  #           type='chat'
-  #           id='#{retract_message_id}'>
-  #         <retract xmlns='urn:xmpp:message-retract:1' id='#{message_id}'/>
-  #         <body xmlns='jabber:client'>/me retracted a message.</body>
-  #         <store xmlns='urn:xmpp:hints'/>
-  #       </message>
-  #     """
-  #
-  #     res = send_data(state, xml)
-  #     {:reply, res, state}
-  #   end
 
   @impl true
   def handle_info(msg, state) do
@@ -150,7 +104,7 @@ defmodule Najva.XmppClient do
           {:ok, sock} ->
             # Logger.info("XmppClient: tcp connected, revieved socket #{inspect(sock)}")
             new_state = %{state | socket: sock}
-            Session.send_stream_header(new_state)
+            send_stream_header(new_state)
             {:noreply, new_state}
 
           {:error, reason} ->
@@ -186,10 +140,9 @@ defmodule Najva.XmppClient do
         {:stop, :normal, state}
 
       :ping ->
-        # Send a whitespace ping to keep the connection alive
-        send_data(state, " ")
-
         # send_data(state, "<iq type='get' to='#{state.host}' id='ping-#{System.unique_integer()}'><ping xmlns='urn:xmpp:ping'/></iq>")
+        # Or send a whitespace ping to keep the connection alive
+        send_data(state, " ")
         schedule_ping()
         {:noreply, state}
 
@@ -199,51 +152,60 @@ defmodule Najva.XmppClient do
     end
   end
 
-  # Step 6
-  defp parse_and_continue(state, data, transport) do
-    new_stream_state = :fxml_stream.parse(state.stream_state, data)
+  @doc "Loads all chats from the archive."
+  def load_archive do
+    # Using call to get a reply, but can be a cast if you don't need to wait.
+    GenServer.call(__MODULE__, :load_archive)
+  end
 
-    case transport do
-      :ssl -> :ssl.setopts(state.socket, active: :once)
-      :tcp -> :inet.setopts(state.socket, active: :once)
-    end
+  @impl true
+  def handle_call(:load_archive, _from, state) do
+    query_id = "mam-" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
 
-    if new_stream_state == state.stream_state do
-      {:noreply, state}
+    mam_query = mam_query(id: query_id)
+    mam_iq = iq(type: :set, id: query_id, sub_els: [mam_query])
+
+    send_element(state, mam_iq)
+
+    # Here we are just acknowledging the request was sent.
+    # The results will arrive as separate messages.
+    {:reply, :ok, state}
+  end
+
+  @impl true
+  def handle_call({:get_new_ciphertext, password}, _from, state) do
+    # GenServer is already running and presumably connected
+    # Verify password matches and return a new encrypted password
+    if password == state.password do
+      {:reply, encrypt_password(state), state}
     else
-      {:noreply, %{state | stream_state: new_stream_state}}
+      {:reply, {:error, :invalid_password}, state}
     end
   end
 
-  # Step 4, 11, 16, 22, 27, 33
-  def send_data(state, data) do
-    case state.connection_state do
-      conn_state when conn_state in [:authenticated, :tls_active] ->
-        case :ssl.send(state.socket, data) do
-          :ok ->
-            Logger.debug("XmppClient: sent #{inspect(data)}")
-
-          {:error, reason} ->
-            Logger.error("XmppClient: ssl send error #{inspect(reason)}")
-        end
-
-      _ ->
-        case :gen_tcp.send(state.socket, data) do
-          :ok ->
-            Logger.warning("XmppClient: sent with tcp #{inspect(data)}")
-
-          {:error, reason} ->
-            Logger.error("XmppClient: tcp send error #{inspect(reason)}")
-        end
-    end
-  end
-
-  # Step 32
-  def send_element(state, record) do
-    xmlel = :xmpp.encode(record)
-    xml = :fxml.element_to_binary(xmlel)
-    send_data(state, xml)
-  end
+  #   def retract_message(message_id) do
+  #     GenServer.call(__MODULE__, {:retract_message, message_id})
+  #   end
+  #
+  #   @impl true
+  #   def handle_call({:retract_message, message_id}, _from, state) do
+  #     retract_message_id = "retract-#{:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower)}"
+  #
+  #     xml = """
+  #       <message
+  #           from='najva_test0@conversations.im/Najva'
+  #           to='najva_test1@conversations.im'
+  #           type='chat'
+  #           id='#{retract_message_id}'>
+  #         <retract xmlns='urn:xmpp:message-retract:1' id='#{message_id}'/>
+  #         <body xmlns='jabber:client'>/me retracted a message.</body>
+  #         <store xmlns='urn:xmpp:hints'/>
+  #       </message>
+  #     """
+  #
+  #     res = send_data(state, xml)
+  #     {:reply, res, state}
+  #   end
 
   # Step 35
   def handle_element({:xmlel, "iq", attrs, children}, state) do
@@ -253,17 +215,17 @@ defmodule Najva.XmppClient do
       # Bind result
       iq(type: :result, sub_els: [bind(jid: jid)]) ->
         schedule_ping()
-        Session.handle_bind_result(jid(jid), state)
+        handle_bind_result(jid(jid), state)
 
       # Other IQ results
       iq(type: :result, id: "mam-" <> _rest) ->
         Logger.debug("XmppClient: Received an intermediate MAM IQ result.")
+        {:noreply, state}
 
       iq() ->
         Logger.debug("XmppClient: unhandled IQ: #{inspect(iq)}")
+        {:noreply, state}
     end
-
-    {:noreply, state}
   end
 
   def handle_element({:xmlel, "message", _attrs, _children} = element, state) do
@@ -311,17 +273,17 @@ defmodule Najva.XmppClient do
       {:xmlel, "stream:features", attrs, children} ->
         {:stream_features, features} = :xmpp.decode({:xmlel, "stream:features", attrs, children})
         # Logger.info("XmppClient: received stream features: #{inspect(features)}")
-        Session.handle_features(features, state)
+        handle_features(features, state)
 
       # Step 13
       {:xmlel, "proceed", _, _} ->
         # Logger.info("XmppClient: received TLS proceed, upgrading to TLS")
-        Session.handle_starttls_proceed(state)
+        handle_starttls_proceed(state)
 
       # Step 24
       {:xmlel, "success", _, _} ->
         # Logger.info("XmppClient: SASL success")
-        Session.handle_sasl_success(state)
+        handle_sasl_success(state)
 
       {:xmlel, "failure", _, _} ->
         Logger.error("XmppClient: SASL authentication failed")
@@ -335,6 +297,19 @@ defmodule Najva.XmppClient do
 
   defp schedule_ping do
     Process.send_after(self(), :ping, @ping_interval)
+  end
+
+  defp encrypt_password(state) do
+    alias Najva.XmppClient.Encryption
+
+    case Encryption.generate_and_update_key(state.jid) do
+      {:ok, key} ->
+        encrypted_password = Encryption.encrypt(state.password, key)
+        {:ok, encrypted_password}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   def handle_message(state, message) do
