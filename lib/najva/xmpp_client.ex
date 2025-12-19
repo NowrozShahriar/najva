@@ -69,7 +69,7 @@ defmodule Najva.XmppClient do
 
   @doc "Start the XMPP client. Options: :jid, :password, :host, :port"
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts, name: {:global, opts[:jid]})
+    GenServer.start_link(__MODULE__, opts, name: Najva.HordeRegistry.via_tuple(opts[:jid]))
   end
 
   @impl true
