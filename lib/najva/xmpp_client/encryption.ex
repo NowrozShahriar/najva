@@ -12,7 +12,20 @@ defmodule Najva.XmppClient.Encryption do
   # Additional Authenticated Data for integrity check
   @aad "NajvaAuth"
 
-  def encrypt(plaintext, key_base64) do
+  def encrypt_password(jid, password) do
+    case get_encryption_key(jid) do
+      nil ->
+        case generate_and_update_key(jid) do
+          {:ok, key} -> {:ok, encrypt(key, password)}
+          {:error, error} -> {:error, error}
+        end
+
+      key ->
+        {:ok, encrypt(key, password)}
+    end
+  end
+
+  def encrypt(key_base64, plaintext) do
     key = Base.decode64!(key_base64)
     # 96-bit IV for GCM
     iv = :crypto.strong_rand_bytes(12)
@@ -23,7 +36,7 @@ defmodule Najva.XmppClient.Encryption do
     (iv <> tag <> ciphertext) |> Base.encode64()
   end
 
-  def decrypt(ciphertext_base64, key_base64) do
+  def decrypt(key_base64, ciphertext_base64) do
     key = Base.decode64!(key_base64)
     data = Base.decode64!(ciphertext_base64)
 

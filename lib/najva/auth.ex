@@ -17,7 +17,7 @@ defmodule Najva.Auth do
     case Horde.Registry.lookup(Najva.HordeRegistry, jid) do
       [{pid, _}] ->
         # GS is running.
-        # 1. Tell GenServer to trust this new token
+        # 1. Tell GenServer to provide new token if password matches.
         GenServer.call(pid, {:get_new_ciphertext, password})
 
       [] ->
@@ -25,11 +25,8 @@ defmodule Najva.Auth do
         Najva.HordeSupervisor.start_client(jid, password, self())
 
         receive do
-          {:connection_complete, new_ciphertext} ->
+          {:authenticated, new_ciphertext} ->
             {:ok, new_ciphertext}
-
-          {:connection_failed, reason} ->
-            {:error, reason}
         after
           15_000 ->
             {:error, :timeout}

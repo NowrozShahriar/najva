@@ -3,6 +3,7 @@ defmodule Najva.XmppClient do
   import Najva.XmppClient.Helpers
   require Logger
   alias Phoenix.PubSub
+  alias Najva.XmppClient.Encryption
   require Record
   @xmpp_include_path "deps/xmpp/include/xmpp.hrl"
   @ping_interval 59_000
@@ -64,11 +65,12 @@ defmodule Najva.XmppClient do
       resource: "Najva",
       host: String.split(opts[:jid], "@") |> Enum.at(1),
       connection_state: :connecting,
+      socket: nil,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      socket: nil,
-      chat_map: %{},
-      caller_pid: opts[:caller_pid]
+      caller_pid: opts[:caller_pid],
+      active_devices: [],
+      chat_map: %{}
     }
 
     # Logger.info("XmppClient: connecting to #{state.host}")
@@ -241,7 +243,7 @@ defmodule Najva.XmppClient do
     # GenServer is already running and presumably connected
     # Verify password matches and return a new encrypted password
     if password == state.password do
-      {:reply, encrypt_password(state), state}
+      {:reply, Encryption.encrypt_password(state.jid, state.password), state}
     else
       {:reply, {:error, :invalid_password}, state}
     end
@@ -287,18 +289,5 @@ defmodule Najva.XmppClient do
     }
 
     {chat_id, filtered_msg}
-  end
-
-  defp encrypt_password(state) do
-    alias Najva.XmppClient.Encryption
-
-    case Encryption.generate_and_update_key(state.jid) do
-      {:ok, key} ->
-        encrypted_password = Encryption.encrypt(state.password, key)
-        {:ok, encrypted_password}
-
-      {:error, reason} ->
-        {:error, reason}
-    end
   end
 end

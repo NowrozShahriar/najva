@@ -107,32 +107,37 @@ defmodule Najva.XmppClient.Helpers do
   end
 
   def handle_sasl_success(state) do
-    # After successful auth, we restart the stream.
-    new_state = %{
-      state
-      | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
-        connection_state: :authenticated
-    }
+    new_state =
+      case state.caller_pid do
+        nil ->
+          %{
+            state
+            | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
+              connection_state: :authenticated
+          }
 
+        pid when is_pid(pid) ->
+          new_ciphertext = Encryption.encrypt_password(state.jid, state.password)
+          send(pid, {:authenticated, new_ciphertext})
+
+          %{
+            state
+            | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
+              connection_state: :authenticated,
+              active_devices: [new_ciphertext | state.active_devices],
+              caller_pid: nil
+          }
+      end
+
+    # After successful auth, we restart the stream.
     send_stream_header(new_state)
+
     {:noreply, new_state}
   end
 
   def handle_bind_result(jid, state) do
     # Logger.info("XmppClient.Session: session aquired #{inspect(jid)}\n")
     new_state = %{state | jid: jid, connection_state: :bound}
-
-    # Notify caller if one is waiting
-    if state.caller_pid do
-      case Encryption.generate_and_update_key(state.jid) do
-        {:ok, key} ->
-          encrypted_password = Encryption.encrypt(state.password, key)
-          send(state.caller_pid, {:connection_complete, encrypted_password})
-
-        {:error, reason} ->
-          send(state.caller_pid, {:connection_failed, reason})
-      end
-    end
 
     send_data(new_state, "<presence xmlns='jabber:client'/>")
     {:noreply, new_state}
