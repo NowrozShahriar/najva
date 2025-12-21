@@ -8,36 +8,27 @@ defmodule Najva do
   """
 
   def start() do
-    Najva.XmppClient.start_link(%{
-      jid: "najva_test@xmpp.earth",
-      password: "random_password"
-    })
+    Najva.HordeSupervisor.start_client("najva_test@xmpp.earth", "random_password")
   end
 
   def stop() do
-    GenServer.stop({:global, "najva_test@xmpp.earth"})
+    GenServer.stop(Najva.HordeRegistry.via_tuple("najva_test@xmpp.earth"))
   end
 
-  def start0() do
-    Najva.XmppClient.start_link(%{
-      jid: "najva_test0@conversations.im",
-      password: "random_password"
-    })
+  def st0() do
+    Najva.HordeSupervisor.start_client("najva_test0@conversations.im", "random_password")
   end
 
-  def stop0() do
-    GenServer.stop({:global, "najva_test0@conversations.im"})
+  def sp0() do
+    GenServer.stop(Najva.HordeRegistry.via_tuple("najva_test0@conversations.im"))
   end
 
-  def start1() do
-    Najva.XmppClient.start_link(%{
-      jid: "najva_test1@conversations.im",
-      password: "random_password"
-    })
+  def st1() do
+    Najva.HordeSupervisor.start_client("najva_test1@conversations.im", "random_password")
   end
 
-  def stop1() do
-    GenServer.stop({:global, "najva_test1@conversations.im"})
+  def sp1() do
+    GenServer.stop(Najva.HordeRegistry.via_tuple("najva_test1@conversations.im"))
   end
 
   def listpane_content() do
