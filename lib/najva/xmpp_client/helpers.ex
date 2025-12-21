@@ -2,47 +2,6 @@ defmodule Najva.XmppClient.Helpers do
   require Logger
   require Record
   alias Najva.XmppClient.Encryption
-  @xmpp_include_path "deps/xmpp/include/xmpp.hrl"
-
-  Record.defrecordp(
-    :iq,
-    Record.extract(:iq, from: @xmpp_include_path)
-    # defrecordp :iq, [
-    # 	id: "",                # binary(), default: ""
-    # 	type: nil,             # atom(), e.g. :get, :set, :result, :error
-    # 	lang: "",              # binary(), default: ""
-    # 	from: nil,             # nil or JID struct
-    # 	to: nil,               # nil or JID struct
-    # 	sub_els: [],           # list of xmpp_element or xmlel
-    # 	meta: %{}              # map, default: empty map
-    # ]
-  )
-
-  Record.defrecordp(
-    :bind,
-    Record.extract(:bind, from: @xmpp_include_path)
-    # defrecord :bind, [
-    # 	jid: nil,
-    # 	resource: ""
-    # ]
-  )
-
-  Record.defrecordp(
-    :presence,
-    Record.extract(:presence, from: @xmpp_include_path)
-    # defrecordp :presence, [
-    # id: "",                # binary(), default: ""
-    # type: :available,      # atom(), default: :available
-    # lang: "",              # binary(), default: ""
-    # from: nil,             # nil or JID struct
-    # to: nil,               # nil or JID struct
-    # show: nil,             # nil or :away | :chat | :dnd | :xa
-    # status: [],            # list of text records
-    # priority: nil,         # nil or integer
-    # sub_els: [],           # list of xmpp_element or xmlel
-    # meta: %{}              # map, default: empty map
-    # ]
-  )
 
   def send_element(state, record) do
     xmlel = :xmpp.encode(record)
@@ -93,9 +52,14 @@ defmodule Najva.XmppClient.Helpers do
         handle_sasl(features[:sasl_mechanisms], state)
 
       Enum.find(features, &match?({:bind, _, _}, &1)) ->
-        bind_iq = iq(type: :set, id: "bind_1", sub_els: [bind(resource: state.resource)])
-        # Logger.debug("XmppClient.Session: sending bind IQ: #{inspect(bind_iq)}")
-        send_element(state, bind_iq)
+        xml =
+          "<iq type='set' id='bind_1'>
+            <bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'>
+              <resource>#{state.resource}</resource>
+            </bind>
+          </iq>"
+
+        send_data(state, xml)
         {:noreply, state}
 
       true ->
@@ -170,7 +134,7 @@ defmodule Najva.XmppClient.Helpers do
       end
     end
 
-    send_element(new_state, presence())
+    send_data(new_state, "<presence xmlns='jabber:client'/>")
     {:noreply, new_state}
   end
 

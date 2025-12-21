@@ -17,12 +17,12 @@ defmodule Najva.HordeSupervisor do
 
   @doc """
   Starts the XMPP Client.
-  Horde distributes this process across the cluster.
   """
-  def start_client(jid, password) do
+  def start_client(jid, password, caller_pid \\ nil) do
     child_spec = %{
       id: Najva.XmppClient,
-      start: {Najva.XmppClient, :start_link, [[jid: jid, password: password]]},
+      start:
+        {Najva.XmppClient, :start_link, [[jid: jid, password: password, caller_pid: caller_pid]]},
       restart: :transient
     }
 

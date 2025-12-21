@@ -1,12 +1,11 @@
 defmodule NajvaWeb.RootLive do
   use NajvaWeb, :live_view
-  alias Phoenix.PubSub
 
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
-      PubSub.subscribe(Najva.PubSub, "najva_test0@conversations.im")
-      GenServer.call({:global, "najva_test0@conversations.im"}, :load_archive)
+      Phoenix.PubSub.subscribe(Najva.PubSub, "najva_test0@conversations.im/Najva")
+      GenServer.call(Najva.HordeRegistry.via_tuple("najva_test0@conversations.im"), :load_archive)
     end
 
     {:ok, assign(socket, chat_list: %{})}

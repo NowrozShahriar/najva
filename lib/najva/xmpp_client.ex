@@ -7,16 +7,6 @@ defmodule Najva.XmppClient do
   @xmpp_include_path "deps/xmpp/include/xmpp.hrl"
   @ping_interval 59_000
 
-  Record.defrecordp(:jid, Record.extract(:jid, from: @xmpp_include_path))
-  # defrecordp :jid, [
-  # 	user: "",        # binary(), default: ""
-  # 	server: "",      # binary(), default: ""
-  # 	resource: "",    # binary(), default: ""
-  # 	luser: "",       # binary(), default: ""
-  # 	lserver: "",     # binary(), default: ""
-  # 	lresource: ""    # binary(), default: ""
-  # ]
-
   Record.defrecordp(:iq, Record.extract(:iq, from: @xmpp_include_path))
   # defrecordp :iq, [
   # 	id: "",                # binary(), default: ""
@@ -26,12 +16,6 @@ defmodule Najva.XmppClient do
   # 	to: nil,               # nil or JID struct
   # 	sub_els: [],           # list of xmpp_element or xmlel
   # 	meta: %{}              # map, default: empty map
-  # ]
-
-  Record.defrecordp(:bind, Record.extract(:bind, from: @xmpp_include_path))
-  # defrecord :bind, [
-  # 	jid: nil,
-  # 	resource: ""
   # ]
 
   Record.defrecordp(:mam_query, Record.extract(:mam_query, from: @xmpp_include_path))
@@ -74,7 +58,6 @@ defmodule Najva.XmppClient do
 
   @impl true
   def init(opts) do
-    # Step 0
     state = %{
       jid: opts[:jid],
       password: opts[:password],
@@ -84,10 +67,10 @@ defmodule Najva.XmppClient do
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
       socket: nil,
-      chat_map: %{}
+      chat_map: %{},
+      caller_pid: opts[:caller_pid]
     }
 
-    # Step 1
     # Logger.info("XmppClient: connecting to #{state.host}")
     send(self(), :connect)
     {:ok, state}
@@ -96,7 +79,6 @@ defmodule Najva.XmppClient do
   @impl true
   def handle_info(msg, state) do
     case msg do
-      # Step 2
       :connect ->
         socket_opts = [:binary, packet: :raw, active: :once, keepalive: true]
 
@@ -116,12 +98,10 @@ defmodule Najva.XmppClient do
         # Logger.info("XmppClient: XML received\n#{inspect(data)}\n")
         parse_and_continue(state, data, :ssl)
 
-      # Step 8, 12, 18, 29, 34
       {:xmlstreamelement, element} ->
         # Logger.info("XmppClient XML element received:\n#{inspect(element)}\n")
         handle_element(element, state)
 
-      # Step 7, 17, 28
       {:xmlstreamstart, _name, _attrs} ->
         # Logger.notice("XmppClient: new XML stream started: #{inspect(header_response)}")
         {:noreply, state}
@@ -130,7 +110,6 @@ defmodule Najva.XmppClient do
         Logger.warning("XmppClient: ssl closed")
         {:stop, :normal, state}
 
-      # Step 5
       {:tcp, socket, data} when socket == state.socket ->
         # Logger.warning("XmppClient: tcp received #{inspect(data)}\n")
         parse_and_continue(state, data, :tcp)
@@ -148,6 +127,91 @@ defmodule Najva.XmppClient do
 
       _ ->
         Logger.debug("XmppClient UNHANDLED: #{inspect(msg)}")
+        {:noreply, state}
+    end
+  end
+
+  def handle_element({:xmlel, "iq", _attrs, _children} = element, state) do
+    %{"iq" => iq_map} = Fxmap.decode(element)
+
+    cond do
+      # Bind result
+      iq_map["@type"] == "result" and get_in(iq_map, ["bind", "jid", "@cdata"]) ->
+        jid_string = get_in(iq_map, ["bind", "jid", "@cdata"])
+        schedule_ping()
+        handle_bind_result(jid_string, state)
+
+      # MAM IQ results
+      iq_map["@type"] == "result" and String.starts_with?(iq_map["@id"] || "", "mam-") ->
+        Logger.debug("XmppClient: Received an intermediate MAM IQ result.")
+        {:noreply, state}
+
+      true ->
+        Logger.debug("XmppClient: unhandled IQ: #{inspect(iq_map)}")
+        {:noreply, state}
+    end
+  end
+
+  def handle_element({:xmlel, "message", _attrs, _children} = element, state) do
+    %{"message" => message} = Fxmap.decode(element)
+
+    new_state =
+      cond do
+        Map.has_key?(message, "fin") ->
+          # Handle MAM query finished messages
+          Logger.info("XmppClient: MAM query finished #{inspect(state.chat_map)}")
+          PubSub.broadcast(Najva.PubSub, state.jid, {:mam_finished, state.chat_map})
+          %{state | chat_map: %{}}
+
+        msg_content = get_in(message, ["result", "forwarded", "message"]) ->
+          # Handle forwarded/archived messages (e.g., from MAM query results)
+          # Logger.info("XmppClient: received forwarded message\n#{inspect(msg_content)}\n")
+          {chat_id, filtered_msg} = handle_message(state, msg_content)
+
+          # Add the new message to the list for the correct chat_id
+          %{state | chat_map: Map.put(state.chat_map, chat_id, filtered_msg)}
+
+        Map.has_key?(message, "body") ->
+          # Logger.info("XmppClient: received regular message\n#{inspect(message)}\n")
+          message = handle_message(state, message)
+          PubSub.broadcast(Najva.PubSub, state.jid, {:message, message})
+          state
+
+        true ->
+          Logger.debug("XmppClient: unhandled message: #{inspect(message)}")
+          state
+      end
+
+    {:noreply, new_state}
+  end
+
+  def handle_element({:xmlel, "presence", _attrs, _children}, state) do
+    # presence = :xmpp.decode({:xmlel, "presence", attrs, children})
+    # Logger.debug("XmppClient: received presence: #{inspect(presence)}")
+    {:noreply, state}
+  end
+
+  def handle_element(element, state) do
+    case element do
+      {:xmlel, "stream:features", attrs, children} ->
+        {:stream_features, features} = :xmpp.decode({:xmlel, "stream:features", attrs, children})
+        # Logger.info("XmppClient: received stream features: #{inspect(features)}")
+        handle_features(features, state)
+
+      {:xmlel, "proceed", _, _} ->
+        # Logger.info("XmppClient: received TLS proceed, upgrading to TLS")
+        handle_starttls_proceed(state)
+
+      {:xmlel, "success", _, _} ->
+        # Logger.info("XmppClient: SASL success")
+        handle_sasl_success(state)
+
+      {:xmlel, "failure", _, _} ->
+        Logger.error("XmppClient: SASL authentication failed")
+        {:stop, :sasl_failure, state}
+
+      _ ->
+        Logger.debug("XmppClient: unhandled XML element: #{inspect(element)}")
         {:noreply, state}
     end
   end
@@ -207,96 +271,22 @@ defmodule Najva.XmppClient do
   #     {:reply, res, state}
   #   end
 
-  # Step 35
-  def handle_element({:xmlel, "iq", attrs, children}, state) do
-    iq = :xmpp.decode({:xmlel, "iq", attrs, children})
-    # Logger.info("XmppClient: received IQ: #{inspect(iq)}")
-    case iq do
-      # Bind result
-      iq(type: :result, sub_els: [bind(jid: jid)]) ->
-        schedule_ping()
-        handle_bind_result(jid(jid), state)
-
-      # Other IQ results
-      iq(type: :result, id: "mam-" <> _rest) ->
-        Logger.debug("XmppClient: Received an intermediate MAM IQ result.")
-        {:noreply, state}
-
-      iq() ->
-        Logger.debug("XmppClient: unhandled IQ: #{inspect(iq)}")
-        {:noreply, state}
-    end
-  end
-
-  def handle_element({:xmlel, "message", _attrs, _children} = element, state) do
-    %{"message" => message} = Fxmap.decode(element)
-
-    new_state =
-      cond do
-        Map.has_key?(message, "fin") ->
-          # Handle MAM query finished messages
-          Logger.info("XmppClient: MAM query finished #{inspect(state.chat_map)}")
-          PubSub.broadcast(Najva.PubSub, state.jid, {:mam_finished, state.chat_map})
-          %{state | chat_map: %{}}
-
-        msg_content = get_in(message, ["result", "forwarded", "message"]) ->
-          # Handle forwarded/archived messages (e.g., from MAM query results)
-          # Logger.info("XmppClient: received forwarded message\n#{inspect(msg_content)}\n")
-          {chat_id, filtered_msg} = handle_message(state, msg_content)
-
-          # Add the new message to the list for the correct chat_id
-          %{state | chat_map: Map.put(state.chat_map, chat_id, filtered_msg)}
-
-        Map.has_key?(message, "body") ->
-          # Logger.info("XmppClient: received regular message\n#{inspect(message)}\n")
-          message = handle_message(state, message)
-          PubSub.broadcast(Najva.PubSub, state.jid, {:message, message})
-          state
-
-        true ->
-          Logger.debug("XmppClient: unhandled message: #{inspect(message)}")
-          state
-      end
-
-    {:noreply, new_state}
-  end
-
-  def handle_element({:xmlel, "presence", _attrs, _children}, state) do
-    # presence = :xmpp.decode({:xmlel, "presence", attrs, children})
-    # Logger.debug("XmppClient: received presence: #{inspect(presence)}")
-    {:noreply, state}
-  end
-
-  def handle_element(element, state) do
-    case element do
-      # Step 9, 19, 30
-      {:xmlel, "stream:features", attrs, children} ->
-        {:stream_features, features} = :xmpp.decode({:xmlel, "stream:features", attrs, children})
-        # Logger.info("XmppClient: received stream features: #{inspect(features)}")
-        handle_features(features, state)
-
-      # Step 13
-      {:xmlel, "proceed", _, _} ->
-        # Logger.info("XmppClient: received TLS proceed, upgrading to TLS")
-        handle_starttls_proceed(state)
-
-      # Step 24
-      {:xmlel, "success", _, _} ->
-        # Logger.info("XmppClient: SASL success")
-        handle_sasl_success(state)
-
-      {:xmlel, "failure", _, _} ->
-        Logger.error("XmppClient: SASL authentication failed")
-        {:stop, :sasl_failure, state}
-
-      _ ->
-        Logger.debug("XmppClient: unhandled XML element: #{inspect(element)}")
-        {:noreply, state}
-    end
-  end
-
   defp schedule_ping do
     Process.send_after(self(), :ping, @ping_interval)
+  end
+
+  defp handle_message(state, message) do
+    from = String.split(message["@from"], "/") |> hd()
+    chat_id = if from == state.jid, do: message["@to"], else: from
+
+    filtered_msg = %{
+      from: message["@from"],
+      to: message["@to"],
+      text: message["body"]["@cdata"],
+      time: String.to_integer(message["archived"]["@id"])
+    }
+
+    {chat_id, filtered_msg}
   end
 
   defp encrypt_password(state) do
@@ -310,19 +300,5 @@ defmodule Najva.XmppClient do
       {:error, reason} ->
         {:error, reason}
     end
-  end
-
-  def handle_message(state, message) do
-    from = String.split(message["@from"], "/") |> hd()
-    chat_id = if from == state.jid, do: message["@to"], else: from
-
-    filtered_msg = %{
-      from: message["@from"],
-      to: message["@to"],
-      text: message["body"]["@cdata"],
-      time: String.to_integer(message["archived"]["@id"])
-    }
-
-    {chat_id, filtered_msg}
   end
 end
