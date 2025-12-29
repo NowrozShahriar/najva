@@ -117,13 +117,21 @@ defmodule Najva.XmppClient.Helpers do
           }
 
         pid when is_pid(pid) ->
-          new_ciphertext = Encryption.encrypt_password(state.jid, state.password)
+          {:ok, base64_key} =
+            case state.key do
+              nil -> Encryption.generate_and_update_key(state.jid)
+              key -> {:ok, key}
+            end
+
+          new_ciphertext = Encryption.encrypt(base64_key, state.password)
+
           send(pid, {:authenticated, new_ciphertext})
 
           %{
             state
             | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
               connection_state: :authenticated,
+              key: base64_key,
               active_devices: [new_ciphertext | state.active_devices],
               caller_pid: nil
           }

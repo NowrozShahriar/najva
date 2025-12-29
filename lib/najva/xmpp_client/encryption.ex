@@ -12,18 +12,18 @@ defmodule Najva.XmppClient.Encryption do
   # Additional Authenticated Data for integrity check
   @aad "NajvaAuth"
 
-  def encrypt_password(jid, password) do
-    case get_encryption_key(jid) do
-      nil ->
-        case generate_and_update_key(jid) do
-          {:ok, key} -> {:ok, encrypt(key, password)}
-          {:error, error} -> {:error, error}
-        end
-
-      key ->
-        {:ok, encrypt(key, password)}
-    end
-  end
+  #   def encrypt_password(jid, password) do
+  #     case get_encryption_key(jid) do
+  #       nil ->
+  #         case generate_and_update_key(jid) do
+  #           {:ok, key} -> {:ok, encrypt(key, password)}
+  #           {:error, error} -> {:error, error}
+  #         end
+  #
+  #       key ->
+  #         {:ok, encrypt(key, password)}
+  #     end
+  #   end
 
   def encrypt(key_base64, plaintext) do
     key = Base.decode64!(key_base64)

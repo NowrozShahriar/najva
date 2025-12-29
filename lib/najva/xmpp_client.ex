@@ -63,6 +63,7 @@ defmodule Najva.XmppClient do
       jid: opts[:jid],
       password: opts[:password],
       resource: "Najva",
+      key: Encryption.get_encryption_key(opts[:jid]),
       host: String.split(opts[:jid], "@") |> Enum.at(1),
       connection_state: :connecting,
       socket: nil,
@@ -239,11 +240,28 @@ defmodule Najva.XmppClient do
   end
 
   @impl true
+  def handle_call({:verify_session, ciphertext}, _from, state) do
+    reply =
+      if ciphertext in state.active_devices do
+        :ok
+      else
+        with {:ok, plaintext} <- Encryption.decrypt(state.key, ciphertext),
+             true <- plaintext == state.password do
+          :ok
+        else
+          {:error, _} -> {:error, :decryption_failed}
+          false -> {:error, :invalid_password}
+        end
+      end
+
+    {:reply, reply, state}
+  end
+
+  @impl true
   def handle_call({:get_new_ciphertext, password}, _from, state) do
-    # GenServer is already running and presumably connected
     # Verify password matches and return a new encrypted password
     if password == state.password do
-      {:reply, Encryption.encrypt_password(state.jid, state.password), state}
+      {:reply, Encryption.encrypt(state.key, state.password), state}
     else
       {:reply, {:error, :invalid_password}, state}
     end
