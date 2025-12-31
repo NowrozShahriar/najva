@@ -2,6 +2,7 @@ defmodule Najva.XmppClient.Helpers do
   require Logger
   require Record
   alias Najva.XmppClient.Encryption
+  alias Phoenix.PubSub
 
   def send_element(state, record) do
     xmlel = :xmpp.encode(record)
@@ -108,32 +109,32 @@ defmodule Najva.XmppClient.Helpers do
 
   def handle_sasl_success(state) do
     new_state =
-      case state.caller_pid do
-        nil ->
-          %{
-            state
-            | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
-              connection_state: :authenticated
-          }
-
-        pid when is_pid(pid) ->
-          {:ok, base64_key} =
+      case state.active_devices do
+        [] ->
+          {:ok, key} =
             case state.key do
               nil -> Encryption.generate_and_update_key(state.jid)
               key -> {:ok, key}
             end
 
-          new_ciphertext = Encryption.encrypt(base64_key, state.password)
+          new_ciphertext = Encryption.encrypt(key, state.password)
 
-          send(pid, {:authenticated, new_ciphertext})
+          # Broadcast authentication success via PubSub
+          PubSub.broadcast(Najva.PubSub, state.jid, {:authenticated, new_ciphertext})
 
           %{
             state
             | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
               connection_state: :authenticated,
-              key: base64_key,
-              active_devices: [new_ciphertext | state.active_devices],
-              caller_pid: nil
+              key: key,
+              active_devices: [new_ciphertext]
+          }
+
+        _ ->
+          %{
+            state
+            | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
+              connection_state: :authenticated
           }
       end
 

@@ -69,7 +69,6 @@ defmodule Najva.XmppClient do
       socket: nil,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      caller_pid: opts[:caller_pid],
       active_devices: [],
       chat_map: %{}
     }
@@ -261,7 +260,9 @@ defmodule Najva.XmppClient do
   def handle_call({:get_new_ciphertext, password}, _from, state) do
     # Verify password matches and return a new encrypted password
     if password == state.password do
-      {:reply, Encryption.encrypt(state.key, state.password), state}
+      new_ciphertext = Encryption.encrypt(state.key, state.password)
+      new_state = %{state | active_devices: [new_ciphertext | state.active_devices]}
+      {:reply, new_ciphertext, new_state}
     else
       {:reply, {:error, :invalid_password}, state}
     end
