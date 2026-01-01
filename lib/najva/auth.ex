@@ -17,14 +17,13 @@ defmodule Najva.Auth do
           key ->
             case Encryption.decrypt(key, ciphertext) do
               {:ok, password} ->
-                # Subscribe to PubSub for authentication updates
                 PubSub.subscribe(Najva.PubSub, jid)
                 Najva.HordeSupervisor.start_client(jid, password)
 
                 receive do
-                  {:authenticated, new_ciphertext} ->
+                  :authenticated ->
                     PubSub.unsubscribe(Najva.PubSub, jid)
-                    {:ok, new_ciphertext}
+                    :ok
                 after
                   15_000 ->
                     {:error, :timeout}

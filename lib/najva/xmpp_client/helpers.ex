@@ -131,6 +131,8 @@ defmodule Najva.XmppClient.Helpers do
           }
 
         _ ->
+          PubSub.broadcast(Najva.PubSub, state.jid, :authenticated)
+
           %{
             state
             | stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),

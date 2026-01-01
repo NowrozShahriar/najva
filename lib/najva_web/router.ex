@@ -8,6 +8,7 @@ defmodule NajvaWeb.Router do
     plug :put_root_layout, html: {NajvaWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug NajvaWeb.Plugs.AuthPlug
   end
 
   pipeline :api do
