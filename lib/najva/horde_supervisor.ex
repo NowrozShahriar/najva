@@ -18,10 +18,11 @@ defmodule Najva.HordeSupervisor do
   @doc """
   Starts the XMPP Client.
   """
-  def start_client(jid, password) do
+  def start_client(jid, password, device_id \\ []) do
     child_spec = %{
       id: Najva.XmppClient,
-      start: {Najva.XmppClient, :start_link, [[jid: jid, password: password]]},
+      start:
+        {Najva.XmppClient, :start_link, [[jid: jid, password: password, device_id: device_id]]},
       restart: :transient
     }
 

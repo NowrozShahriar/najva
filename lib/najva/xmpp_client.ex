@@ -69,7 +69,7 @@ defmodule Najva.XmppClient do
       socket: nil,
       stream_state: :fxml_stream.new(self(), :infinity, [:no_gen_server]),
       # The :no_gen_server option tells fxml_stream to send messages directly to self()
-      active_devices: [],
+      active_devices: opts[:device_id],
       chat_map: %{}
     }
 
@@ -138,10 +138,14 @@ defmodule Najva.XmppClient do
 
     cond do
       # Bind result
-      iq_map["@type"] == "result" and get_in(iq_map, ["bind", "jid", "@cdata"]) ->
-        jid_string = get_in(iq_map, ["bind", "jid", "@cdata"])
+      iq_map["@type"] == "result" and
+          get_in(iq_map, ["bind", "jid", "@cdata"]) == "#{state.jid}/#{state.resource}" ->
         schedule_ping()
-        handle_bind_result(jid_string, state)
+
+        # Logger.info("XmppClient.Session: session aquired\n")
+        new_state = %{state | connection_state: :bound}
+        send_data(new_state, "<presence xmlns='jabber:client'/>")
+        {:noreply, new_state}
 
       # MAM IQ results
       iq_map["@type"] == "result" and String.starts_with?(iq_map["@id"] || "", "mam-") ->
@@ -225,7 +229,7 @@ defmodule Najva.XmppClient do
   end
 
   @impl true
-  def handle_call(:load_archive, _from, state) do
+  def handle_cast(:load_archive, state) do
     query_id = "mam-" <> (:crypto.strong_rand_bytes(8) |> Base.encode16(case: :lower))
 
     mam_query = mam_query(id: query_id)
@@ -235,7 +239,7 @@ defmodule Najva.XmppClient do
 
     # Here we are just acknowledging the request was sent.
     # The results will arrive as separate messages.
-    {:reply, :ok, state}
+    {:noreply, state}
   end
 
   @impl true

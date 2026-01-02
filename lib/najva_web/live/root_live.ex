@@ -2,13 +2,21 @@ defmodule NajvaWeb.RootLive do
   use NajvaWeb, :live_view
 
   @impl true
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
+    jid = session["jid"]
+
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(Najva.PubSub, "najva_test0@conversations.im/Najva")
-      GenServer.call(Najva.HordeRegistry.via_tuple("najva_test0@conversations.im"), :load_archive)
+      case Horde.Registry.lookup(Najva.HordeRegistry, jid) do
+        [{pid, _}] ->
+          Phoenix.PubSub.subscribe(Najva.PubSub, jid)
+          GenServer.cast(pid, :load_archive)
+
+        [] ->
+          :ok
+      end
     end
 
-    {:ok, assign(socket, chat_list: %{})}
+    {:ok, assign(socket, chat_list: %{}, current_user: jid)}
   end
 
   @impl true
@@ -18,6 +26,7 @@ defmodule NajvaWeb.RootLive do
       flash={@flash}
       live_action={@live_action}
       chat_list={@chat_list}
+      current_user={@current_user}
     >
       <div :if={@live_action == :profile}>
         <h1>Account</h1>
@@ -32,9 +41,15 @@ defmodule NajvaWeb.RootLive do
   end
 
   @impl true
-  def handle_params(_params, _url, socket) do
-    {:noreply, socket}
+  def handle_params(_params, url, socket) do
+    {:noreply, assign(socket, current_path: url)}
   end
+
+  @impl true
+  def handle_info({:authenticated, _}, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_info(:authenticated, socket), do: {:noreply, socket}
 
   @impl true
   def handle_info({:mam_finished, chat_map}, socket) do
@@ -52,4 +67,8 @@ defmodule NajvaWeb.RootLive do
     new_chat_list = Map.put(socket.assigns.chat_list, chat_id, new_message)
     {:noreply, assign(socket, chat_list: new_chat_list)}
   end
+
+  # Catch-all for other PubSub messages
+  @impl true
+  def handle_info(_msg, socket), do: {:noreply, socket}
 end

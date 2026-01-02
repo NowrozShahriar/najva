@@ -19,20 +19,35 @@ defmodule NajvaWeb.Plugs.AuthPlug do
           conn
           |> put_session(:jid, jid)
           |> assign(:current_user, jid)
+          |> redirect_authenticated()
+
+        {:error, :timeout} ->
+          # Timeout: Don't clear session, just continue with a warning
+          conn
+          |> assign(:current_user, jid)
+          |> put_flash(:warning, "Connection is slow. Some features may be unavailable.")
 
         {:error, _reason} ->
-          # Failure: "Remove cookies then reload page"
+          # Auth failure: Clear cookies
           conn
           |> clear_session()
           |> delete_resp_cookie("jid")
           |> delete_resp_cookie("encrypted_password")
           |> put_flash(:error, "Session expired. Please login again.")
-          # Redirect effectively reloads the context
-          |> redirect(to: "/login")
-          |> halt()
       end
     else
-      # No cookies found, continue (let Controller/LiveView handle auth requirements)
+      # No cookies found, continue. Not directly redirecting to login here to allow public routes.
+      conn
+    end
+  end
+
+  # Redirect authenticated users away from login/register pages
+  defp redirect_authenticated(conn) do
+    if conn.request_path == "/login" || conn.request_path == "/register" do
+      conn
+      |> redirect(to: "/")
+      |> halt()
+    else
       conn
     end
   end

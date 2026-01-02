@@ -146,14 +146,6 @@ defmodule Najva.XmppClient.Helpers do
     {:noreply, new_state}
   end
 
-  def handle_bind_result(jid, state) do
-    # Logger.info("XmppClient.Session: session aquired #{inspect(jid)}\n")
-    new_state = %{state | jid: jid, connection_state: :bound}
-
-    send_data(new_state, "<presence xmlns='jabber:client'/>")
-    {:noreply, new_state}
-  end
-
   defp send_ssl(socket, data) do
     case :ssl.send(socket, data) do
       :ok ->
