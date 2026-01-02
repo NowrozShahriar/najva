@@ -6,9 +6,10 @@ defmodule NajvaWeb.RootLive do
     jid = session["jid"]
 
     if connected?(socket) do
+      Phoenix.PubSub.subscribe(Najva.PubSub, jid)
+
       case Horde.Registry.lookup(Najva.HordeRegistry, jid) do
         [{pid, _}] ->
-          Phoenix.PubSub.subscribe(Najva.PubSub, jid)
           GenServer.cast(pid, :load_archive)
 
         [] ->
