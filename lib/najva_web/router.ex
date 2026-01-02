@@ -1,5 +1,6 @@
 defmodule NajvaWeb.Router do
   use NajvaWeb, :router
+  alias NajvaWeb.Plugs
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -8,7 +9,18 @@ defmodule NajvaWeb.Router do
     plug :put_root_layout, html: {NajvaWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug NajvaWeb.Plugs.AuthPlug
+    plug Plugs.AuthPlug
+  end
+
+  pipeline :protected do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_live_flash
+    plug :put_root_layout, html: {NajvaWeb.Layouts, :root}
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug Plugs.AuthPlug
+    plug Plugs.RequireAuth
   end
 
   pipeline :api do
@@ -16,7 +28,7 @@ defmodule NajvaWeb.Router do
   end
 
   scope "/", NajvaWeb do
-    pipe_through :browser
+    pipe_through :protected
 
     live "/", RootLive, :root
     live "/profile", RootLive, :profile
@@ -26,8 +38,8 @@ defmodule NajvaWeb.Router do
   scope "/", NajvaWeb do
     pipe_through :browser
 
-    live "/login", AuthLive.Login, :login
-    live "/register", AuthLive.Register, :register
+    live "/login", LoginLive, :login
+    live "/register", RegisterLive, :register
 
     post "/login", SessionController, :login
     post "/register", SessionController, :register

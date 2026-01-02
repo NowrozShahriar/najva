@@ -145,6 +145,7 @@ defmodule NajvaWeb.Components do
 
   """
   attr :live_action, :atom, required: true
+  attr :current_user, :string, required: true
 
   def heading(assigns) do
     ~H"""
@@ -179,14 +180,14 @@ defmodule NajvaWeb.Components do
             "max-w-32 truncate pr-0.5 sm:max-w-48",
             @live_action != :root && " md:max-w-32 xl:max-w-48"
           ]}>
-            jabberid@xmpp.server
+            {@current_user}
           </p>
           <.icon name="hero-chevron-down" class="flex-shrink-0" />
         </button>
         
     <!-- Profile icon -->
         <.link
-          patch="/login"
+          patch="/profile"
           id="account-btn"
           title="Account"
           class={profile_icon <> if @live_action != :profile, do: profile_icon_inactive, else: profile_icon_active}

@@ -1,4 +1,4 @@
-defmodule NajvaWeb.AuthLive.Login do
+defmodule NajvaWeb.LoginLive do
   use NajvaWeb, :live_view
 
   def mount(_params, _session, socket) do
@@ -35,7 +35,7 @@ defmodule NajvaWeb.AuthLive.Login do
         <.input field={@form[:password]} type="password" label="Password" required />
 
         <div class="mt-4">
-          <.button phx-disable-with="Signing in..." class="w-full">Sign In</.button>
+          <.button phx-disable-with="Logging in..." class="w-full">Login</.button>
         </div>
       </.form>
 

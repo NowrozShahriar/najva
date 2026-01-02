@@ -1,4 +1,4 @@
-defmodule NajvaWeb.AuthLive.Register do
+defmodule NajvaWeb.RegisterLive do
   use NajvaWeb, :live_view
 
   # Stub for checking availability (Move to your Context)
