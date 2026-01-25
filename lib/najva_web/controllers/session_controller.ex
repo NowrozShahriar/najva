@@ -11,9 +11,9 @@ defmodule NajvaWeb.SessionController do
       {:ok, ciphertext} ->
         # "Save it in the cookies then reload page"
         conn
-        |> put_resp_cookie("jid", jid, max_age: 60 * 60 * 24 * 30, http_only: true)
+        |> put_resp_cookie("jid", jid, max_age: 60 * 60 * 24 * 60, http_only: true)
         |> put_resp_cookie("ciphertext", ciphertext,
-          max_age: 60 * 60 * 24 * 30,
+          max_age: 60 * 60 * 24 * 60,
           http_only: true
         )
         |> put_session(:jid, jid)
@@ -23,7 +23,7 @@ defmodule NajvaWeb.SessionController do
       {:error, _reason} ->
         conn
         |> put_flash(:error, "Incorrect JID or Password")
-        |> render(:new)
+        |> redirect(to: "/login")
     end
   end
 

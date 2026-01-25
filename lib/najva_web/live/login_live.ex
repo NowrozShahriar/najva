@@ -20,7 +20,7 @@ defmodule NajvaWeb.LoginLive do
         for={@form}
         id="login-form"
         action={~p"/login"}
-        phx-submit="save"
+        phx-submit="submit"
         phx-change="validate"
         phx-trigger-action={@trigger_submit}
         method="post"
@@ -56,7 +56,7 @@ defmodule NajvaWeb.LoginLive do
   end
 
   # When user clicks Submit
-  def handle_event("save", _params, socket) do
+  def handle_event("submit", _params, socket) do
     # We don't do the login logic here. We just validate constraints if needed.
     # Then we flip `trigger_submit` to true.
     # This tells the browser: "Okay, submit this form for real now using HTTP POST."
