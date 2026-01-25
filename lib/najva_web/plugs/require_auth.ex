@@ -5,11 +5,11 @@ defmodule NajvaWeb.Plugs.RequireAuth do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    if conn.assigns[:current_user] do
-      # User is logged in (AuthPlug did its job). Let them pass.
+    if get_session(conn, :jid) do
+      # User is fully authenticated (session confirmed).
       conn
     else
-      # User is NOT logged in. Stop them here.
+      # User is NOT strictly logged in (or just timed out). Stop them.
       conn
       |> put_flash(:error, "You must be logged in to access that page.")
       |> redirect(to: "/login")
