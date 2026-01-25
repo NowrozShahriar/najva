@@ -8,11 +8,11 @@ defmodule NajvaWeb.SessionController do
 
   def login(conn, %{"jid" => jid, "password" => password}) do
     case Auth.login(jid, password) do
-      {:ok, encrypted_password} ->
+      {:ok, ciphertext} ->
         # "Save it in the cookies then reload page"
         conn
         |> put_resp_cookie("jid", jid, max_age: 60 * 60 * 24 * 30, http_only: true)
-        |> put_resp_cookie("encrypted_password", encrypted_password,
+        |> put_resp_cookie("ciphertext", ciphertext,
           max_age: 60 * 60 * 24 * 30,
           http_only: true
         )
@@ -31,7 +31,7 @@ defmodule NajvaWeb.SessionController do
     conn
     |> clear_session()
     |> delete_resp_cookie("jid")
-    |> delete_resp_cookie("encrypted_password")
+    |> delete_resp_cookie("ciphertext")
     |> redirect(to: "/login")
   end
 end

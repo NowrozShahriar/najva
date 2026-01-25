@@ -7,13 +7,11 @@ defmodule NajvaWeb.Plugs.AuthPlug do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    jid = get_session(conn, :jid) || conn.cookies["jid"]
+    jid = conn.cookies["jid"]
+    ciphertext = conn.cookies["ciphertext"]
 
-    encrypted_password =
-      get_session(conn, :encrypted_password) || conn.cookies["encrypted_password"]
-
-    if jid && encrypted_password do
-      case Auth.restore_session(jid, encrypted_password) do
+    if jid && ciphertext do
+      case Auth.restore_session(jid, ciphertext) do
         :ok ->
           # Success: Ensure session is fresh and continue
           conn
@@ -32,7 +30,7 @@ defmodule NajvaWeb.Plugs.AuthPlug do
           conn
           |> clear_session()
           |> delete_resp_cookie("jid")
-          |> delete_resp_cookie("encrypted_password")
+          |> delete_resp_cookie("ciphertext")
           |> put_flash(:error, "Session expired. Please login again.")
       end
     else
