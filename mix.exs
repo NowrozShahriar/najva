@@ -64,11 +64,12 @@ defmodule Najva.MixProject do
       {:jason, "~> 1.4"},
       {:dns_cluster, "~> 0.2"},
       {:bandit, "~> 1.8"},
-      {:xmpp, "~> 1.11"},
+      {:xmpp, "~> 1.12"},
       {:tidewave, "~> 0.3", only: :dev},
       # {:timex, "~> 3.7"},
       {:benchee_html, "~> 1.0", only: :dev},
-      {:horde, "~> 0.8.5"}
+      {:horde, "~> 0.8.5"},
+      {:ejabberd, "~> 26.1"}
     ]
   end
 
