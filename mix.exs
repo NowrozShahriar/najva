@@ -68,7 +68,8 @@ defmodule Najva.MixProject do
       {:tidewave, "~> 0.5.4", only: :dev},
       {:benchee_html, "~> 1.0", only: :dev},
       {:horde, "~> 0.10.0"},
-      {:ejabberd, "~> 26.1"}
+      {:ejabberd, "~> 26.1"},
+      {:p1_pgsql, ">= 0.0.0"}
     ]
   end
 
