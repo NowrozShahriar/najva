@@ -20,6 +20,25 @@ if System.get_env("PHX_SERVER") do
   config :najva, NajvaWeb.Endpoint, server: true
 end
 
+# ejabberd configuration
+rootdefault =
+  case System.get_env("RELIVE", "false") do
+    "true" -> "_build/relive"
+    "false" -> ""
+  end
+
+rootpath = System.get_env("RELEASE_ROOT", rootdefault)
+
+config :ejabberd,
+  file: Path.join(rootpath, "ejabberd.yml"),
+  log_path: Path.join(rootpath, "ejabberd.log")
+
+config :mnesia,
+  dir: Path.join(rootpath, "database/")
+
+config :exsync,
+  reload_callback: {:ejabberd_admin, :update, []}
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

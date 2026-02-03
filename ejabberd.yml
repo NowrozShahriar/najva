@@ -1,23 +1,28 @@
 ###
-### ejabberd configuration file
-### Minimal configuration for ejabberd 26.01 with PostgreSQL
+###              ejabberd configuration file
+###
+### The parameters used in this configuration file are explained at
+###
+###       https://docs.ejabberd.im/admin/configuration
+###
+### The configuration file is written in YAML.
+### *******************************************************
+### *******           !!! WARNING !!!               *******
+### *******     YAML IS INDENTATION SENSITIVE       *******
+### ******* MAKE SURE YOU INDENT SECTIONS CORRECTLY *******
+### *******************************************************
+### Refer to http://en.wikipedia.org/wiki/YAML for the brief description.
 ###
 
-###'  LOGGING
+hosts:
+  - localhost
 
 loglevel: info
 
-###'  HOSTS
-
-hosts:
-  - "localhost"
-
-###'  CERTIFICATES
-
-certfiles:
-  - "/etc/ejabberd/certs/*.pem"
-
-###'  DATABASE
+## If you already have certificates, list them here
+# certfiles:
+#  - /etc/letsencrypt/live/domain.tld/fullchain.pem
+#  - /etc/letsencrypt/live/domain.tld/privkey.pem
 
 default_db: sql
 sql_type: pgsql
@@ -29,8 +34,6 @@ sql_password: "postgres"
 sql_pool_size: 10
 sql_schema_multihost: false
 
-###'  LISTENING PORTS
-
 listen:
   -
     port: 5222
@@ -41,10 +44,19 @@ listen:
     access: c2s
     starttls_required: true
   -
+    port: 5223
+    ip: "::"
+    module: ejabberd_c2s
+    max_stanza_size: 262144
+    shaper: c2s_shaper
+    access: c2s
+    tls: true
+  -
     port: 5269
     ip: "::"
     module: ejabberd_s2s_in
     max_stanza_size: 524288
+    shaper: s2s_shaper
   -
     port: 5443
     ip: "::"
@@ -53,6 +65,8 @@ listen:
     request_handlers:
       /admin: ejabberd_web_admin
       /api: mod_http_api
+      # /bosh: mod_bosh
+      /captcha: ejabberd_captcha
       /upload: mod_http_upload
       /ws: ejabberd_http_ws
   -
@@ -61,19 +75,32 @@ listen:
     module: ejabberd_http
     request_handlers:
       /admin: ejabberd_web_admin
-
-###'  S2S
+      /.well-known/acme-challenge: ejabberd_acme
+  -
+    port: 5478
+    ip: "::"
+    transport: udp
+    module: ejabberd_stun
+    use_turn: true
+    ## The server's public IPv4 address:
+    # turn_ipv4_address: "203.0.113.3"
+    ## The server's public IPv6 address:
+    # turn_ipv6_address: "2001:db8::3"
+  -
+    port: 1883
+    ip: "::"
+    module: mod_mqtt
+    backlog: 1000
 
 s2s_use_starttls: required
 
-###'  ACCESS CONTROL
-
 acl:
-  admin:
-    user:
-      - "admin@localhost"
   local:
     user_regexp: ""
+  loopback:
+    ip:
+      - 127.0.0.0/8
+      - ::1/128
 
 access_rules:
   local:
@@ -94,24 +121,40 @@ access_rules:
 
 api_permissions:
   "console commands":
-    from:
-      - ejabberd_ctl
+    from: ejabberd_ctl
     who: all
     what: "*"
-  "admin access":
+  "webadmin commands":
+    from: ejabberd_web_admin
+    who: admin
+    what: "*"
+  "adhoc commands":
+    from: mod_adhoc_api
+    who: admin
+    what: "*"
+  "http access":
+    from: mod_http_api
     who:
       access:
         allow:
-          acl: admin
+          - acl: loopback
+          - acl: admin
       oauth:
         scope: "ejabberd:admin"
         access:
           allow:
-            acl: admin
+            - acl: loopback
+            - acl: admin
     what:
       - "*"
-
-###'  SHAPERS
+      - "!stop"
+      - "!start"
+  "public commands":
+    who:
+      ip: 127.0.0.1/8
+    what:
+      - status
+      - connected_users_number
 
 shaper:
   normal:
@@ -129,16 +172,14 @@ shaper_rules:
     normal: all
   s2s_shaper: fast
 
-###'  MODULES
-
 modules:
   mod_adhoc: {}
+  mod_adhoc_api: {}
   mod_admin_extra: {}
   mod_announce:
     access: announce
   mod_avatar: {}
   mod_blocking: {}
-  mod_bosh: {}
   mod_caps: {}
   mod_carboncopy: {}
   mod_client_state: {}
@@ -147,15 +188,15 @@ modules:
   mod_fail2ban: {}
   mod_http_api: {}
   mod_http_upload:
-    put_url: https://@HOST@:5443/upload
-    docroot: "/var/lib/ejabberd/upload"
-    max_size: 104857600 # 100 MB
+    put_url: https://@HOST_URL_ENCODE@:5443/upload
+    custom_headers:
+      "Access-Control-Allow-Origin": "https://@HOST@"
+      "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
+      "Access-Control-Allow-Headers": "Content-Type"
   mod_last: {}
   mod_mam:
-    db_type: sql
     assume_mam_usage: true
     default: always
-  mod_mqtt: {}
   mod_muc:
     access:
       - allow
@@ -163,13 +204,14 @@ modules:
       - allow: admin
     access_create: muc_create
     access_persistent: muc_create
-    db_type: sql
+    access_mam:
+      - allow
     default_room_options:
       mam: true
   mod_muc_admin: {}
+  mod_muc_occupantid: {}
   mod_offline:
     access_max_user_messages: max_user_offline_messages
-    db_type: sql
   mod_ping: {}
   mod_privacy: {}
   mod_private: {}
@@ -188,16 +230,26 @@ modules:
   mod_push: {}
   mod_push_keepalive: {}
   mod_register:
+    ## Only accept registration requests from the "trusted"
+    ## network (see access_rules section above).
+    ## Think twice before enabling registration from any
+    ## address. See the Jabber SPAM Manifesto for details:
+    ## https://github.com/ge0rg/jabber-spam-fighting-manifesto
     ip_access: trusted_network
   mod_roster:
     versioning: true
-    db_type: sql
+  mod_s2s_bidi: {}
   mod_s2s_dialback: {}
   mod_shared_roster: {}
   mod_stream_mgmt:
     resend_on_timeout: if_offline
-  mod_vcard:
-    db_type: sql
+  mod_stun_disco: {}
+  mod_vcard: {}
   mod_vcard_xupdate: {}
   mod_version:
     show_os: false
+
+### Local Variables:
+### mode: yaml
+### End:
+### vim: set filetype=yaml tabstop=8
