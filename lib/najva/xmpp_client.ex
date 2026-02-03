@@ -266,7 +266,7 @@ defmodule Najva.XmppClient do
     if password == state.password do
       new_ciphertext = Encryption.encrypt(state.key, state.password)
       new_state = %{state | active_devices: [new_ciphertext | state.active_devices]}
-      {:reply, new_ciphertext, new_state}
+      {:reply, {:ok, new_ciphertext}, new_state}
     else
       {:reply, {:error, :invalid_password}, state}
     end
