@@ -1,5 +1,8 @@
 import Config
 
+# Only in tests, remove the complexity from the password hashing algorithm
+config :bcrypt_elixir, :log_rounds, 1
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
@@ -17,8 +20,14 @@ config :najva, Najva.Repo,
 # you can enable the server option below.
 config :najva, NajvaWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "waW9yrAkomZ1r0s1vJnlP2uJ36gNkIFU+oJf3sR6tpIhObO+YSJjlxe7cIYJSER2",
+  secret_key_base: "U/xi5xC1fgEMQ3zURnBU9LVZOv+IsVfyRwbWZzCrbO3vQ5q+Fl4iVBYlSmcIYjoV",
   server: false
+
+# In test we don't send emails
+config :najva, Najva.Mailer, adapter: Swoosh.Adapters.Test
+
+# Disable swoosh api client as it is only required for production adapters
+config :swoosh, :api_client, false
 
 # Print only warnings and errors during test
 config :logger, level: :warning

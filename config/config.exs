@@ -7,6 +7,19 @@
 # General application configuration
 import Config
 
+config :najva, :scopes,
+  user: [
+    default: true,
+    module: Najva.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: Najva.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :najva,
   ecto_repos: [Najva.Repo],
   generators: [timestamp_type: :utc_datetime]
@@ -20,7 +33,16 @@ config :najva, NajvaWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Najva.PubSub,
-  live_view: [signing_salt: "x/RTr5aK"]
+  live_view: [signing_salt: "J1VI5GQ/"]
+
+# Configures the mailer
+#
+# By default it uses the "Local" adapter which stores the emails
+# locally. You can see the emails in your browser, at "/dev/mailbox".
+#
+# For production it's recommended to configure a different adapter
+# at the `config/runtime.exs`.
+config :najva, Najva.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,

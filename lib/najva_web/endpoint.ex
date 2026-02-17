@@ -7,7 +7,7 @@ defmodule NajvaWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_najva_key",
-    signing_salt: "FTBFS05L",
+    signing_salt: "F+245DmE",
     same_site: "Lax"
   ]
 

@@ -40,6 +40,7 @@ defmodule Najva.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.3"},
       {:phoenix, "~> 1.8.3"},
       {:phoenix_ecto, "~> 4.7"},
       {:ecto_sql, "~> 3.13"},
@@ -58,18 +59,20 @@ defmodule Najva.MixProject do
        app: false,
        compile: false,
        depth: 1},
+      {:swoosh, "~> 1.21"},
+      {:req, "~> 0.5"},
       {:telemetry_metrics, "~> 1.1"},
       {:telemetry_poller, "~> 1.3"},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.4"},
-      {:dns_cluster, "~> 0.2"},
+      {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.10"},
       {:xmpp, "~> 1.12"},
       {:tidewave, "~> 0.5.4", only: :dev},
-      {:benchee_html, "~> 1.0", only: :dev},
       {:horde, "~> 0.10.0"},
       {:ejabberd, "~> 26.1"},
-      {:p1_pgsql, ">= 0.0.0"}
+      {:p1_pgsql, ">= 0.0.0"},
+      {:exsync, "~> 0.4.1"}
     ]
   end
 

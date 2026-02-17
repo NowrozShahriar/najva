@@ -1,25 +1,5 @@
 defmodule NajvaWeb.Live.Root do
   use NajvaWeb, :live_view
-
-  @impl true
-  def mount(_params, session, socket) do
-    jid = session["jid"]
-
-    if connected?(socket) do
-      Phoenix.PubSub.subscribe(Najva.PubSub, jid)
-
-      case Horde.Registry.lookup(Najva.HordeRegistry, jid) do
-        [{pid, _}] ->
-          GenServer.cast(pid, :load_archive)
-
-        [] ->
-          :ok
-      end
-    end
-
-    {:ok, assign(socket, chat_list: %{}, current_user: jid)}
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -39,6 +19,25 @@ defmodule NajvaWeb.Live.Root do
       </div>
     </Layouts.app>
     """
+  end
+
+  @impl true
+  def mount(_params, session, socket) do
+    jid = session["jid"]
+
+    #     if connected?(socket) do
+    #       Phoenix.PubSub.subscribe(Najva.PubSub, jid)
+    #
+    #       case Horde.Registry.lookup(Najva.HordeRegistry, jid) do
+    #         [{pid, _}] ->
+    #           GenServer.cast(pid, :load_archive)
+    #
+    #         [] ->
+    #           :ok
+    #       end
+    #     end
+
+    {:ok, assign(socket, chat_list: %{}, current_user: jid)}
   end
 
   @impl true
