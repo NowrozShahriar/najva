@@ -1,4 +1,4 @@
-defmodule NajvaWeb.RootLive do
+defmodule NajvaWeb.Live.Root do
   use NajvaWeb, :live_view
 
   @impl true

@@ -2,7 +2,7 @@ defmodule Najva.XmppClient.Encryption do
   import Ecto.Query
 
   alias Najva.Repo
-  alias Najva.Accounts.User
+  alias Najva.Accounts.ForeignUser
 
   @moduledoc """
   Handles AES-GCM encryption and decryption of passwords using a user-specific key.
@@ -53,7 +53,7 @@ defmodule Najva.XmppClient.Encryption do
   def get_encryption_key(jid) do
     # Query optimization: We only need the key, not the whole user struct
     query =
-      from u in User,
+      from u in ForeignUser,
         where: u.jid == ^jid,
         select: u.encryption_key
 
@@ -68,11 +68,11 @@ defmodule Najva.XmppClient.Encryption do
   def generate_and_update_key(jid) do
     key = :crypto.strong_rand_bytes(32) |> Base.encode64()
 
-    case Repo.get_by(User, jid: jid) do
+    case Repo.get_by(ForeignUser, jid: jid) do
       nil ->
         # New user - create record with the generated key
-        %User{}
-        |> User.changeset(%{jid: jid, encryption_key: key})
+        %ForeignUser{}
+        |> ForeignUser.changeset(%{jid: jid, encryption_key: key})
         |> Repo.insert()
         |> case do
           {:ok, _user} -> {:ok, key}

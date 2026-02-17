@@ -1,3 +1,26 @@
+# Najva Architecture
+
+The core idea of Najva is that it will be a decentralized social media platform based on the XMPP protocol.
+
+There can be two types of users:
+1. **Foreign Users**: Users who have an account on a foreign server.
+
+   *Since Najva counts primarily as a client app, it allows users from other servers to log in and access their accounts normally.*
+
+    *   **Mechanism**: This is facilitated through the `XmppClient` GenServer.
+    *   **Flow**:
+        *   **Initial Login**: The `XmppClient` GenServer starts with the given JID and password.
+        *   **Encryption**: Upon success, the password is encrypted with a generated random key.
+        *   **Storage**: The key is stored in the database, and the encrypted ciphertext is stored in a cookie alongside the JID.
+        *   **Restoration**: On subsequent visits, the password is decrypted from the cookie using the stored key, allowing the GenServer to restart automatically.
+
+2. **Local Users**: Users who have an account on the local server.
+    *   **Mechanism**: No GenServer is typically used. Instead, LiveView interacts directly with `ejabberd` via function calls.
+    *   **Authentication**: Handled by standard Phoenix Auth.
+    *   **Session**: Upon successful login, the LiveView calls `:ejabberd_sm.open_session/2` to open an XMPP session for the user.
+
+For foreign users, the authentication process is handled as follows. Below is the login and authentication flow for foreign users.
+
 ## Authentication Flow
 
 Users landing on the "/" route go through an HTTP plug pipeline containing: `AuthPlug` -> `RequireAuth`.
@@ -30,7 +53,6 @@ This plug enforces authentication for protected routes.
 *   **Outcome**:
     *   **Present**: Allow request to proceed.
     *   **Missing**: Redirect to `/login` (Blocks users who only have cookies but failed/timed-out session restoration).
-
 
 
 ## Login Flow (SessionController)

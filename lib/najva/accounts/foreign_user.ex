@@ -1,11 +1,9 @@
-defmodule Najva.Accounts.User do
+defmodule Najva.Accounts.ForeignUser do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "users" do
+  schema "foreign_users" do
     field :jid, :string
-
-    # We ONLY store the key. The actual XMPP password is never stored here.
     field :encryption_key, :string
 
     timestamps()

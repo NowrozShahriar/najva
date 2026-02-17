@@ -1,6 +1,7 @@
 defmodule NajvaWeb.Router do
   use NajvaWeb, :router
-  alias NajvaWeb.Plugs
+
+  import NajvaWeb.Plugs
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -9,7 +10,7 @@ defmodule NajvaWeb.Router do
     plug :put_root_layout, html: {NajvaWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug Plugs.AuthPlug
+    plug :auth_plug
   end
 
   pipeline :protected do
@@ -19,20 +20,20 @@ defmodule NajvaWeb.Router do
     plug :put_root_layout, html: {NajvaWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug Plugs.AuthPlug
-    plug Plugs.RequireAuth
+    plug :auth_plug
+    plug :require_auth
   end
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
-  scope "/", NajvaWeb do
+  scope "/", NajvaWeb.Live do
     pipe_through :protected
 
-    live "/", RootLive, :root
-    live "/profile", RootLive, :profile
-    live "/settings", RootLive, :settings
+    live "/", Root, :root
+    live "/profile", Root, :profile
+    live "/settings", Root, :settings
   end
 
   scope "/", NajvaWeb do

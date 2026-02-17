@@ -1,12 +1,10 @@
-defmodule NajvaWeb.Plugs.AuthPlug do
+defmodule NajvaWeb.Plugs do
   import Plug.Conn
   import Phoenix.Controller
 
   alias Najva.Auth
 
-  def init(opts), do: opts
-
-  def call(conn, _opts) do
+  def auth_plug(conn, _opts) do
     jid = conn.cookies["jid"]
     ciphertext = conn.cookies["ciphertext"]
 
@@ -47,6 +45,19 @@ defmodule NajvaWeb.Plugs.AuthPlug do
       |> halt()
     else
       conn
+    end
+  end
+
+  def require_auth(conn, _opts) do
+    if get_session(conn, :jid) do
+      # User is fully authenticated (session confirmed).
+      conn
+    else
+      # User is NOT strictly logged in (or just timed out). Stop them.
+      conn
+      |> put_flash(:error, "You must be logged in to access that page.")
+      |> redirect(to: "/login")
+      |> halt()
     end
   end
 end

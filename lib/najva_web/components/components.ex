@@ -222,7 +222,7 @@ defmodule NajvaWeb.Components do
         :for={{name, message} <- @chat_list}
         class="grid grid-cols-[auto_1fr_auto] gap-x-4 items-center px-3 py-2 sm:p-1 hover:bg-base-200 cursor-pointer rounded-2xl"
       >
-        <div class="size-12 bg-secondary rounded-xl flex items-center justify-center text-primary-content font-bold text-xl">
+        <div class="size-12 bg-secondary mask mask-squircle flex items-center justify-center text-primary-content font-bold text-xl">
           {String.at(name, 0)}
         </div>
         <div class="flex flex-col overflow-hidden">
