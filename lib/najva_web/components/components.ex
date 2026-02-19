@@ -34,8 +34,9 @@ defmodule NajvaWeb.Components do
     ~H"""
     <button
       :for={theme <- @themes}
-      id={"theme-button-#{theme}"}
-      phx-click={Phoenix.LiveView.JS.dispatch("phx:set-theme", detail: %{theme: theme})}
+      id={"theme-button-" <> theme}
+      data-phx-theme={theme}
+      phx-click={Phoenix.LiveView.JS.dispatch("phx:set-theme")}
       class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
     >
       {theme}
@@ -64,7 +65,7 @@ defmodule NajvaWeb.Components do
 
     navpanel_icon = " size-full " %>
     <nav class={navpanel}>
-      
+
     <!-- All Chats -->
       <.link
         patch="/"
@@ -75,7 +76,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
       </.link>
-      
+
     <!-- Inbox -->
       <button
         phx-click="set_active_list"
@@ -85,7 +86,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
       </button>
-      
+
     <!-- Groups -->
       <button
         phx-click="set_active_list"
@@ -95,7 +96,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-user-group" class={navpanel_icon} />
       </button>
-      
+
     <!-- Favorites -->
       <button
         phx-click="set_active_list"
@@ -105,7 +106,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-heart" class={navpanel_icon} />
       </button>
-      
+
     <!-- Archive (only visible on desktop) -->
       <button
         phx-click="set_active_list"
@@ -115,7 +116,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-archive-box" class={navpanel_icon} />
       </button>
-      
+
     <!-- Contacts -->
       <button
         phx-click="set_active_list"
@@ -125,7 +126,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-bookmark-square" class={navpanel_icon} />
       </button>
-      
+
     <!-- Settings -->
       <.link
         patch="/settings"
@@ -184,7 +185,7 @@ defmodule NajvaWeb.Components do
           </p>
           <.icon name="hero-chevron-down" class="flex-shrink-0" />
         </button>
-        
+
     <!-- Profile icon -->
         <.link
           patch="/profile"
