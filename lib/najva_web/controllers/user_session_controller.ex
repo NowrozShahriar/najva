@@ -7,6 +7,7 @@ defmodule NajvaWeb.UserSessionController do
   def create(conn, %{"_action" => "registered"} = params) do
     create(conn, params, "Account created successfully.")
   end
+
   def create(conn, %{"_action" => "confirmed"} = params) do
     create(conn, params, "User confirmed successfully.")
   end

@@ -9,11 +9,11 @@ defmodule NajvaWeb.UserLive.Login do
         <.header>
           <h1 class="text-2xl">Log in</h1>
           <:subtitle>
-              Don't have an account? <.link
-                navigate={~p"/users/register"}
-                class="font-semibold text-brand underline"
-                phx-no-format
-              >Sign up</.link>
+            Don't have an account? <.link
+              navigate={~p"/users/register"}
+              class="font-semibold text-brand underline"
+              phx-no-format
+            >Sign up</.link>
           </:subtitle>
         </.header>
       </div>
