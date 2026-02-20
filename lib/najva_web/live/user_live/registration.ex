@@ -7,35 +7,68 @@ defmodule NajvaWeb.UserLive.Registration do
   @impl true
   def render(assigns) do
     ~H"""
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            Register for an account
-            <:subtitle>
-              Already registered?
-              <.link navigate={~p"/users/log-in"} class="font-semibold text-brand hover:underline">
-                Log in
-              </.link>
-              to your account now.
-            </:subtitle>
-          </.header>
-        </div>
-
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
-          <.input
-            field={@form[:email]}
-            type="email"
-            label="Email"
-            autocomplete="username"
-            required
-            phx-mounted={JS.focus()}
-          />
-
-          <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
-            Create an account
-          </.button>
-        </.form>
+    <div class="mx-auto max-w-sm my-8 p-2">
+      <div class="text-center">
+        <.header>
+          <h1 class="text-2xl">Create a new account</h1>
+          <:subtitle>
+            Already have an account?
+            <.link navigate={~p"/users/log-in"} class="font-semibold text-brand underline">
+              Log in
+            </.link>
+          </:subtitle>
+        </.header>
       </div>
+
+      <.form
+        for={@form}
+        id="registration_form"
+        phx-submit="save"
+        phx-change="validate"
+        phx-trigger-action={@trigger_submit}
+        action={~p"/users/log-in"}
+      >
+        <input name="_action" value="registered" type="hidden" />
+        <.input
+          field={@form[:username]}
+          type="text"
+          label="Username"
+          autocomplete="username"
+          required
+          phx-mounted={JS.focus()}
+        />
+
+        <p class="text-sm text-zinc-500 mt-2">
+          <.icon name="hero-exclamation-triangle-mini" class="size-4 inline-block" />
+          Username cannot be changed later.
+        </p>
+
+        <.input
+          field={@form[:password]}
+          type="password-toggle"
+          label="Password"
+          autocomplete="new-password"
+          required
+        />
+
+        <.input
+          field={@form[:password_confirmation]}
+          type="password"
+          label="Confirm password"
+          autocomplete="new-password"
+          required
+        />
+
+        <p class="text-sm text-zinc-500 mt-2">
+          <.icon name="hero-exclamation-triangle-mini" class="size-4 inline-block" />
+          Account cannot be recovered if password is lost, unless you add a recovery email.
+        </p>
+
+        <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
+          Register
+        </.button>
+      </.form>
+    </div>
     """
   end
 
@@ -46,28 +79,19 @@ defmodule NajvaWeb.UserLive.Registration do
   end
 
   def mount(_params, _session, socket) do
-    changeset = Accounts.change_user_email(%User{}, %{}, validate_unique: false)
+    changeset = Accounts.validate_registration_form(%User{}, %{}, validate_unique: false)
 
-    {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
+    {:ok, assign_form(socket, changeset) |> assign(trigger_submit: false),
+     temporary_assigns: [form: nil]}
   end
 
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
-    case Accounts.register_user(user_params) do
-      {:ok, user} ->
-        {:ok, _} =
-          Accounts.deliver_login_instructions(
-            user,
-            &url(~p"/users/log-in/#{&1}")
-          )
-
+    case Accounts.register_user_with_password(user_params) do
+      {:ok, _user} ->
         {:noreply,
          socket
-         |> put_flash(
-           :info,
-           "An email was sent to #{user.email}, please access it to confirm your account."
-         )
-         |> push_navigate(to: ~p"/users/log-in")}
+         |> assign(trigger_submit: true)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -75,7 +99,7 @@ defmodule NajvaWeb.UserLive.Registration do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_email(%User{}, user_params, validate_unique: false)
+    changeset = Accounts.validate_registration_form(%User{}, user_params, validate_unique: false)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 

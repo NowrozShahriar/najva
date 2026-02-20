@@ -149,7 +149,7 @@ defmodule NajvaWeb.CoreComponents do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox color date datetime-local email file month number password
+    values: ~w(checkbox color date datetime-local email file month number password password-toggle
                search select tel text textarea time url week)
 
   attr :field, Phoenix.HTML.FormField,
@@ -240,6 +240,47 @@ defmodule NajvaWeb.CoreComponents do
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </div>
+    """
+  end
+
+  def input(%{type: "password-toggle"} = assigns) do
+    ~H"""
+    <div class="fieldset mb-2">
+      <label>
+        <span :if={@label} class="label mb-1">{@label}</span>
+        <div class="join w-full">
+          <input
+            type="password"
+            name={@name}
+            id={@id}
+            value={Phoenix.HTML.Form.normalize_value("password", @value)}
+            class={[
+              @class || "input join-item flex-1",
+              @errors != [] && (@error_class || "input-error")
+            ]}
+            {@rest}
+          />
+          <button
+            type="button"
+            class="btn join-item"
+            phx-click={
+              JS.toggle_attribute({"type", "password", "text"}, to: "##{@id}")
+              |> JS.toggle_class("hidden", to: "##{@id}-eye")
+              |> JS.toggle_class("hidden", to: "##{@id}-eye-slash")
+            }
+            aria-label={gettext("Toggle password visibility")}
+          >
+            <span id={"#{@id}-eye"}>
+              <.icon name="hero-eye" class="size-5" />
+            </span>
+            <span id={"#{@id}-eye-slash"} class="hidden">
+              <.icon name="hero-eye-slash" class="size-5" />
+            </span>
+          </button>
+        </div>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>

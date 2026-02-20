@@ -3,9 +3,11 @@ defmodule Najva.Accounts.User do
   import Ecto.Changeset
 
   schema "users" do
-    field :email, :string
+    field :username, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
+    field :created_at, :utc_datetime
+    field :email, :string
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
 
@@ -101,6 +103,47 @@ defmodule Najva.Accounts.User do
       # would keep the database transaction open longer and hurt performance.
       |> put_change(:hashed_password, Bcrypt.hash_pwd_salt(password))
       |> delete_change(:password)
+    else
+      changeset
+    end
+  end
+
+  @doc """
+  A user changeset for registration with username and password.
+
+  The account is auto-confirmed (no email confirmation needed).
+
+  ## Options
+
+    * `:hash_password` - Hashes the password so it can be stored securely
+      in the database and ensures the password field is cleared to prevent
+      leaks in the logs. Defaults to `true`.
+    * `:validate_unique` - Set to false if you don't want to validate the
+      uniqueness of the username, useful when displaying live validations.
+      Defaults to `true`.
+  """
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:username, :password])
+    |> validate_username(opts)
+    |> validate_confirmation(:password, message: "does not match password")
+    |> validate_password(opts)
+    |> put_change(:created_at, DateTime.utc_now(:second))
+  end
+
+  defp validate_username(changeset, opts) do
+    changeset =
+      changeset
+      |> validate_required([:username])
+      |> validate_length(:username, min: 3, max: 30)
+      |> validate_format(:username, ~r/^[a-zA-Z0-9_]+$/,
+        message: "only letters, numbers and underscores allowed"
+      )
+
+    if Keyword.get(opts, :validate_unique, true) do
+      changeset
+      |> unsafe_validate_unique(:username, Najva.Repo)
+      |> unique_constraint(:username)
     else
       changeset
     end

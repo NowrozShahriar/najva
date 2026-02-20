@@ -65,7 +65,7 @@ defmodule NajvaWeb.Components do
 
     navpanel_icon = " size-full " %>
     <nav class={navpanel}>
-
+      
     <!-- All Chats -->
       <.link
         patch="/"
@@ -76,7 +76,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
       </.link>
-
+      
     <!-- Inbox -->
       <button
         phx-click="set_active_list"
@@ -86,7 +86,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
       </button>
-
+      
     <!-- Groups -->
       <button
         phx-click="set_active_list"
@@ -96,7 +96,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-user-group" class={navpanel_icon} />
       </button>
-
+      
     <!-- Favorites -->
       <button
         phx-click="set_active_list"
@@ -106,7 +106,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-heart" class={navpanel_icon} />
       </button>
-
+      
     <!-- Archive (only visible on desktop) -->
       <button
         phx-click="set_active_list"
@@ -116,7 +116,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-archive-box" class={navpanel_icon} />
       </button>
-
+      
     <!-- Contacts -->
       <button
         phx-click="set_active_list"
@@ -126,7 +126,7 @@ defmodule NajvaWeb.Components do
       >
         <.icon name="hero-bookmark-square" class={navpanel_icon} />
       </button>
-
+      
     <!-- Settings -->
       <.link
         patch="/settings"
@@ -146,7 +146,7 @@ defmodule NajvaWeb.Components do
 
   """
   attr :live_action, :atom, required: true
-  attr :current_user, :string, required: true
+  attr :current_scope, :map, required: true
 
   def heading(assigns) do
     ~H"""
@@ -181,11 +181,11 @@ defmodule NajvaWeb.Components do
             "max-w-32 truncate pr-0.5 sm:max-w-48",
             @live_action != :root && " md:max-w-32 xl:max-w-48"
           ]}>
-            {@current_user}
+            {if @current_scope, do: @current_scope.user.username, else: "Guest"}
           </p>
           <.icon name="hero-chevron-down" class="flex-shrink-0" />
         </button>
-
+        
     <!-- Profile icon -->
         <.link
           patch="/profile"

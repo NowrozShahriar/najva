@@ -1,5 +1,8 @@
 defmodule NajvaWeb.Live.Root do
   use NajvaWeb, :live_view
+
+  on_mount {NajvaWeb.UserAuth, :mount_current_scope}
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -7,11 +10,30 @@ defmodule NajvaWeb.Live.Root do
       flash={@flash}
       live_action={@live_action}
       chat_list={@chat_list}
-      current_user={@current_user}
+      current_scope={@current_scope}
     >
       <div :if={@live_action == :profile}>
         <h1>Account</h1>
-        <p>Check the console for debug information.</p>
+        <ul class="menu">
+          <%= if @current_scope do %>
+            <li>
+              {@current_scope.user.username}
+            </li>
+            <li>
+              <.link href={~p"/users/settings"}>Settings</.link>
+            </li>
+            <li>
+              <.link href={~p"/users/log-out"} method="delete">Log out</.link>
+            </li>
+          <% else %>
+            <li>
+              <.link href={~p"/users/register"}>Register</.link>
+            </li>
+            <li>
+              <.link href={~p"/users/log-in"}>Log in</.link>
+            </li>
+          <% end %>
+        </ul>
       </div>
       <div :if={@live_action == :settings} class="lg:w-2/3 xl:w-1/2 mx-auto">
         <h1 class="font-semibold text-2xl p-4">Settings</h1>

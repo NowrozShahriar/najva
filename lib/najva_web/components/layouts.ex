@@ -71,7 +71,8 @@ defmodule NajvaWeb.Layouts do
 
       <button
         id="theme-button-system"
-        phx-click={JS.dispatch("phx:set-theme")} data-phx-theme="system"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="system"
         class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
       >
         <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
@@ -79,7 +80,8 @@ defmodule NajvaWeb.Layouts do
 
       <button
         id="theme-button-light"
-        phx-click={JS.dispatch("phx:set-theme")} data-phx-theme="light"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="light"
         class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
       >
         <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" /> light
@@ -111,7 +113,8 @@ defmodule NajvaWeb.Layouts do
 
       <button
         id="theme-button-dark"
-        phx-click={JS.dispatch("phx:set-theme")} data-phx-theme="dark"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="dark"
         class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
       >
         <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" /> dark

@@ -80,6 +80,69 @@ defmodule Najva.Accounts do
     |> Repo.insert()
   end
 
+  @doc """
+  Registers a user with username and password.
+
+  The account is auto-confirmed (no email confirmation needed).
+
+  ## Examples
+
+      iex> register_user_with_password(%{username: "alice", password: "valid_password123"})
+      {:ok, %User{}}
+
+      iex> register_user_with_password(%{username: "", password: "short"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def register_user_with_password(attrs) do
+    %User{}
+    |> User.registration_changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking user registration changes.
+
+  ## Options
+
+    * `:validate_unique` - Set to false if you don't want to validate the
+      uniqueness of the username, useful when displaying live validations.
+      Defaults to `true`.
+  """
+  def validate_registration_form(user, attrs \\ %{}, opts \\ []) do
+    User.registration_changeset(user, attrs, opts)
+  end
+
+  @doc """
+  Gets a user by username and password.
+
+  The username is detected as an email if it contains "@", otherwise
+  it is treated as a username.
+
+  ## Examples
+
+      iex> get_user_by_username_and_password("alice", "correct_password")
+      %User{}
+
+      iex> get_user_by_username_and_password("alice@example.com", "correct_password")
+      %User{}
+
+      iex> get_user_by_username_and_password("alice", "invalid_password")
+      nil
+
+  """
+  def get_user_by_username_and_password(username, password)
+      when is_binary(username) and is_binary(password) do
+    user =
+      if String.contains?(username, "@") do
+        Repo.get_by(User, email: username)
+      else
+        Repo.get_by(User, username: username)
+      end
+
+    if User.valid_password?(user, password), do: user
+  end
+
   ## Settings
 
   @doc """
