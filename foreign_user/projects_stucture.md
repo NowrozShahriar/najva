@@ -1,4 +1,4 @@
-# Najva Architecture
+<!-- # Najva Architecture
 
 The core idea of Najva is that it will be a decentralized social media platform based on the XMPP protocol.
 
@@ -69,4 +69,4 @@ When the user submits the `/login` form, a standard `POST` request is sent to `S
         *   Redirect to `/`.
     *   **Failure**:
         *   Flash "Incorrect JID or Password".
-        *   Redirect to `/login`.
+        *   Redirect to `/login`. -->

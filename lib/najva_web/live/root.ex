@@ -20,17 +20,17 @@ defmodule NajvaWeb.Live.Root do
               {@current_scope.user.username}
             </li>
             <li>
-              <.link href={~p"/users/settings"}>Settings</.link>
+              <.link href={~p"/settings"}>Settings</.link>
             </li>
             <li>
-              <.link href={~p"/users/log-out"} method="delete">Log out</.link>
+              <.link href={~p"/log-out"} method="delete">Log out</.link>
             </li>
           <% else %>
             <li>
-              <.link href={~p"/users/register"}>Register</.link>
+              <.link href={~p"/register"}>Register</.link>
             </li>
             <li>
-              <.link href={~p"/users/log-in"}>Log in</.link>
+              <.link href={~p"/log-in"}>Log in</.link>
             </li>
           <% end %>
         </ul>

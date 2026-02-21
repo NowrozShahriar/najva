@@ -1,4 +1,4 @@
-defmodule NajvaWeb.UserLive.Settings do
+defmodule NajvaWeb.Live.Settings do
   use NajvaWeb, :live_view
 
   on_mount {NajvaWeb.UserAuth, :require_sudo_mode}
@@ -31,7 +31,7 @@ defmodule NajvaWeb.UserLive.Settings do
     <.form
       for={@password_form}
       id="password_form"
-      action={~p"/users/update-password"}
+      action={~p"/update-password"}
       method="post"
       phx-change="validate_password"
       phx-submit="update_password"
@@ -75,7 +75,7 @@ defmodule NajvaWeb.UserLive.Settings do
           put_flash(socket, :error, "Email change link is invalid or it has expired.")
       end
 
-    {:ok, push_navigate(socket, to: ~p"/users/settings")}
+    {:ok, push_navigate(socket, to: ~p"/settings")}
   end
 
   def mount(_params, _session, socket) do
@@ -116,7 +116,7 @@ defmodule NajvaWeb.UserLive.Settings do
         Accounts.deliver_user_update_email_instructions(
           Ecto.Changeset.apply_action!(changeset, :insert),
           user.email,
-          &url(~p"/users/settings/confirm-email/#{&1}")
+          &url(~p"/settings/confirm-email/#{&1}")
         )
 
         info = "A link to confirm your email change has been sent to the new address."

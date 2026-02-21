@@ -1,65 +1,69 @@
 defmodule NajvaWeb.Live.Login do
   use NajvaWeb, :live_view
 
-  def mount(_params, _session, socket) do
-    # Set trigger_submit to false initially
-    {:ok, assign(socket, form: to_form(%{}), trigger_submit: false)}
-  end
-
+  @impl true
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm p-6">
-      <h1 class="text-2xl font-bold mb-4 text-center">Login to Najva</h1>
-      
-    <!--
-        KEY PART: phx-trigger-action={@trigger_submit}
-        If this becomes true, LiveView submits a real HTML POST request.
-        action={~p"/login"} points to the standard SessionController.
-      -->
+    <div class="mx-auto max-w-sm space-y-4 my-8 p-2">
+      <div class="text-center">
+        <.header>
+          <h1 class="text-2xl">Log in</h1>
+          <:subtitle>
+            Don't have an account? <.link
+              navigate={~p"/register"}
+              class="font-semibold text-brand underline"
+              phx-no-format
+            >Sign up</.link>
+          </:subtitle>
+        </.header>
+      </div>
+
       <.form
+        :let={f}
         for={@form}
-        id="login-form"
-        action={~p"/login"}
-        phx-submit="submit"
-        phx-change="validate"
+        id="login_form_password"
+        action={~p"/log-in"}
+        phx-submit="submit_password"
         phx-trigger-action={@trigger_submit}
-        method="post"
       >
         <.input
-          field={@form[:jid]}
+          readonly={!!@current_scope}
+          field={f[:username]}
           type="text"
-          label="Jabber ID (JID)"
-          placeholder="user@example.com"
+          label="Username"
+          autocomplete="username"
           required
         />
-        <.input field={@form[:password]} type="password" label="Password" required />
-
-        <div class="mt-4">
-          <.button phx-disable-with="Logging in..." class="w-full">Login</.button>
-        </div>
+        <.input
+          field={@form[:password]}
+          type="password-toggle"
+          label="Password"
+          autocomplete="current-password"
+        />
+        <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
+          Log in <span aria-hidden="true">→</span>
+        </.button>
+        <.button class="btn btn-primary btn-soft w-full mt-2">
+          Log in only this time
+        </.button>
       </.form>
-
-      <div class="mt-4 text-center text-sm">
-        <p>
-          Don't have an account?
-          <.link navigate={~p"/register"} class="text-blue-500 hover:underline">Register</.link>
-        </p>
-      </div>
     </div>
     """
   end
 
-  # Real-time validation (Optional but nice UX)
-  def handle_event("validate", %{"jid" => _jid, "password" => _password}, socket) do
-    # You could add logic here to check if JID format is valid regex-wise
-    {:noreply, socket}
+  @impl true
+  def mount(_params, _session, socket) do
+    email =
+      Phoenix.Flash.get(socket.assigns.flash, :email) ||
+        get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:email)])
+
+    form = to_form(%{"email" => email}, as: "user")
+
+    {:ok, assign(socket, form: form, trigger_submit: false)}
   end
 
-  # When user clicks Submit
-  def handle_event("submit", _params, socket) do
-    # We don't do the login logic here. We just validate constraints if needed.
-    # Then we flip `trigger_submit` to true.
-    # This tells the browser: "Okay, submit this form for real now using HTTP POST."
-    {:noreply, assign(socket, trigger_submit: true)}
+  @impl true
+  def handle_event("submit_password", _params, socket) do
+    {:noreply, assign(socket, :trigger_submit, true)}
   end
 end

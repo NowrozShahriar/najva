@@ -1,4 +1,4 @@
-defmodule NajvaWeb.UserLive.Registration do
+defmodule NajvaWeb.Live.Registration do
   use NajvaWeb, :live_view
 
   alias Najva.Accounts
@@ -13,7 +13,7 @@ defmodule NajvaWeb.UserLive.Registration do
           <h1 class="text-2xl">Create a new account</h1>
           <:subtitle>
             Already have an account?
-            <.link navigate={~p"/users/log-in"} class="font-semibold text-brand underline">
+            <.link navigate={~p"/log-in"} class="font-semibold text-brand underline">
               Log in
             </.link>
           </:subtitle>
@@ -26,7 +26,7 @@ defmodule NajvaWeb.UserLive.Registration do
         phx-submit="save"
         phx-change="validate"
         phx-trigger-action={@trigger_submit}
-        action={~p"/users/log-in"}
+        action={~p"/log-in"}
       >
         <input name="_action" value="registered" type="hidden" />
         <.input

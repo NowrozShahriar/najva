@@ -15,8 +15,8 @@ defmodule Najva.Application do
       # Start a worker by calling: Najva.Worker.start_link(arg)
       # {Najva.Worker, arg},
       # Start Horde modules
-      Najva.HordeRegistry,
-      Najva.HordeSupervisor,
+      # Najva.HordeRegistry,
+      # Najva.HordeSupervisor,
       # Start to serve requests, typically the last entry
       NajvaWeb.Endpoint
     ]

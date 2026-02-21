@@ -13,8 +13,6 @@ This is a [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/) project. The
 
 ---
 
-[Project Structure](projects_stucture.md)
-
 
 
 ### **First Look:**

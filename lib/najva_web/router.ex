@@ -2,7 +2,7 @@ defmodule NajvaWeb.Router do
   use NajvaWeb, :router
 
   import NajvaWeb.UserAuth
-  import NajvaWeb.Plugs
+  # import NajvaWeb.Plugs
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -12,31 +12,22 @@ defmodule NajvaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
-    plug :auth_plug
   end
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
-  scope "/", NajvaWeb.Live do
-    pipe_through :browser
-
-    live "/", Root, :root
-    live "/profile", Root, :profile
-    live "/settings", Root, :settings
-  end
-
-  scope "/", NajvaWeb do
-    pipe_through :browser
-
-    live "/login", Live.Login, :login
-    live "/register", Live.Register, :register
-
-    post "/login", SessionController, :login
-    post "/register", SessionController, :register
-    delete "/logout", SessionController, :logout
-  end
+#   scope "/", NajvaWeb do
+#     pipe_through :browser
+#
+#     live "/login", Live.Login, :login
+#     live "/register", Live.Register, :register
+#
+#     post "/login", SessionController, :login
+#     post "/register", SessionController, :register
+#     delete "/logout", SessionController, :logout
+#   end
 
   # Other scopes may use custom stacks.
   # scope "/api", NajvaWeb do
@@ -67,11 +58,14 @@ defmodule NajvaWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{NajvaWeb.UserAuth, :require_authenticated}] do
-      live "/users/settings", UserLive.Settings, :edit
-      live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
+      live "/", Live.Root, :root
+      live "/profile", Live.Root, :profile
+      live "/settings", Live.Root, :settings
+      live "/settings", Live.Settings, :edit
+      live "/settings/confirm-email/:token", Live.Settings, :confirm_email
     end
 
-    post "/users/update-password", UserSessionController, :update_password
+    post "/update-password", UserSessionController, :update_password
   end
 
   scope "/", NajvaWeb do
@@ -79,12 +73,12 @@ defmodule NajvaWeb.Router do
 
     live_session :current_user,
       on_mount: [{NajvaWeb.UserAuth, :mount_current_scope}] do
-      live "/users/register", UserLive.Registration, :new
-      live "/users/log-in", UserLive.Login, :new
-      live "/users/log-in/:token", UserLive.Confirmation, :new
+      live "/register", Live.Registration, :new
+      live "/log-in", Live.Login, :new
+      live "/log-in/:token", Live.Confirmation, :new
     end
 
-    post "/users/log-in", UserSessionController, :create
-    delete "/users/log-out", UserSessionController, :delete
+    post "/log-in", UserSessionController, :create
+    delete "/log-out", UserSessionController, :delete
   end
 end

@@ -29,7 +29,7 @@ defmodule NajvaWeb.UserSessionController do
       _ ->
         conn
         |> put_flash(:error, "The link is invalid or it has expired.")
-        |> redirect(to: ~p"/users/log-in")
+        |> redirect(to: ~p"/log-in")
     end
   end
 
@@ -45,7 +45,7 @@ defmodule NajvaWeb.UserSessionController do
       # In order to prevent user enumeration attacks, don't disclose whether the username is registered.
       conn
       |> put_flash(:error, "Invalid username or password")
-      |> redirect(to: ~p"/users/log-in")
+      |> redirect(to: ~p"/log-in")
     end
   end
 
@@ -58,7 +58,7 @@ defmodule NajvaWeb.UserSessionController do
     UserAuth.disconnect_sessions(expired_tokens)
 
     conn
-    |> put_session(:user_return_to, ~p"/users/settings")
+    |> put_session(:user_return_to, ~p"/settings")
     |> create(params, "Password updated successfully!")
   end
 

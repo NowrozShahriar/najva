@@ -10,17 +10,17 @@ defmodule NajvaWeb.UserLive.SettingsTest do
       {:ok, _lv, html} =
         conn
         |> log_in_user(user_fixture())
-        |> live(~p"/users/settings")
+        |> live(~p"/settings")
 
       assert html =~ "Change Email"
       assert html =~ "Save Password"
     end
 
     test "redirects if user is not logged in", %{conn: conn} do
-      assert {:error, redirect} = live(conn, ~p"/users/settings")
+      assert {:error, redirect} = live(conn, ~p"/settings")
 
       assert {:redirect, %{to: path, flash: flash}} = redirect
-      assert path == ~p"/users/log-in"
+      assert path == ~p"/log-in"
       assert %{"error" => "You must log in to access this page."} = flash
     end
 
@@ -30,8 +30,8 @@ defmodule NajvaWeb.UserLive.SettingsTest do
         |> log_in_user(user_fixture(),
           token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -11, :minute)
         )
-        |> live(~p"/users/settings")
-        |> follow_redirect(conn, ~p"/users/log-in")
+        |> live(~p"/settings")
+        |> follow_redirect(conn, ~p"/log-in")
 
       assert conn.resp_body =~ "You must re-authenticate to access this page."
     end
@@ -46,7 +46,7 @@ defmodule NajvaWeb.UserLive.SettingsTest do
     test "updates the user email", %{conn: conn, user: user} do
       new_email = unique_user_email()
 
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      {:ok, lv, _html} = live(conn, ~p"/settings")
 
       result =
         lv
@@ -60,7 +60,7 @@ defmodule NajvaWeb.UserLive.SettingsTest do
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      {:ok, lv, _html} = live(conn, ~p"/settings")
 
       result =
         lv
@@ -75,7 +75,7 @@ defmodule NajvaWeb.UserLive.SettingsTest do
     end
 
     test "renders errors with invalid data (phx-submit)", %{conn: conn, user: user} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      {:ok, lv, _html} = live(conn, ~p"/settings")
 
       result =
         lv
@@ -98,7 +98,7 @@ defmodule NajvaWeb.UserLive.SettingsTest do
     test "updates the user password", %{conn: conn, user: user} do
       new_password = valid_user_password()
 
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      {:ok, lv, _html} = live(conn, ~p"/settings")
 
       form =
         form(lv, "#password_form", %{
@@ -113,7 +113,7 @@ defmodule NajvaWeb.UserLive.SettingsTest do
 
       new_password_conn = follow_trigger_action(form, conn)
 
-      assert redirected_to(new_password_conn) == ~p"/users/settings"
+      assert redirected_to(new_password_conn) == ~p"/settings"
 
       assert get_session(new_password_conn, :user_token) != get_session(conn, :user_token)
 
@@ -124,7 +124,7 @@ defmodule NajvaWeb.UserLive.SettingsTest do
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      {:ok, lv, _html} = live(conn, ~p"/settings")
 
       result =
         lv
@@ -142,7 +142,7 @@ defmodule NajvaWeb.UserLive.SettingsTest do
     end
 
     test "renders errors with invalid data (phx-submit)", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+      {:ok, lv, _html} = live(conn, ~p"/settings")
 
       result =
         lv
@@ -174,27 +174,27 @@ defmodule NajvaWeb.UserLive.SettingsTest do
     end
 
     test "updates the user email once", %{conn: conn, user: user, token: token, email: email} do
-      {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/#{token}")
+      {:error, redirect} = live(conn, ~p"/settings/confirm-email/#{token}")
 
       assert {:live_redirect, %{to: path, flash: flash}} = redirect
-      assert path == ~p"/users/settings"
+      assert path == ~p"/settings"
       assert %{"info" => message} = flash
       assert message == "Email changed successfully."
       refute Accounts.get_user_by_email(user.email)
       assert Accounts.get_user_by_email(email)
 
       # use confirm token again
-      {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/#{token}")
+      {:error, redirect} = live(conn, ~p"/settings/confirm-email/#{token}")
       assert {:live_redirect, %{to: path, flash: flash}} = redirect
-      assert path == ~p"/users/settings"
+      assert path == ~p"/settings"
       assert %{"error" => message} = flash
       assert message == "Email change link is invalid or it has expired."
     end
 
     test "does not update email with invalid token", %{conn: conn, user: user} do
-      {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/oops")
+      {:error, redirect} = live(conn, ~p"/settings/confirm-email/oops")
       assert {:live_redirect, %{to: path, flash: flash}} = redirect
-      assert path == ~p"/users/settings"
+      assert path == ~p"/settings"
       assert %{"error" => message} = flash
       assert message == "Email change link is invalid or it has expired."
       assert Accounts.get_user_by_email(user.email)
@@ -202,9 +202,9 @@ defmodule NajvaWeb.UserLive.SettingsTest do
 
     test "redirects if user is not logged in", %{token: token} do
       conn = build_conn()
-      {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/#{token}")
+      {:error, redirect} = live(conn, ~p"/settings/confirm-email/#{token}")
       assert {:redirect, %{to: path, flash: flash}} = redirect
-      assert path == ~p"/users/log-in"
+      assert path == ~p"/log-in"
       assert %{"error" => message} = flash
       assert message == "You must log in to access this page."
     end
