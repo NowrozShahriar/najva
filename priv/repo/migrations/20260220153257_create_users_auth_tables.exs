@@ -7,7 +7,6 @@ defmodule Najva.Repo.Migrations.CreateUsersAuthTables do
     create table(:users) do
       add :username, :citext, null: false
       add :hashed_password, :string
-      add :created_at, :utc_datetime
       add :email, :citext
       add :confirmed_at, :utc_datetime
 

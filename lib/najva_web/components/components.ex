@@ -157,7 +157,7 @@ defmodule NajvaWeb.Components do
       " px-3 py-2 text-3xl font-bold "
 
     account_switcher =
-      " border-base-100 min-w-0 hover:border-neutral mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5 "
+      " border-base-100 min-w-0 mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5 "
 
     profile_icon =
       " size-11 flex-shrink-0 rounded-full border-2 "
@@ -175,15 +175,14 @@ defmodule NajvaWeb.Components do
       <.link navigate="/" class={title}>Najva</.link>
 
       <div class="flex min-w-0 items-center">
-        <!-- Account switcher -->
-        <button type="button" title="Switch accounts" class={account_switcher}>
+        <button type="button" class={account_switcher}>
           <p class={[
             "max-w-32 truncate pr-0.5 sm:max-w-48",
             @live_action != :root && " md:max-w-32 xl:max-w-48"
           ]}>
-            {if @current_scope, do: @current_scope.user.username, else: "Guest"}
+            {@current_scope.user.username}
           </p>
-          <.icon name="hero-chevron-down" class="flex-shrink-0" />
+          <%!-- <.icon name="hero-chevron-down" class="flex-shrink-0" /> --%>
         </button>
         
     <!-- Profile icon -->

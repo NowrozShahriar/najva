@@ -106,9 +106,9 @@ defmodule Najva.AccountsTest do
     end
   end
 
-  describe "change_user_email/3" do
+  describe "validate_email_input/3" do
     test "returns a user changeset" do
-      assert %Ecto.Changeset{} = changeset = Accounts.change_user_email(%User{})
+      assert %Ecto.Changeset{} = changeset = Accounts.validate_email_input(%User{})
       assert changeset.required == [:email]
     end
   end
@@ -180,15 +180,15 @@ defmodule Najva.AccountsTest do
     end
   end
 
-  describe "change_user_password/3" do
+  describe "validate_password_input/3" do
     test "returns a user changeset" do
-      assert %Ecto.Changeset{} = changeset = Accounts.change_user_password(%User{})
+      assert %Ecto.Changeset{} = changeset = Accounts.validate_password_input(%User{})
       assert changeset.required == [:password]
     end
 
     test "allows fields to be set" do
       changeset =
-        Accounts.change_user_password(
+        Accounts.validate_password_input(
           %User{},
           %{
             "password" => "new valid password"

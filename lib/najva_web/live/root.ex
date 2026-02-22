@@ -13,31 +13,44 @@ defmodule NajvaWeb.Live.Root do
       current_scope={@current_scope}
     >
       <div :if={@live_action == :profile}>
-        <h1>Account</h1>
-        <ul class="menu">
-          <%= if @current_scope do %>
-            <li>
-              {@current_scope.user.username}
-            </li>
-            <li>
-              <.link href={~p"/settings"}>Settings</.link>
-            </li>
-            <li>
-              <.link href={~p"/log-out"} method="delete">Log out</.link>
-            </li>
-          <% else %>
-            <li>
-              <.link href={~p"/register"}>Register</.link>
-            </li>
-            <li>
-              <.link href={~p"/log-in"}>Log in</.link>
-            </li>
-          <% end %>
-        </ul>
+        <h1>Profile</h1>
       </div>
       <div :if={@live_action == :settings} class="lg:w-2/3 xl:w-1/2 mx-auto">
         <h1 class="font-semibold text-2xl p-4">Settings</h1>
-        <Layouts.theme_toggle />
+        <ul class="list">
+          <li>
+            <details class="collapse bg-base-100 border-base-300 border" open>
+              <summary class="collapse-title font-semibold">Themes</summary>
+              <div class="collapse-content">
+                <Layouts.theme_toggle />
+              </div>
+            </details>
+          </li>
+          <li class="list-row">
+            <.link class="hover:underline" navigate={~p"/settings/account"}>
+              Account Settings <span class="font-semibold">&xrarr;</span>
+            </.link>
+          </li>
+          <li class="list-row">
+            <p class="text-error cursor-pointer" onclick="log_out_modal.showModal()">Log Out</p>
+            <dialog id="log_out_modal" class="modal">
+              <div class="modal-box w-auto">
+                <h1 class="text-xl font-semibold text-center">Log Out</h1>
+                <div class="modal-action">
+                  <form method="dialog">
+                    <.link class="btn btn-soft btn-error mr-2" href={~p"/log-out"} method="delete">
+                      Confirm
+                    </.link>
+                    <button class="btn ml-2">Cancel</button>
+                  </form>
+                </div>
+              </div>
+              <form method="dialog" class="modal-backdrop">
+                <button>close</button>
+              </form>
+            </dialog>
+          </li>
+        </ul>
       </div>
     </Layouts.app>
     """

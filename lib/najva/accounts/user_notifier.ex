@@ -2,7 +2,6 @@ defmodule Najva.Accounts.UserNotifier do
   import Swoosh.Email
 
   alias Najva.Mailer
-  alias Najva.Accounts.User
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do
@@ -26,13 +25,13 @@ defmodule Najva.Accounts.UserNotifier do
 
     ==============================
 
-    Hi #{user.email},
+    Hi #{user.username},
 
-    You can change your email by visiting the URL below:
+    To confirm your email by visit the URL below:
 
     #{url}
 
-    If you didn't request this change, please ignore this.
+    If you didn't request this change, please ignore.
 
     ==============================
     """)
@@ -42,41 +41,17 @@ defmodule Najva.Accounts.UserNotifier do
   Deliver instructions to log in with a magic link.
   """
   def deliver_login_instructions(user, url) do
-    case user do
-      %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
-      _ -> deliver_magic_link_instructions(user, url)
-    end
-  end
-
-  defp deliver_magic_link_instructions(user, url) do
     deliver(user.email, "Log in instructions", """
 
     ==============================
 
-    Hi #{user.email},
+    Hi #{user.username},
 
     You can log into your account by visiting the URL below:
 
     #{url}
 
     If you didn't request this email, please ignore this.
-
-    ==============================
-    """)
-  end
-
-  defp deliver_confirmation_instructions(user, url) do
-    deliver(user.email, "Confirmation instructions", """
-
-    ==============================
-
-    Hi #{user.email},
-
-    You can confirm your account by visiting the URL below:
-
-    #{url}
-
-    If you didn't create an account with us, please ignore this.
 
     ==============================
     """)

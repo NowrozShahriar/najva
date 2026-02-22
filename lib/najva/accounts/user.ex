@@ -6,7 +6,6 @@ defmodule Najva.Accounts.User do
     field :username, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
-    field :created_at, :utc_datetime
     field :email, :string
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
@@ -29,6 +28,7 @@ defmodule Najva.Accounts.User do
     user
     |> cast(attrs, [:email])
     |> validate_email(opts)
+    |> confirm_changeset()
   end
 
   defp validate_email(changeset, opts) do
@@ -111,8 +111,6 @@ defmodule Najva.Accounts.User do
   @doc """
   A user changeset for registration with username and password.
 
-  The account is auto-confirmed (no email confirmation needed).
-
   ## Options
 
     * `:hash_password` - Hashes the password so it can be stored securely
@@ -128,7 +126,6 @@ defmodule Najva.Accounts.User do
     |> validate_username(opts)
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
-    |> put_change(:created_at, DateTime.utc_now(:second))
   end
 
   defp validate_username(changeset, opts) do

@@ -6,6 +6,7 @@ defmodule NajvaWeb.Live.Confirmation do
   @impl true
   def render(assigns) do
     ~H"""
+    <Layouts.flash_group flash={@flash} />
     <div class="mx-auto max-w-sm">
       <div class="text-center">
         <.header>Welcome {@user.email}</.header>

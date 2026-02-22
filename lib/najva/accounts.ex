@@ -83,8 +83,6 @@ defmodule Najva.Accounts do
   @doc """
   Registers a user with username and password.
 
-  The account is auto-confirmed (no email confirmation needed).
-
   ## Examples
 
       iex> register_user_with_password(%{username: "alice", password: "valid_password123"})
@@ -166,11 +164,11 @@ defmodule Najva.Accounts do
 
   ## Examples
 
-      iex> change_user_email(user)
+      iex> validate_email_input(user)
       %Ecto.Changeset{data: %User{}}
 
   """
-  def change_user_email(user, attrs \\ %{}, opts \\ []) do
+  def validate_email_input(user, attrs \\ %{}, opts \\ []) do
     User.email_changeset(user, attrs, opts)
   end
 
@@ -180,7 +178,7 @@ defmodule Najva.Accounts do
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
-    context = "change:#{user.email}"
+    context = "change_email:#{user.email || user.username}"
 
     Repo.transact(fn ->
       with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
@@ -202,11 +200,11 @@ defmodule Najva.Accounts do
 
   ## Examples
 
-      iex> change_user_password(user)
+      iex> validate_password_input(user)
       %Ecto.Changeset{data: %User{}}
 
   """
-  def change_user_password(user, attrs \\ %{}, opts \\ []) do
+  def validate_password_input(user, attrs \\ %{}, opts \\ []) do
     User.password_changeset(user, attrs, opts)
   end
 
@@ -297,7 +295,6 @@ defmodule Najva.Accounts do
 
       {%User{confirmed_at: nil} = user, _token} ->
         user
-        |> User.confirm_changeset()
         |> update_user_and_delete_all_tokens()
 
       {user, token} ->
@@ -320,7 +317,8 @@ defmodule Najva.Accounts do
   """
   def deliver_user_update_email_instructions(%User{} = user, current_email, update_email_url_fun)
       when is_function(update_email_url_fun, 1) do
-    {encoded_token, user_token} = UserToken.build_email_token(user, "change:#{current_email}")
+    {encoded_token, user_token} =
+      UserToken.build_email_token(user, "change_email:#{current_email}")
 
     Repo.insert!(user_token)
     UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))

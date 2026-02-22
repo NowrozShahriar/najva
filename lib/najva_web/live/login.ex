@@ -4,6 +4,7 @@ defmodule NajvaWeb.Live.Login do
   @impl true
   def render(assigns) do
     ~H"""
+    <Layouts.flash_group flash={@flash} />
     <div class="mx-auto max-w-sm space-y-4 my-8 p-2">
       <div class="text-center">
         <.header>
@@ -53,11 +54,11 @@ defmodule NajvaWeb.Live.Login do
 
   @impl true
   def mount(_params, _session, socket) do
-    email =
-      Phoenix.Flash.get(socket.assigns.flash, :email) ||
-        get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:email)])
+    username =
+      Phoenix.Flash.get(socket.assigns.flash, :username) ||
+        get_in(socket.assigns, [:current_scope, Access.key(:user), Access.key(:username)])
 
-    form = to_form(%{"email" => email}, as: "user")
+    form = to_form(%{"username" => username}, as: "user")
 
     {:ok, assign(socket, form: form, trigger_submit: false)}
   end

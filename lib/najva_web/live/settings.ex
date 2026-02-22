@@ -8,59 +8,66 @@ defmodule NajvaWeb.Live.Settings do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="text-center">
-      <.header>
-        Account Settings
-        <:subtitle>Manage your account email address and password settings</:subtitle>
-      </.header>
+    <Layouts.flash_group flash={@flash} />
+    <div class="md:w-1/2 xl:w-1/3 mx-auto p-4">
+      <div class="text-center">
+        <.header>
+          Account Settings for "{@current_user.username}"
+          <:subtitle>Manage your account email address and password settings</:subtitle>
+        </.header>
+      </div>
+
+      <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
+        <.input
+          field={@email_form[:email]}
+          type="email"
+          label="Email"
+          autocomplete="username"
+          required
+        />
+        <%= if @current_user.email do %>
+          <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+        <% else %>
+          <.button variant="primary" phx-disable-with="Saving...">Add Email</.button>
+        <% end %>
+      </.form>
+
+      <div class="divider" />
+
+      <.form
+        for={@password_form}
+        id="password_form"
+        action={~p"/update-password"}
+        method="post"
+        phx-change="validate_password"
+        phx-submit="update_password"
+        phx-trigger-action={@trigger_submit}
+      >
+        <input
+          name={@password_form[:username].name}
+          type="hidden"
+          id="hidden_username"
+          autocomplete="username"
+          value={@current_user.username}
+        />
+        <.input
+          field={@password_form[:password]}
+          type="password-toggle"
+          label="New password"
+          autocomplete="new-password"
+          required
+        />
+        <.input
+          field={@password_form[:password_confirmation]}
+          type="password"
+          label="Confirm new password"
+          autocomplete="new-password"
+        />
+        <.button variant="primary" phx-disable-with="Saving...">
+          Update Password
+        </.button>
+      </.form>
     </div>
-
-    <.form for={@email_form} id="email_form" phx-submit="update_email" phx-change="validate_email">
-      <.input
-        field={@email_form[:email]}
-        type="email"
-        label="Email"
-        autocomplete="username"
-        required
-      />
-      <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
-    </.form>
-
-    <div class="divider" />
-
-    <.form
-      for={@password_form}
-      id="password_form"
-      action={~p"/update-password"}
-      method="post"
-      phx-change="validate_password"
-      phx-submit="update_password"
-      phx-trigger-action={@trigger_submit}
-    >
-      <input
-        name={@password_form[:email].name}
-        type="hidden"
-        id="hidden_user_email"
-        autocomplete="username"
-        value={@current_email}
-      />
-      <.input
-        field={@password_form[:password]}
-        type="password"
-        label="New password"
-        autocomplete="new-password"
-        required
-      />
-      <.input
-        field={@password_form[:password_confirmation]}
-        type="password"
-        label="Confirm new password"
-        autocomplete="new-password"
-      />
-      <.button variant="primary" phx-disable-with="Saving...">
-        Save Password
-      </.button>
-    </.form>
     """
   end
 
@@ -72,7 +79,7 @@ defmodule NajvaWeb.Live.Settings do
           put_flash(socket, :info, "Email changed successfully.")
 
         {:error, _} ->
-          put_flash(socket, :error, "Email change link is invalid or it has expired.")
+          put_flash(socket, :error, "The confirmation link is invalid or it has expired.")
       end
 
     {:ok, push_navigate(socket, to: ~p"/settings")}
@@ -80,12 +87,12 @@ defmodule NajvaWeb.Live.Settings do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
-    password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
+    email_changeset = Accounts.validate_email_input(user, %{}, validate_unique: false)
+    password_changeset = Accounts.validate_password_input(user, %{}, hash_password: false)
 
     socket =
       socket
-      |> assign(:current_email, user.email)
+      |> assign(:current_user, user)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
@@ -99,7 +106,7 @@ defmodule NajvaWeb.Live.Settings do
 
     email_form =
       socket.assigns.current_scope.user
-      |> Accounts.change_user_email(user_params, validate_unique: false)
+      |> Accounts.validate_email_input(user_params, validate_unique: false)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -111,15 +118,15 @@ defmodule NajvaWeb.Live.Settings do
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_email(user, user_params) do
+    case Accounts.validate_email_input(user, user_params) do
       %{valid?: true} = changeset ->
         Accounts.deliver_user_update_email_instructions(
           Ecto.Changeset.apply_action!(changeset, :insert),
-          user.email,
+          user.email || user.username,
           &url(~p"/settings/confirm-email/#{&1}")
         )
 
-        info = "A link to confirm your email change has been sent to the new address."
+        info = "A confirmation link has been sent to the given email address."
         {:noreply, socket |> put_flash(:info, info)}
 
       changeset ->
@@ -132,7 +139,7 @@ defmodule NajvaWeb.Live.Settings do
 
     password_form =
       socket.assigns.current_scope.user
-      |> Accounts.change_user_password(user_params, hash_password: false)
+      |> Accounts.validate_password_input(user_params, hash_password: false)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -144,7 +151,7 @@ defmodule NajvaWeb.Live.Settings do
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_password(user, user_params) do
+    case Accounts.validate_password_input(user, user_params) do
       %{valid?: true} = changeset ->
         {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
 

@@ -9,7 +9,7 @@ defmodule Najva.Accounts.UserToken do
   # It is very important to keep the magic link token expiry short,
   # since someone with access to the email may take over the account.
   @magic_link_validity_in_minutes 15
-  @change_email_validity_in_days 7
+  @email_change_validity_in_days 7
   @session_validity_in_days 14
 
   schema "users_tokens" do
@@ -131,17 +131,17 @@ defmodule Najva.Accounts.UserToken do
   This is used to validate requests to change the user
   email.
   The given token is valid if it matches its hashed counterpart in the
-  database and if it has not expired (after @change_email_validity_in_days).
-  The context must always start with "change:".
+  database and if it has not expired (after @email_change_validity_in_days).
+  The context must always start with "change_email:".
   """
-  def verify_change_email_token_query(token, "change:" <> _ = context) do
+  def verify_change_email_token_query(token, "change_email:" <> _ = context) do
     case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
 
         query =
           from token in by_token_and_context_query(hashed_token, context),
-            where: token.inserted_at > ago(@change_email_validity_in_days, "day")
+            where: token.inserted_at > ago(@email_change_validity_in_days, "day")
 
         {:ok, query}
 
@@ -153,4 +153,20 @@ defmodule Najva.Accounts.UserToken do
   defp by_token_and_context_query(token, context) do
     from UserToken, where: [token: ^token, context: ^context]
   end
+
+  # def purge_excess_tokens_for_user(user_id, context \\ "session", keep \\ 6) do
+  #   # Get the IDs of the most recent `keep` tokens, then delete everything else
+  #   recent_ids =
+  #     from(t in __MODULE__,
+  #       where: t.user_id == ^user_id and t.context == ^context,
+  #       order_by: [desc: t.inserted_at],
+  #       limit: ^keep,
+  #       select: t.id
+  #     )
+  #
+  #   from(t in __MODULE__,
+  #     where: t.user_id == ^user_id and t.context == ^context and t.id not in subquery(recent_ids)
+  #   )
+  #   |> Repo.delete_all()
+  # end
 end

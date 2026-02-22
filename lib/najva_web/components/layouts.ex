@@ -67,8 +67,6 @@ defmodule NajvaWeb.Layouts do
       phx-hook="ThemeIndicator"
       class=" flex flex-wrap items-center bg-base-200 rounded-2xl p-2"
     >
-      <%!-- <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" /> --%>
-
       <button
         id="theme-button-system"
         phx-click={JS.dispatch("phx:set-theme")}
