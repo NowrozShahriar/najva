@@ -7,16 +7,22 @@ defmodule NajvaWeb.Live.Login do
     <Layouts.flash_group flash={@flash} />
     <div class="mx-auto max-w-sm space-y-4 my-8 p-2">
       <div class="text-center">
-        <.header>
-          <h1 class="text-2xl">Log in</h1>
-          <:subtitle>
-            Don't have an account? <.link
-              navigate={~p"/register"}
-              class="font-semibold text-brand underline"
-              phx-no-format
-            >Sign up</.link>
-          </:subtitle>
-        </.header>
+        <%= if @current_scope do %>
+          <.header>
+            <h1 class="text-2xl">Reauthenticate</h1>
+          </.header>
+        <% else %>
+          <.header>
+            <h1 class="text-2xl">Log in</h1>
+            <:subtitle>
+              Don't have an account? <.link
+                navigate={~p"/register"}
+                class="font-semibold text-brand underline"
+                phx-no-format
+              >Sign up</.link>
+            </:subtitle>
+          </.header>
+        <% end %>
       </div>
 
       <.form
@@ -44,9 +50,11 @@ defmodule NajvaWeb.Live.Login do
         <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
           Log in <span aria-hidden="true">→</span>
         </.button>
-        <.button class="btn btn-primary btn-soft w-full mt-2">
-          Log in only this time
-        </.button>
+        <%= if !@current_scope do %>
+          <.button class="btn btn-primary btn-soft w-full mt-2">
+            Log in only this time
+          </.button>
+        <% end %>
       </.form>
     </div>
     """

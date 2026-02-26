@@ -233,8 +233,11 @@ defmodule Najva.Accounts do
   @doc """
   Generates a session token.
   """
-  def generate_user_session_token(user) do
-    {token, user_token} = UserToken.build_session_token(user)
+  def generate_user_session_token(user, context \\ "session", ip) do
+    UserToken.get_excess_tokens_of_user(user.id)
+    |> Repo.delete_all()
+
+    {token, user_token} = UserToken.build_session_token(user, context, ip)
     Repo.insert!(user_token)
     token
   end
@@ -338,7 +341,10 @@ defmodule Najva.Accounts do
   Deletes the signed token with the given context.
   """
   def delete_user_session_token(token) do
-    Repo.delete_all(from(UserToken, where: [token: ^token, context: "session"]))
+    Repo.delete_all(
+      from(t in UserToken, where: t.token == ^token and t.context in ["session", "one_time"])
+    )
+
     :ok
   end
 

@@ -10,7 +10,7 @@ defmodule Najva.Accounts.UserToken do
   # since someone with access to the email may take over the account.
   @magic_link_validity_in_minutes 15
   @email_change_validity_in_days 7
-  @session_validity_in_days 14
+  @session_validity_in_days 365
 
   schema "users_tokens" do
     field :token, :binary
@@ -41,10 +41,18 @@ defmodule Najva.Accounts.UserToken do
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
-  def build_session_token(user) do
+  def build_session_token(user, context, ip) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
-    {token, %UserToken{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
+
+    {token,
+     %UserToken{
+       user_id: user.id,
+       token: token,
+       context: context,
+       sent_to: ip,
+       authenticated_at: dt
+     }}
   end
 
   @doc """
@@ -57,7 +65,8 @@ defmodule Najva.Accounts.UserToken do
   """
   def verify_session_token_query(token) do
     query =
-      from token in by_token_and_context_query(token, "session"),
+      from token in UserToken,
+        where: token.token == ^token and token.context in ["session", "one_time"],
         join: user in assoc(token, :user),
         where: token.inserted_at > ago(@session_validity_in_days, "day"),
         select: {%{user | authenticated_at: token.authenticated_at}, token.inserted_at}
@@ -154,19 +163,19 @@ defmodule Najva.Accounts.UserToken do
     from UserToken, where: [token: ^token, context: ^context]
   end
 
-  # def purge_excess_tokens_for_user(user_id, context \\ "session", keep \\ 6) do
-  #   # Get the IDs of the most recent `keep` tokens, then delete everything else
-  #   recent_ids =
-  #     from(t in __MODULE__,
-  #       where: t.user_id == ^user_id and t.context == ^context,
-  #       order_by: [desc: t.inserted_at],
-  #       limit: ^keep,
-  #       select: t.id
-  #     )
-  #
-  #   from(t in __MODULE__,
-  #     where: t.user_id == ^user_id and t.context == ^context and t.id not in subquery(recent_ids)
-  #   )
-  #   |> Repo.delete_all()
-  # end
+  def get_excess_tokens_of_user(user_id, context \\ "session", keep \\ 5) do
+    # Get the IDs of the most recent `keep` tokens, then delete everything else
+    recent_ids =
+      from(t in __MODULE__,
+        where: t.user_id == ^user_id and t.context == ^context,
+        order_by: [desc: t.inserted_at],
+        limit: ^keep,
+        select: t.id
+      )
+
+    # and t.context in ["session", "one_time"]
+    from(t in __MODULE__,
+      where: t.user_id == ^user_id and t.id not in subquery(recent_ids)
+    )
+  end
 end

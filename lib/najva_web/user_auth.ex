@@ -9,7 +9,7 @@ defmodule NajvaWeb.UserAuth do
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
-  @max_cookie_age_in_days 90
+  @max_cookie_age_in_days 365
   @remember_me_cookie "_najva_web_user_remember_me"
   @remember_me_options [
     sign: true,
@@ -109,8 +109,18 @@ defmodule NajvaWeb.UserAuth do
   # function will clear the session to avoid fixation attacks. See the
   # renew_session function to customize this behaviour.
   defp create_or_extend_session(conn, user, params) do
-    token = Accounts.generate_user_session_token(user)
-    remember_me = get_session(conn, :user_remember_me)
+    remember_me = params["remember_me"] == "true" or get_session(conn, :user_remember_me)
+    context = if remember_me, do: "session", else: "one_time"
+
+    ip =
+      get_req_header(conn, "x-forwarded-for")
+      |> List.first()
+      |> case do
+        nil -> conn.remote_ip |> :inet.ntoa() |> to_string()
+        forwarded -> forwarded |> String.split(",") |> List.first() |> String.trim()
+      end
+
+    token = Accounts.generate_user_session_token(user, context, ip)
 
     conn
     |> renew_session(user)
