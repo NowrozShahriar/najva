@@ -241,7 +241,7 @@ defmodule Najva.AccountsTest do
     end
 
     test "deletes all tokens for the given user", %{user: user} do
-      _ = Accounts.generate_user_session_token(user)
+      _ = Accounts.generate_user_session_token(user, "[IP_ADDRESS]")
 
       {:ok, {_, _}} =
         Accounts.update_user_password(user, %{
@@ -258,7 +258,7 @@ defmodule Najva.AccountsTest do
     end
 
     test "generates a token", %{user: user} do
-      token = Accounts.generate_user_session_token(user)
+      token = Accounts.generate_user_session_token(user, "[IP_ADDRESS]")
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.context == "session"
       assert user_token.authenticated_at != nil
@@ -275,7 +275,7 @@ defmodule Najva.AccountsTest do
 
     test "duplicates the authenticated_at of given user in new token", %{user: user} do
       user = %{user | authenticated_at: DateTime.add(DateTime.utc_now(:second), -3600)}
-      token = Accounts.generate_user_session_token(user)
+      token = Accounts.generate_user_session_token(user, "[IP_ADDRESS]")
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.authenticated_at == user.authenticated_at
       assert DateTime.compare(user_token.inserted_at, user.authenticated_at) == :gt
@@ -285,7 +285,7 @@ defmodule Najva.AccountsTest do
   describe "get_user_by_session_token/1" do
     setup do
       user = user_fixture()
-      token = Accounts.generate_user_session_token(user)
+      token = Accounts.generate_user_session_token(user, "[IP_ADDRESS]")
       %{user: user, token: token}
     end
 
@@ -364,7 +364,7 @@ defmodule Najva.AccountsTest do
   describe "delete_user_session_token/1" do
     test "deletes the token" do
       user = user_fixture()
-      token = Accounts.generate_user_session_token(user)
+      token = Accounts.generate_user_session_token(user, "[IP_ADDRESS]")
       assert Accounts.delete_user_session_token(token) == :ok
       refute Accounts.get_user_by_session_token(token)
     end

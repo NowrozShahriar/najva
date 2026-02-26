@@ -41,7 +41,7 @@ defmodule Najva.Accounts.UserToken do
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
-  def build_session_token(user, context, ip) do
+  def build_session_token(user, ip, context) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
 

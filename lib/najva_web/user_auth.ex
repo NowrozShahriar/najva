@@ -120,7 +120,7 @@ defmodule NajvaWeb.UserAuth do
         forwarded -> forwarded |> String.split(",") |> List.first() |> String.trim()
       end
 
-    token = Accounts.generate_user_session_token(user, context, ip)
+    token = Accounts.generate_user_session_token(user, ip, context)
 
     conn
     |> renew_session(user)

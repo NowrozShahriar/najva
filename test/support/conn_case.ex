@@ -62,7 +62,7 @@ defmodule NajvaWeb.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user, opts \\ []) do
-    token = Najva.Accounts.generate_user_session_token(user)
+    token = Najva.Accounts.generate_user_session_token(user, "[IP_ADDRESS]")
 
     maybe_set_token_authenticated_at(token, opts[:token_authenticated_at])
 
