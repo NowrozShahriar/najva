@@ -20,14 +20,14 @@ defmodule Najva.Accounts.UserNotifier do
   @doc """
   Deliver instructions to update a user email.
   """
-  def deliver_update_email_instructions(user, url) do
-    deliver(user.email, "Update email instructions", """
+  def deliver_confirm_email_instructions(user, url) do
+    deliver(user.email, "Confirmation instructions", """
 
     ==============================
 
     Hi #{user.username},
 
-    To confirm your email by visit the URL below:
+    To confirm this email for your account visit the URL below:
 
     #{url}
 
@@ -51,7 +51,7 @@ defmodule Najva.Accounts.UserNotifier do
 
     #{url}
 
-    If you didn't request this email, please ignore this.
+    If you didn't request this email, please ignore.
 
     ==============================
     """)

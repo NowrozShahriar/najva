@@ -122,10 +122,37 @@ defmodule Najva.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:username, :password])
+    |> cast(attrs, [:username, :password, :email])
     |> validate_username(opts)
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
+    |> validate_optional_email(opts)
+  end
+
+  defp validate_optional_email(changeset, opts) do
+    case get_change(changeset, :email) do
+      nil ->
+        changeset
+
+      "" ->
+        changeset
+
+      _email ->
+        changeset
+        |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+          message: "must have the @ sign and no spaces"
+        )
+        |> validate_length(:email, max: 160)
+        |> then(fn cs ->
+          if Keyword.get(opts, :validate_unique, true) do
+            cs
+            |> unsafe_validate_unique(:email, Najva.Repo)
+            |> unique_constraint(:email)
+          else
+            cs
+          end
+        end)
+    end
   end
 
   defp validate_username(changeset, opts) do

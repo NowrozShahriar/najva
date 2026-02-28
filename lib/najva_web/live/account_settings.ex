@@ -1,4 +1,4 @@
-defmodule NajvaWeb.Live.Settings do
+defmodule NajvaWeb.Live.AccountSettings do
   use NajvaWeb, :live_view
 
   on_mount {NajvaWeb.UserAuth, :require_sudo_mode}
@@ -68,6 +68,70 @@ defmodule NajvaWeb.Live.Settings do
           Update Password
         </.button>
       </.form>
+
+      <div class="divider" />
+
+      <button
+        class="btn btn-error btn-outline cursor-pointer"
+        phx-click="show_delete_warning_modal"
+      >
+        Delete Account
+      </button>
+
+      <div id="delete_warning_modal" class={["modal", @show_delete_warning_modal && "modal-open"]}>
+        <div class="modal-box w-auto">
+          <h1 class="text-xl font-semibold text-center text-warning">Warning</h1>
+          <p class="py-4 text-center">
+            Are you sure you want to delete your account permanently? This action is immediate and cannot be undone.
+          </p>
+          <div class="modal-action flex justify-end">
+            <button
+              class="btn btn-warning mr-2"
+              phx-click="show_delete_confirm_modal"
+            >
+              Continue
+            </button>
+            <button class="btn btn-accent ml-2" phx-click="close_delete_modals">Close</button>
+          </div>
+        </div>
+        <div class="modal-backdrop" phx-click="close_delete_modals">
+          <button class="cursor-default">close</button>
+        </div>
+      </div>
+
+      <div id="delete_confirm_modal" class={["modal", @show_delete_confirm_modal && "modal-open"]}>
+        <div class="modal-box w-auto">
+          <h1 class="text-xl font-semibold text-center text-error">Confirm Deletion</h1>
+          <p class="py-4 text-center">Type your username "{@current_user.username}" to confirm.</p>
+          <form phx-change="validate_delete_account" onsubmit="event.preventDefault();">
+            <input
+              type="text"
+              name="username"
+              value={@delete_username_input}
+              placeholder="Username"
+              class="input input-bordered w-full"
+              autocomplete="off"
+            />
+          </form>
+          <div class="modal-action">
+            <div class="flex justify-end w-full">
+              <%= if @delete_username_input == @current_user.username do %>
+                <.link class="btn btn-error mr-2" href={~p"/settings/account"} method="delete">
+                  Delete
+                </.link>
+              <% else %>
+                <button class="btn btn-error mr-2 btn-disabled" disabled>
+                  Delete
+                </button>
+              <% end %>
+              <button class="btn btn-accent ml-2" phx-click="close_delete_modals">Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-backdrop" phx-click="close_delete_modals">
+          <button class="cursor-default">close</button>
+        </div>
+      </div>
     </div>
     """
   end
@@ -77,7 +141,7 @@ defmodule NajvaWeb.Live.Settings do
     socket =
       case Accounts.update_user_email(socket.assigns.current_scope.user, token) do
         {:ok, _user} ->
-          put_flash(socket, :info, "Email changed successfully.")
+          put_flash(socket, :info, "Email confirmed successfully.")
 
         {:error, _} ->
           put_flash(socket, :error, "The confirmation link is invalid or it has expired.")
@@ -97,6 +161,9 @@ defmodule NajvaWeb.Live.Settings do
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
       |> assign(:trigger_submit, false)
+      |> assign(:delete_username_input, "")
+      |> assign(:show_delete_warning_modal, false)
+      |> assign(:show_delete_confirm_modal, false)
 
     {:ok, socket}
   end
@@ -121,9 +188,9 @@ defmodule NajvaWeb.Live.Settings do
 
     case Accounts.validate_email_input(user, user_params) do
       %{valid?: true} = changeset ->
-        Accounts.deliver_user_update_email_instructions(
+        Accounts.deliver_user_confirm_email_instructions(
           Ecto.Changeset.apply_action!(changeset, :insert),
-          user.email || user.username,
+          "email:#{user.email || user.username}",
           &url(~p"/settings/confirm-email/#{&1}")
         )
 
@@ -159,5 +226,36 @@ defmodule NajvaWeb.Live.Settings do
       changeset ->
         {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
     end
+  end
+
+  def handle_event("validate_delete_account", %{"username" => username}, socket) do
+    {:noreply, assign(socket, :delete_username_input, username)}
+  end
+
+  def handle_event("show_delete_warning_modal", _, socket) do
+    {:noreply,
+     assign(socket,
+       show_delete_warning_modal: true,
+       show_delete_confirm_modal: false,
+       delete_username_input: ""
+     )}
+  end
+
+  def handle_event("show_delete_confirm_modal", _, socket) do
+    {:noreply,
+     assign(socket,
+       show_delete_warning_modal: false,
+       show_delete_confirm_modal: true,
+       delete_username_input: ""
+     )}
+  end
+
+  def handle_event("close_delete_modals", _, socket) do
+    {:noreply,
+     assign(socket,
+       show_delete_warning_modal: false,
+       show_delete_confirm_modal: false,
+       delete_username_input: ""
+     )}
   end
 end

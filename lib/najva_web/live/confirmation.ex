@@ -7,9 +7,10 @@ defmodule NajvaWeb.Live.Confirmation do
   def render(assigns) do
     ~H"""
     <Layouts.flash_group flash={@flash} />
+    <NajvaWeb.Components.heading live_action={@live_action} current_scope={@current_scope} />
     <div class="mx-auto max-w-sm">
       <div class="text-center">
-        <.header>Welcome {@user.email}</.header>
+        <.header>Welcome back, {String.capitalize(@user.username)}!</.header>
       </div>
 
       <.form
@@ -30,9 +31,9 @@ defmodule NajvaWeb.Live.Confirmation do
         >
           Confirm and stay logged in
         </.button>
-        <.button phx-disable-with="Confirming..." class="btn btn-primary btn-soft w-full mt-2">
+        <%!-- <.button phx-disable-with="Confirming..." class="btn btn-primary btn-soft w-full mt-2">
           Confirm and log in only this time
-        </.button>
+        </.button> --%>
       </.form>
 
       <.form
@@ -58,9 +59,9 @@ defmodule NajvaWeb.Live.Confirmation do
           >
             Keep me logged in on this device
           </.button>
-          <.button phx-disable-with="Logging in..." class="btn btn-primary btn-soft w-full mt-2">
+          <%!-- <.button phx-disable-with="Logging in..." class="btn btn-primary btn-soft w-full mt-2">
             Log me in only this time
-          </.button>
+          </.button> --%>
         <% end %>
       </.form>
 
@@ -76,12 +77,12 @@ defmodule NajvaWeb.Live.Confirmation do
     if user = Accounts.get_user_by_magic_link_token(token) do
       form = to_form(%{"token" => token}, as: "user")
 
-      {:ok, assign(socket, user: user, form: form, trigger_submit: false),
+      {:ok, assign(socket, user: user, form: form, trigger_submit: true),
        temporary_assigns: [form: nil]}
     else
       {:ok,
        socket
-       |> put_flash(:error, "Magic link is invalid or it has expired.")
+       |> put_flash(:error, "Confirmation link is invalid or it has expired.")
        |> push_navigate(to: ~p"/log-in")}
     end
   end

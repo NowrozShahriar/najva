@@ -45,6 +45,13 @@ defmodule NajvaWeb.Live.Registration do
           Username cannot be changed later.
         </p>
 
+        <%!-- <.input
+          field={@form[:email]}
+          type="email"
+          label="Email (optional)"
+          autocomplete="email"
+        /> --%>
+
         <.input
           field={@form[:password]}
           type="password-toggle"
@@ -63,10 +70,15 @@ defmodule NajvaWeb.Live.Registration do
 
         <p class="text-sm text-zinc-500 mt-2">
           <.icon name="hero-exclamation-triangle-mini" class="size-4 inline-block" />
-          Account cannot be recovered if password is lost, unless you add a recovery email.
+          If password is lost, account cannot be recovered, unless you add an email.
         </p>
 
-        <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
+        <.button
+          phx-disable-with="Creating account..."
+          class="btn btn-primary w-full"
+          name={@form[:remember_me].name}
+          value="true"
+        >
           Register
         </.button>
       </.form>

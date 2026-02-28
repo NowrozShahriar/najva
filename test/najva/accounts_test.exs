@@ -113,7 +113,7 @@ defmodule Najva.AccountsTest do
     end
   end
 
-  describe "deliver_user_update_email_instructions/3" do
+  describe "deliver_user_confirm_email_instructions/3" do
     setup do
       %{user: user_fixture()}
     end
@@ -121,7 +121,11 @@ defmodule Najva.AccountsTest do
     test "sends token through notification", %{user: user} do
       token =
         extract_user_token(fn url ->
-          Accounts.deliver_user_update_email_instructions(user, "current@example.com", url)
+          Accounts.deliver_user_confirm_email_instructions(
+            user,
+            "email:current@example.com",
+            url
+          )
         end)
 
       {:ok, token} = Base.url_decode64(token, padding: false)
@@ -139,7 +143,11 @@ defmodule Najva.AccountsTest do
 
       token =
         extract_user_token(fn url ->
-          Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
+          Accounts.deliver_user_confirm_email_instructions(
+            %{user | email: email},
+            "email:" <> user.email,
+            url
+          )
         end)
 
       %{user: user, token: token, email: email}

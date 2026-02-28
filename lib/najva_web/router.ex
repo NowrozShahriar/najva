@@ -61,12 +61,12 @@ defmodule NajvaWeb.Router do
       live "/", Live.Root, :root
       live "/profile", Live.Root, :profile
       live "/settings", Live.Root, :settings
-      live "/settings/account", Live.Settings, :edit
-      live "/settings/confirm-email/:token", Live.Settings, :confirm_email
+      live "/settings/account", Live.AccountSettings, :edit
+      live "/settings/confirm-email/:token", Live.AccountSettings, :confirm_email
     end
 
     post "/update-password", UserSessionController, :update_password
-    delete "/users/settings", UserSessionController, :delete_account
+    delete "/settings/account", UserSessionController, :delete_account
   end
 
   scope "/", NajvaWeb do

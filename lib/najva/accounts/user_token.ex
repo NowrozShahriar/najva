@@ -141,9 +141,9 @@ defmodule Najva.Accounts.UserToken do
   email.
   The given token is valid if it matches its hashed counterpart in the
   database and if it has not expired (after @email_change_validity_in_days).
-  The context must always start with "change_email:".
+  The context must always start with "email:".
   """
-  def verify_change_email_token_query(token, "change_email:" <> _ = context) do
+  def verify_change_email_token_query(token, "email:" <> _ = context) do
     case Base.url_decode64(token, padding: false) do
       {:ok, decoded_token} ->
         hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
@@ -163,11 +163,11 @@ defmodule Najva.Accounts.UserToken do
     from UserToken, where: [token: ^token, context: ^context]
   end
 
-  def get_excess_tokens_of_user(user_id, context \\ "session", keep \\ 5) do
+  def get_excess_tokens_of_user(user_id, keep \\ 5) do
     # Get the IDs of the most recent `keep` tokens, then delete everything else
     recent_ids =
       from(t in __MODULE__,
-        where: t.user_id == ^user_id and t.context == ^context,
+        where: t.user_id == ^user_id and t.context != "one_time",
         order_by: [desc: t.inserted_at],
         limit: ^keep,
         select: t.id

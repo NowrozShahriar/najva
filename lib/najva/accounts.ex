@@ -178,7 +178,7 @@ defmodule Najva.Accounts do
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
-    context = "change_email:#{user.email || user.username}"
+    context = "email:#{user.email || user.username}"
 
     Repo.transact(fn ->
       with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
@@ -314,17 +314,17 @@ defmodule Najva.Accounts do
 
   ## Examples
 
-      iex> deliver_user_update_email_instructions(user, current_email, &url(~p"/settings/confirm-email/#{&1}"))
+      iex> deliver_user_confirm_email_instructions(user, context, &url(~p"/settings/confirm-email/#{&1}"))
       {:ok, %{to: ..., body: ...}}
 
   """
-  def deliver_user_update_email_instructions(%User{} = user, current_email, update_email_url_fun)
+  def deliver_user_confirm_email_instructions(%User{} = user, context, update_email_url_fun)
       when is_function(update_email_url_fun, 1) do
     {encoded_token, user_token} =
-      UserToken.build_email_token(user, "change_email:#{current_email}")
+      UserToken.build_email_token(user, context)
 
     Repo.insert!(user_token)
-    UserNotifier.deliver_update_email_instructions(user, update_email_url_fun.(encoded_token))
+    UserNotifier.deliver_confirm_email_instructions(user, update_email_url_fun.(encoded_token))
   end
 
   @doc """
