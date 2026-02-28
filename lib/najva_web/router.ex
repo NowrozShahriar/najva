@@ -66,6 +66,7 @@ defmodule NajvaWeb.Router do
     end
 
     post "/update-password", UserSessionController, :update_password
+    delete "/users/settings", UserSessionController, :delete_account
   end
 
   scope "/", NajvaWeb do
@@ -73,12 +74,13 @@ defmodule NajvaWeb.Router do
 
     live_session :current_user,
       on_mount: [{NajvaWeb.UserAuth, :mount_current_scope}] do
-      live "/register", Live.Registration, :new
-      live "/log-in", Live.Login, :new
+      live "/register", Live.Registration, :register
+      live "/log-in", Live.Login, :login
       live "/log-in/:token", Live.Confirmation, :new
+      live "/forgot-password", Live.Login, :forgot_password
     end
 
-    post "/log-in", UserSessionController, :create
-    delete "/log-out", UserSessionController, :delete
+    post "/log-in", UserSessionController, :login
+    delete "/log-out", UserSessionController, :logout
   end
 end

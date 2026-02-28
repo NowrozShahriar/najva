@@ -9,11 +9,12 @@ defmodule NajvaWeb.Live.Settings do
   def render(assigns) do
     ~H"""
     <Layouts.flash_group flash={@flash} />
+    <NajvaWeb.Components.heading live_action={@live_action} current_scope={@current_scope} />
     <div class="md:w-1/2 xl:w-1/3 mx-auto p-4">
       <div class="text-center">
         <.header>
-          Account Settings for "{@current_user.username}"
-          <:subtitle>Manage your account email address and password settings</:subtitle>
+          Account Settings
+          <:subtitle>Manage your email address and password</:subtitle>
         </.header>
       </div>
 

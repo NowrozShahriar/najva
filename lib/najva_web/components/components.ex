@@ -55,7 +55,7 @@ defmodule NajvaWeb.Components do
     <% navpanel =
       " bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:py4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg "
 
-    navpanel_child = " m-0.5 size-11 rounded-xl p-1 "
+    navpanel_child = " m-0.5 size-11 mask mask-squircle p-1 "
 
     navpanel_child_active =
       " bg-accent text-accent-content hover:bg-accent hover:text-accent-content "
@@ -168,13 +168,13 @@ defmodule NajvaWeb.Components do
     profile_icon_inactive =
       " border-base-100 hover:border-neutral hover:bg-neutral hover:text-neutral-content "
 
-    search_field =
-      " bg-base-200 border-base-200 hover:border-neutral focus:border-accent w-full rounded-full border-2 px-4 py-1 focus:outline-none " %>
+    # search_field =
+    #   " bg-base-200 border-base-200 hover:border-neutral focus:border-accent w-full rounded-full border-2 px-4 py-1 focus:outline-none " %>
 
     <div class={header}>
       <.link navigate="/" class={title}>Najva</.link>
 
-      <div class="flex min-w-0 items-center">
+      <div :if={@current_scope} class="flex min-w-0 items-center">
         <button type="button" class={account_switcher}>
           <p class={[
             "max-w-32 truncate pr-0.5 sm:max-w-48",
@@ -198,8 +198,8 @@ defmodule NajvaWeb.Components do
     </div>
 
     <!-- Search box -->
-    <input type="text" placeholder="Search..." class={search_field} />
-    <hr class="text-base-300 my-2" />
+    <%!-- <input type="text" placeholder="Search..." class={search_field} /> --%>
+    <%!-- <hr class="text-base-300 my-2" /> --%>
     """
   end
 

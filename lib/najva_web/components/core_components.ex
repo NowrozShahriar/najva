@@ -258,14 +258,14 @@ defmodule NajvaWeb.CoreComponents do
             id={@id}
             value={Phoenix.HTML.Form.normalize_value("password", @value)}
             class={[
-              @class || "input join-item flex-1",
+              @class || "input join-item flex-1 border-r-0",
               @errors != [] && (@error_class || "input-error")
             ]}
             {@rest}
           />
           <button
             type="button"
-            class="btn join-item"
+            class="btn btn-ghost border-base-content/20 border-l-0 join-item"
             phx-click={
               JS.toggle_attribute({"type", "password", "text"}, to: "##{@id}")
               |> JS.toggle_class("hidden", to: "##{@id}-eye")

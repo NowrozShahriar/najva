@@ -348,6 +348,10 @@ defmodule Najva.Accounts do
     :ok
   end
 
+  def delete_user(%User{} = user) do
+    Repo.delete(user)
+  end
+
   ## Token helper
 
   defp update_user_and_delete_all_tokens(changeset) do

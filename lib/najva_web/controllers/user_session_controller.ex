@@ -4,20 +4,20 @@ defmodule NajvaWeb.UserSessionController do
   alias Najva.Accounts
   alias NajvaWeb.UserAuth
 
-  def create(conn, %{"_action" => "registered"} = params) do
-    create(conn, params, "Account created successfully.")
+  def login(conn, %{"_action" => "registered"} = params) do
+    login(conn, params, "Account created successfully.")
   end
 
-  def create(conn, %{"_action" => "confirmed"} = params) do
-    create(conn, params, "User confirmed successfully.")
+  def login(conn, %{"_action" => "confirmed"} = params) do
+    login(conn, params, "User confirmed successfully.")
   end
 
-  def create(conn, params) do
-    create(conn, params, "Welcome back!")
+  def login(conn, params) do
+    login(conn, params, "Welcome back!")
   end
 
   # magic link login
-  defp create(conn, %{"user" => %{"token" => token} = user_params}, info) do
+  defp login(conn, %{"user" => %{"token" => token} = user_params}, info) do
     case Accounts.login_user_by_magic_link(token) do
       {:ok, {user, tokens_to_disconnect}} ->
         UserAuth.disconnect_sessions(tokens_to_disconnect)
@@ -34,7 +34,7 @@ defmodule NajvaWeb.UserSessionController do
   end
 
   # username + password login
-  defp create(conn, %{"user" => user_params}, info) do
+  defp login(conn, %{"user" => user_params}, info) do
     %{"username" => username, "password" => password} = user_params
 
     if user = Accounts.get_user_by_username_and_password(username, password) do
@@ -59,12 +59,21 @@ defmodule NajvaWeb.UserSessionController do
 
     conn
     |> put_session(:user_return_to, ~p"/settings")
-    |> create(params, "Password updated successfully!")
+    |> login(params, "Password updated successfully!")
   end
 
-  def delete(conn, _params) do
+  def logout(conn, _params) do
     conn
     |> put_flash(:info, "Logged out successfully.")
+    |> UserAuth.log_out_user()
+  end
+
+  def delete_account(conn, _params) do
+    user = conn.assigns.current_scope.user
+    Accounts.delete_user(user)
+
+    conn
+    |> put_flash(:info, "Account deleted successfully.")
     |> UserAuth.log_out_user()
   end
 end
