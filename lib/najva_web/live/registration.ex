@@ -8,6 +8,7 @@ defmodule NajvaWeb.Live.Registration do
   def render(assigns) do
     ~H"""
     <Layouts.flash_group flash={@flash} />
+    <NajvaWeb.Components.heading live_action={@live_action} current_scope={@current_scope} />
     <div class="mx-auto max-w-sm my-8 p-2">
       <div class="text-center">
         <.header>
