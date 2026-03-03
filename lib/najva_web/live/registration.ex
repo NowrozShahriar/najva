@@ -103,23 +103,19 @@ defmodule NajvaWeb.Live.Registration do
   def handle_event("save", %{"user" => user_params}, socket) do
     case Accounts.register_user_with_password(user_params) do
       {:ok, %{user: _user}} ->
-        # Success! Both DBs synced.
         {:noreply,
          socket
          |> assign(trigger_submit: true)}
 
       {:error, :user, changeset, _} ->
-        # Postgres/Changeset failed
         {:noreply, assign(socket, check_errors: true, changeset: changeset)}
 
       {:error, :ejabberd_reg, error_msg, _} ->
-        # Ejabberd failed. Postgres rollback happened automatically.
-        # We still need to show the changeset errors in the form.
         changeset = User.registration_changeset(%User{}, user_params)
 
         {:noreply,
          socket
-         |> put_flash(:error, "Chat server issue: #{error_msg}")
+         |> put_flash(:error, "Error: #{error_msg}")
          |> assign(check_errors: true, changeset: changeset)}
     end
   end

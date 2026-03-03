@@ -94,12 +94,10 @@ defmodule Najva.Accounts do
 
   """
   def register_user_with_password(attrs) do
-    host = "localhost"
-
     Multi.new()
     |> Multi.insert(:user, User.registration_changeset(%User{}, attrs))
     |> Multi.run(:ejabberd_reg, fn _repo, %{user: user} ->
-      case :ejabberd_admin.register(user.username, host, attrs["password"]) do
+      case :ejabberd_admin.register(user.username, %Najva{}.host, attrs["password"]) do
         {:ok, _} -> {:ok, :registered}
         {:error, :conflict, _, msg} -> {:error, msg}
         {:error, :cannot_register, _, msg} -> {:error, msg}
@@ -233,9 +231,31 @@ defmodule Najva.Accounts do
 
   """
   def update_user_password(user, attrs) do
-    user
-    |> User.password_changeset(attrs)
-    |> update_user_and_delete_all_tokens()
+    Multi.new()
+    # 1. Update the User in Postgres (This hashes the new password locally)
+    |> Multi.update(:user, User.password_changeset(user, attrs))
+    # 2. Fetch and delete all tokens associated with the user in Postgres
+    |> Multi.run(:tokens, fn repo, %{user: updated_user} ->
+      tokens = repo.all(from(t in UserToken, where: t.user_id == ^updated_user.id))
+      repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens, & &1.id)))
+      {:ok, tokens}
+    end)
+    # 3. Sync the new password to ejabberd
+    |> Multi.run(:ejabberd_sync, fn _repo, %{user: updated_user} ->
+      case :ejabberd_auth.set_password(
+             updated_user.username,
+             %Najva{}.host,
+             attrs["password"]
+           ) do
+        :ok ->
+          {:ok, :synced}
+
+        {:error, reason} ->
+          {:error, "Failed to update password: #{inspect(reason)}"}
+      end
+    end)
+    # 4. Execute everything
+    |> Repo.transaction()
   end
 
   ## Session
@@ -308,6 +328,7 @@ defmodule Najva.Accounts do
 
       {%User{confirmed_at: nil} = user, _token} ->
         user
+        |> User.confirm_changeset()
         |> update_user_and_delete_all_tokens()
 
       {user, token} ->
@@ -359,7 +380,18 @@ defmodule Najva.Accounts do
   end
 
   def delete_user(%User{} = user) do
-    Repo.delete(user)
+    Multi.new()
+    |> Multi.delete(:user, user)
+    |> Multi.run(:ejabberd_unreg, fn _repo, _changes ->
+      case :ejabberd_admin.unregister(user.username, %Najva{}.host) do
+        {:ok, _} ->
+          {:ok, :deleted}
+
+        {:error, reason} ->
+          {:error, "Failed to delete user: #{inspect(reason)}"}
+      end
+    end)
+    |> Repo.transaction()
   end
 
   ## Token helper
