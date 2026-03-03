@@ -1,5 +1,8 @@
 import Config
 
+# Only in dev and tests, remove the complexity from the password hashing algorithm
+config :bcrypt_elixir, :log_rounds, 1
+
 # Configure your database
 config :najva, Najva.Repo,
   username: "postgres",
