@@ -1,6 +1,5 @@
 defmodule NajvaWeb.Components do
-  use Phoenix.Component
-  import NajvaWeb.CoreComponents
+  use NajvaWeb, :html
   #   @doc """
   #   Button component for Layouts.theme_toggle.
   #
@@ -74,7 +73,7 @@ defmodule NajvaWeb.Components do
         title="All chats"
         class={navpanel_child <> if @live_action == :root, do: navpanel_child_active, else: navpanel_child_inactive}
       >
-        <.icon name="hero-chat-bubble-left-right" class={navpanel_icon} />
+        <.icon name="hero-newspaper" class={navpanel_icon} />
       </.link>
       
     <!-- Inbox -->
@@ -237,20 +236,50 @@ defmodule NajvaWeb.Components do
     """
   end
 
-  # This component is used to hide the list pane on small screens.
-  # It can be included in any LiveView or HTML template where you want to control the visibility of the list pane.
-  #   attr :hide_class, :string, required: true
-  #   attr :width, :string, default: "768px"
-  #
-  #   def visibility(assigns) do
-  #     ~H"""
-  #     <style>
-  #       @media (max-width: <%= @width %>) {
-  #         .<%= @hide_class %> {
-  #           display: none;
-  #         }
-  #       }
-  #     </style>
-  #     """
-  #   end
+  @doc """
+  Renders the settings menu.
+  """
+  attr :live_action, :atom, required: true
+
+  def settings(assigns) do
+    ~H"""
+    <div :if={@live_action == :settings} class="lg:w-2/3 xl:w-1/2 mx-auto">
+      <h1 class="font-semibold text-2xl p-4">Settings</h1>
+      <ul class="list">
+        <li>
+          <details class="collapse bg-base-100 border-base-300 border" open>
+            <summary class="collapse-title font-semibold">Themes</summary>
+            <div class="collapse-content">
+              <Layouts.theme_toggle />
+            </div>
+          </details>
+        </li>
+        <li class="list-row">
+          <.link class="hover:underline" navigate={~p"/settings/account"}>
+            Account Settings <span class="font-semibold">&xrarr;</span>
+          </.link>
+        </li>
+        <li class="list-row">
+          <p class="text-error cursor-pointer" onclick="log_out_modal.showModal()">Log Out</p>
+          <dialog id="log_out_modal" class="modal">
+            <div class="modal-box w-auto">
+              <h1 class="text-xl font-semibold text-center">Log Out</h1>
+              <div class="modal-action">
+                <form method="dialog">
+                  <.link class="btn btn-soft btn-error mr-2" href={~p"/log-out"} method="delete">
+                    Confirm
+                  </.link>
+                  <button class="btn ml-2">Cancel</button>
+                </form>
+              </div>
+            </div>
+            <form method="dialog" class="modal-backdrop">
+              <button>close</button>
+            </form>
+          </dialog>
+        </li>
+      </ul>
+    </div>
+    """
+  end
 end

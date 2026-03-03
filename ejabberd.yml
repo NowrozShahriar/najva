@@ -36,22 +36,6 @@ sql_schema_multihost: false
 
 listen:
   -
-    port: 5222
-    ip: "::"
-    module: ejabberd_c2s
-    max_stanza_size: 262144
-    shaper: c2s_shaper
-    access: c2s
-    starttls_required: true
-  -
-    port: 5223
-    ip: "::"
-    module: ejabberd_c2s
-    max_stanza_size: 262144
-    shaper: c2s_shaper
-    access: c2s
-    tls: true
-  -
     port: 5269
     ip: "::"
     module: ejabberd_s2s_in
@@ -118,6 +102,9 @@ access_rules:
     allow: local
   trusted_network:
     allow: loopback
+
+auth_method: internal
+auth_password_format: scram
 
 api_permissions:
   "console commands":

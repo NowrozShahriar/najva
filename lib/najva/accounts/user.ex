@@ -160,7 +160,7 @@ defmodule Najva.Accounts.User do
       changeset
       |> validate_required([:username])
       |> validate_length(:username, min: 3, max: 30)
-      |> validate_format(:username, ~r/^[a-zA-Z0-9_]+$/,
+      |> validate_format(:username, ~r/^[a-z0-9_]+$/,
         message: "only letters, numbers and underscores allowed"
       )
 

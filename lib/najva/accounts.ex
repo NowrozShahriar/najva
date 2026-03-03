@@ -5,6 +5,7 @@ defmodule Najva.Accounts do
 
   import Ecto.Query, warn: false
   alias Najva.Repo
+  alias Ecto.Multi
 
   alias Najva.Accounts.{User, UserToken, UserNotifier}
 
@@ -93,9 +94,18 @@ defmodule Najva.Accounts do
 
   """
   def register_user_with_password(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
+    host = "localhost"
+
+    Multi.new()
+    |> Multi.insert(:user, User.registration_changeset(%User{}, attrs))
+    |> Multi.run(:ejabberd_reg, fn _repo, %{user: user} ->
+      case :ejabberd_admin.register(user.username, host, attrs["password"]) do
+        {:ok, _} -> {:ok, :registered}
+        {:error, :conflict, _, msg} -> {:error, msg}
+        {:error, :cannot_register, _, msg} -> {:error, msg}
+      end
+    end)
+    |> Repo.transaction()
   end
 
   @doc """
