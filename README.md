@@ -9,7 +9,6 @@
 
 - Just made sure the UI appears perfect on mobile to desktop, and everything in between.
 
-This is a [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/) project. The library used is [ProcessOne XMPP library](https://github.com/processone/xmpp) for Erlang/Elixir.
 
 ---
 

@@ -66,7 +66,7 @@ Hooks.ThemeIndicator = {
   highlightCurrentTheme() {
     const theme = localStorage.getItem("phx:theme") || "system"
     this.el.querySelectorAll(".theme-btn").forEach(btn => {
-      btn.id === `theme-button-${theme}` ? btn.classList.add("bg-accent", "text-accent-content") : btn.classList.remove("bg-accent", "text-accent-content")
+      btn.id === `theme-button-${theme}` ? btn.classList.add("bg-primary", "text-primary-content") : btn.classList.remove("bg-primary", "text-primary-content")
     })
   }
 }

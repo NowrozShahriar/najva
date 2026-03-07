@@ -18,17 +18,6 @@ defmodule NajvaWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # scope "/", NajvaWeb do
-  #   pipe_through :browser
-  #
-  #   live "/login", Live.Login, :login
-  #   live "/register", Live.Register, :register
-  #
-  #   post "/login", SessionController, :login
-  #   post "/register", SessionController, :register
-  #   delete "/logout", SessionController, :logout
-  # end
-
   # Other scopes may use custom stacks.
   # scope "/api", NajvaWeb do
   #   pipe_through :api

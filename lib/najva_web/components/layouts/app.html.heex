@@ -1,5 +1,5 @@
 <% main_container =
-  " bg-base-200 mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse sm:flex-row sm:p-0.5 " %>
+  " bg-base-200/30 mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse sm:flex-row sm:p-0.5 " %>
 <main class={main_container}>
   
 <!-- NavBar -->
@@ -7,7 +7,7 @@
   
 <!-- ListPane -->
   <% listpane =
-    " bg-base-100 min-h-0 w-full py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out "
+    " bg-base-100/50 min-h-0 w-full py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out "
 
   listpane_other =
     " hidden md:flex min-w-72 max-w-80 lg:min-w-80 xl:max-w-96 2xl:min-w-96 "
@@ -22,7 +22,7 @@
     </div>
     
 <!-- chat list -->
-    <.list_chats chat_list={@chat_list} />
+    <%!-- <.list_chats chat_list={@chat_list} /> --%>
   </div>
   
 <!-- MainPanel -->

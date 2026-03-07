@@ -57,7 +57,7 @@ defmodule NajvaWeb.Components do
     navpanel_child = " m-0.5 size-11 mask mask-squircle p-1 "
 
     navpanel_child_active =
-      " bg-accent text-accent-content hover:bg-accent hover:text-accent-content "
+      " bg-primary text-primary-content hover:bg-primary hover:text-primary-content "
 
     navpanel_child_inactive =
       " hover:bg-neutral hover:text-neutral-content "
@@ -68,8 +68,6 @@ defmodule NajvaWeb.Components do
     <!-- All Chats -->
       <.link
         patch="/"
-        phx-click="set_active_list"
-        phx-value="all_chats"
         title="All chats"
         class={navpanel_child <> if @live_action == :root, do: navpanel_child_active, else: navpanel_child_inactive}
       >
@@ -78,8 +76,6 @@ defmodule NajvaWeb.Components do
       
     <!-- Inbox -->
       <button
-        phx-click="set_active_list"
-        phx-value="inbox"
         title="Inbox"
         class={navpanel_child <> navpanel_child_inactive}
       >
@@ -88,8 +84,6 @@ defmodule NajvaWeb.Components do
       
     <!-- Groups -->
       <button
-        phx-click="set_active_list"
-        phx-value="groups"
         title="Groups"
         class={navpanel_child <> navpanel_child_inactive}
       >
@@ -98,8 +92,6 @@ defmodule NajvaWeb.Components do
       
     <!-- Favorites -->
       <button
-        phx-click="set_active_list"
-        phx-value="favorites"
         title="Favorites"
         class={navpanel_child <> navpanel_child_inactive}
       >
@@ -108,8 +100,6 @@ defmodule NajvaWeb.Components do
       
     <!-- Archive (only visible on desktop) -->
       <button
-        phx-click="set_active_list"
-        phx-value="archive"
         title="Archive"
         class={navpanel_child <> " hidden sm:block" <> navpanel_child_inactive}
       >
@@ -118,8 +108,6 @@ defmodule NajvaWeb.Components do
       
     <!-- Contacts -->
       <button
-        phx-click="set_active_list"
-        phx-value="contacts"
         title="Contacts"
         class={navpanel_child <> navpanel_child_inactive}
       >
@@ -132,7 +120,7 @@ defmodule NajvaWeb.Components do
         id="settings-btn"
         title="Settings"
         class={
-        navpanel_child <> " sm:mt-auto sm:mb-2" <> if @live_action != :settings, do: " hover:text-neutral-content hover:bg-neutral", else: " text-accent bg-base-200"
+        navpanel_child <> " sm:mt-auto sm:mb-2" <> if @live_action != :settings, do: navpanel_child_inactive, else: navpanel_child_active
       }
       >
         <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
@@ -153,28 +141,28 @@ defmodule NajvaWeb.Components do
       " flex items-center justify-between pb-2 "
 
     title =
-      " px-3 py-2 text-3xl font-bold "
+      " px-2 text-3xl font-bold "
 
     account_switcher =
-      " border-base-100 min-w-0 mr-0.5 flex items-center rounded-xl border-2 py-1 pl-1.5 pr-0.5 "
+      " border-base-100 min-w-0 mr-0.5 flex items-center rounded-xl p-1 "
 
     profile_icon =
       " size-11 flex-shrink-0 rounded-full border-2 "
 
     profile_icon_active =
-      " border-accent bg-base-200 "
+      " border-primary bg-base-200 "
 
     profile_icon_inactive =
       " border-base-100 hover:border-neutral hover:bg-neutral hover:text-neutral-content "
 
     # search_field =
-    #   " bg-base-200 border-base-200 hover:border-neutral focus:border-accent w-full rounded-full border-2 px-4 py-1 focus:outline-none " %>
+    #   " bg-base-200 border-base-200 hover:border-neutral focus:border-primary w-full rounded-full border-2 px-4 py-1 focus:outline-none " %>
 
     <div class={header}>
-      <.link navigate="/" class={title}>Najva</.link>
+      <.link patch="/" class={title}>Najva</.link>
 
-      <div :if={@current_scope} class="flex min-w-0 items-center">
-        <button type="button" class={account_switcher}>
+      <div :if={@current_scope} class="flex min-w-0 items-center p-1">
+        <button class={account_switcher}>
           <p class={[
             "max-w-32 truncate pr-0.5 sm:max-w-48",
             @live_action != :root && " md:max-w-32 xl:max-w-48"
@@ -269,7 +257,7 @@ defmodule NajvaWeb.Components do
                   <.link class="btn btn-soft btn-error mr-2" href={~p"/log-out"} method="delete">
                     Confirm
                   </.link>
-                  <button class="btn ml-2">Cancel</button>
+                  <button class="btn btn-accent ml-2">Cancel</button>
                 </form>
               </div>
             </div>

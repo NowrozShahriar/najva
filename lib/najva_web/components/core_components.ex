@@ -235,7 +235,7 @@ defmodule NajvaWeb.CoreComponents do
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
+            @class || "bg-transparent w-full textarea",
             @errors != [] && (@error_class || "textarea-error")
           ]}
           {@rest}
@@ -258,7 +258,7 @@ defmodule NajvaWeb.CoreComponents do
             id={@id}
             value={Phoenix.HTML.Form.normalize_value("password", @value)}
             class={[
-              @class || "input join-item flex-1 border-r-0",
+              @class || "input bg-transparent join-item flex-1 border-r-0",
               @errors != [] && (@error_class || "input-error")
             ]}
             {@rest}
@@ -299,7 +299,7 @@ defmodule NajvaWeb.CoreComponents do
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
+            @class || "bg-transparent w-full input",
             @errors != [] && (@error_class || "input-error")
           ]}
           {@rest}

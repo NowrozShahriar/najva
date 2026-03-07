@@ -10,7 +10,6 @@ defmodule NajvaWeb.Live.Root do
     <Layouts.app
       flash={@flash}
       live_action={@live_action}
-      chat_list={@chat_list}
       current_scope={@current_scope}
     >
       <div :if={@live_action == :profile}>

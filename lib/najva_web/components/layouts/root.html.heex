@@ -44,8 +44,10 @@
       })();
     </script>
   </head>
-  <body class="bg-base-100 text-base-content">
-    <.flash_group flash={@flash} />
-    {@inner_content}
+  <body class="bg-[url(/images/wallhaven-l8v882.avif)] bg-cover bg-center h-dvh text-base-content">
+    <div class="bg-base-100/80 backdrop-blur-lg h-dvh">
+      <.flash_group flash={@flash} />
+      {@inner_content}
+    </div>
   </body>
 </html>
