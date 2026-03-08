@@ -28,7 +28,7 @@ defmodule Najva.Fxmap do
   ## Example
 
       iex> xml = {:xmlel, "message", [{"to", "user@example.com"}], [{:xmlel, "body", [], [{:xmlcdata, "Hello"}]}]}
-      iex> Fxmap.decode(xml)
+      iex> Najva.Fxmap.decode(xml)
       %{
         "message" => %{
           "@to" => "user@example.com",
@@ -66,7 +66,7 @@ defmodule Najva.Fxmap do
   ## Example
 
       iex> xml = {:xmlel, "ns:message", [{"to", "user@example.com"}], [{:xmlel, "body", [], [{:xmlcdata, "Hello"}]}]}
-      iex> Fxmap.decode_raw(xml)
+      iex> Najva.Fxmap.decode_raw(xml)
       %{
         "ns:message" => %{
           "@attrs" => %{"to" => "user@example.com"},

@@ -1,6 +1,6 @@
-defmodule FxmapTest do
+defmodule Najva.FxmapTest do
   use ExUnit.Case, async: true
-  doctest Fxmap
+  doctest Najva.Fxmap
 
   # The original XML of the test case
   # <root>
@@ -80,7 +80,7 @@ defmodule FxmapTest do
         }
       }
 
-      assert Fxmap.decode(@sample_xml_tuple) == expected_map
+      assert Najva.Fxmap.decode(@sample_xml_tuple) == expected_map
     end
   end
 
@@ -113,7 +113,7 @@ defmodule FxmapTest do
         }
       }
 
-      assert Fxmap.decode_raw(@sample_xml_tuple) == expected_map
+      assert Najva.Fxmap.decode_raw(@sample_xml_tuple) == expected_map
     end
   end
 end
