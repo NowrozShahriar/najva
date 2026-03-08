@@ -1,16 +1,16 @@
-defmodule Fxmap do
+defmodule Najva.Fxmap do
   @moduledoc """
   A utility for converting Erlang XML tuples, like those from `:fast_xml`, into Elixir maps.
 
   This module provides two main functions for decoding:
 
-  * `decode/1` - Decodes into a map with atom keys, stripping XML namespaces from element and attribute names. This is useful for simpler, more direct access in Elixir code.
-  * `decode_raw/1` - Decodes into a map with string keys, preserving all original names and structures.
+  * `decode/1` - Decodes into a map with string keys, flattening attributes with an `@` prefix. This is useful for simpler, more direct access in Elixir code.
+  * `decode_raw/1` - Decodes into a map with string keys, preserving all original names and grouping attributes under an `@attrs` key.
 
   The structure of the resulting map aims to be intuitive:
   - XML elements become keys in the map.
-  - Attributes are grouped under an `_@attrs` key.
-  - Character data (cdata) is placed under an `_@cdata` key.
+  - Attributes are prefixed with `@` in `decode/1`, or grouped under an `@attrs` key in `decode_raw/1`.
+  - Character data (cdata) is placed under an `@cdata` key.
   - If multiple elements share the same name at the same level, they are collected into a list.
   """
 
@@ -18,18 +18,12 @@ defmodule Fxmap do
   # -------------------
 
   @doc """
-  Decodes an Erlang XML tuple into a map with atom keys.
+  Decodes an Erlang XML tuple into a map with string keys.
 
-  This function recursively transforms the XML structure into a nested map.
-  It converts element and attribute names to atoms and strips any XML namespace
-  prefixes (e.g., "prefix:name" becomes `:name`).
+  This function recursively transforms :xmlel tuples into a nested map.
+  Attributes are flattened into the map and prefixed with `@` to distinguish
+  them from child elements.
 
-  ## Performance
-
-  This function is approximately 4x slower than `decode_raw/1` due to the
-  runtime conversion of strings to atoms. It is recommended to use `decode/1`
-  primarily for development and testing. For production environments,
-  `decode_raw/1` is the recommended choice for better performance.
 
   ## Example
 
@@ -64,11 +58,10 @@ defmodule Fxmap do
   # --- Verbose Mode ---
   # --------------------
   @doc """
-  Decodes an Erlang XML tuple into a map with string keys, preserving original names.
+  Decodes an Erlang XML tuple into a map with string keys.
 
-  This function provides a more literal translation from the XML tuple structure
-  to a map. All element and attribute names are kept as strings, including any
-  namespace prefixes.
+  This function provides a literal translation from the :xmlel tuple structure
+  to a map. Attributes are grouped under the `@attrs` key.
 
   ## Example
 
@@ -104,6 +97,23 @@ defmodule Fxmap do
 
   # --- Helpers ---
   # ---------------
+  defp handle_children(map, [], _), do: map
+
+  defp handle_children(map, children, fun) do
+    children
+    |> Enum.map(fun)
+    |> Enum.reduce(map, fn {key, value}, map ->
+      # in Map.update the callback fn is only called when the key already exists
+      Map.update(map, key, value, fn existing_value ->
+        if is_list(existing_value) do
+          [value | existing_value]
+        else
+          [value, existing_value]
+        end
+      end)
+    end)
+  end
+
   #   defp atomize(key) do
   #     # case :binary.split(key, ":") do
   #     #   [local] -> String.to_atom(local)
@@ -121,21 +131,4 @@ defmodule Fxmap do
   #     Map.new(attrs, fn {k, v} -> {atomize("@" <> k), v} end)
   #     # )
   #   end
-
-  defp handle_children(map, [], _), do: map
-
-  defp handle_children(map, children, fun) do
-    children
-    |> Enum.map(fun)
-    |> Enum.reduce(map, fn {key, value}, map ->
-      # in Map.update the callback fn is only called when the key already exists
-      Map.update(map, key, value, fn existing_value ->
-        if is_list(existing_value) do
-          [value | existing_value]
-        else
-          [value, existing_value]
-        end
-      end)
-    end)
-  end
 end

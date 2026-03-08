@@ -1,6 +1,7 @@
 defmodule NajvaWeb.Live.Root do
   use NajvaWeb, :live_view
-  import NajvaWeb.Components
+  alias Najva.Ejabberd
+  alias NajvaWeb.Pages
 
   on_mount {NajvaWeb.UserAuth, :mount_current_scope}
 
@@ -8,57 +9,38 @@ defmodule NajvaWeb.Live.Root do
   def render(assigns) do
     ~H"""
     <Layouts.app
-      flash={@flash}
       live_action={@live_action}
       current_scope={@current_scope}
     >
-      <div :if={@live_action == :profile}>
-        <h1>Profile</h1>
-      </div>
-      <.settings live_action={@live_action} />
+      <Pages.profile :if={@live_action == :profile} />
+      <Pages.settings :if={@live_action == :settings} />
     </Layouts.app>
     """
   end
 
   @impl true
-  def mount(_params, session, socket) do
-    jid = session["jid"]
+  def mount(_params, _session, socket) do
+    if connected?(socket) do
+      jid = %{
+        sid: {socket.id, self()},
+        username: socket.assigns.current_scope.user.username,
+        host: %Najva{}.host,
+        res: Integer.to_string(System.os_time(), 36)
+      }
 
-    #     if connected?(socket) do
-    #       Phoenix.PubSub.subscribe(Najva.PubSub, jid)
-    #
-    #       case Horde.Registry.lookup(Najva.HordeRegistry, jid) do
-    #         [{pid, _}] ->
-    #           GenServer.cast(pid, :load_archive)
-    #
-    #         [] ->
-    #           :ok
-    #       end
-    #     end
+      Ejabberd.open_session(jid)
+      Ejabberd.send_presence(jid)
 
-    {:ok, assign(socket, chat_list: %{}, current_user: jid)}
+      # Store these in the socket so we can close the session later
+      {:ok, assign(socket, jid: jid)}
+    else
+      {:ok, socket}
+    end
   end
 
   @impl true
   def handle_params(_params, url, socket) do
     {:noreply, assign(socket, current_path: url)}
-  end
-
-  @impl true
-  def handle_info({:authenticated, _}, socket), do: {:noreply, socket}
-
-  @impl true
-  def handle_info(:authenticated, socket), do: {:noreply, socket}
-
-  @impl true
-  def handle_info({:mam_finished, chat_map}, socket) do
-    #     chat_list =
-    #       chat_map
-    #       |> Map.values()
-    #       |> Enum.sort_by(& &1.time, :desc)
-    #
-    #     IO.inspect(chat_list, label: "MAM FINISHED - CHAT LIST")
-    {:noreply, assign(socket, chat_list: chat_map)}
   end
 
   @impl true
@@ -69,5 +51,12 @@ defmodule NajvaWeb.Live.Root do
 
   # Catch-all for other PubSub messages
   @impl true
-  def handle_info(_msg, socket), do: {:noreply, socket}
+  def handle_info(msg, socket) do
+    IO.inspect(msg, label: "ROOT HANDLE INFO")
+    {:noreply, socket}
+  end
+
+  # This is called automatically when the user closes the tab or navigates away
+  @impl true
+  def terminate(_reason, socket), do: Ejabberd.close_session(socket.assigns.jid)
 end

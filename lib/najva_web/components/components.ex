@@ -44,6 +44,89 @@ defmodule NajvaWeb.Components do
   end
 
   @doc """
+  Provides dark vs light theme toggle based on themes defined in app.css.
+
+  See <head> in root.html.heex which applies the theme before page load.
+  """
+  def theme_toggle(assigns) do
+    ~H"""
+    <div
+      id="theme-manager"
+      phx-hook="ThemeIndicator"
+      class=" flex flex-wrap items-center bg-base-200 rounded-2xl p-2"
+    >
+      <button
+        id="theme-button-system"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="system"
+        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
+      >
+        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
+      </button>
+
+      <button
+        id="theme-button-light"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="light"
+        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
+      >
+        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" /> light
+      </button>
+
+      <% light_themes = [
+        "cupcake",
+        "bumblebee",
+        "emerald",
+        "corporate",
+        "retro",
+        "cyberpunk",
+        "valentine",
+        "garden",
+        "lofi",
+        "pastel",
+        "fantasy",
+        "wireframe",
+        "cmyk",
+        "autumn",
+        "acid",
+        "lemonade",
+        "winter",
+        "nord",
+        "caramellatte",
+        "silk"
+      ] %>
+      <.theme_buttons themes={light_themes} />
+
+      <button
+        id="theme-button-dark"
+        phx-click={JS.dispatch("phx:set-theme")}
+        data-phx-theme="dark"
+        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
+      >
+        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" /> dark
+      </button>
+
+      <% dark_themes = [
+        "synthwave",
+        "halloween",
+        "forest",
+        "aqua",
+        "black",
+        "luxury",
+        "dracula",
+        "business",
+        "night",
+        "coffee",
+        "dim",
+        "sunset",
+        "abyss"
+      ] %>
+      <.theme_buttons themes={dark_themes} />
+    </div>
+    """
+  end
+
+  @doc """
   """
   attr :live_action, :atom, required: true
   # attr :active_list, :atom, required: true
@@ -220,53 +303,6 @@ defmodule NajvaWeb.Components do
           {message.time |> DateTime.from_unix!(:microsecond) |> Calendar.strftime("%H:%M")}
         </div>
       </div>
-    </div>
-    """
-  end
-
-  @doc """
-  Renders the settings menu.
-  """
-  attr :live_action, :atom, required: true
-
-  def settings(assigns) do
-    ~H"""
-    <div :if={@live_action == :settings} class="lg:w-2/3 xl:w-1/2 mx-auto">
-      <h1 class="font-semibold text-2xl p-4">Settings</h1>
-      <ul class="list">
-        <li>
-          <details class="collapse bg-base-100 border-base-300 border" open>
-            <summary class="collapse-title font-semibold">Themes</summary>
-            <div class="collapse-content">
-              <Layouts.theme_toggle />
-            </div>
-          </details>
-        </li>
-        <li class="list-row">
-          <.link class="hover:underline" navigate={~p"/settings/account"}>
-            Account Settings <span class="font-semibold">&xrarr;</span>
-          </.link>
-        </li>
-        <li class="list-row">
-          <p class="text-error cursor-pointer" onclick="log_out_modal.showModal()">Log Out</p>
-          <dialog id="log_out_modal" class="modal">
-            <div class="modal-box w-auto">
-              <h1 class="text-xl font-semibold text-center">Log Out</h1>
-              <div class="modal-action">
-                <form method="dialog">
-                  <.link class="btn btn-soft btn-error mr-2" href={~p"/log-out"} method="delete">
-                    Confirm
-                  </.link>
-                  <button class="btn btn-accent ml-2">Cancel</button>
-                </form>
-              </div>
-            </div>
-            <form method="dialog" class="modal-backdrop">
-              <button>close</button>
-            </form>
-          </dialog>
-        </li>
-      </ul>
     </div>
     """
   end

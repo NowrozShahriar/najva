@@ -50,7 +50,7 @@ defmodule FxmapTest do
                      ]}
 
   describe "decode/1" do
-    test "correctly decodes complex XML tuples into a map with atom keys" do
+    test "correctly decodes XML tuples into a map with atom keys" do
       expected_map = %{
         "root" => %{
           "empty_tag" => "empty_tag",
@@ -85,7 +85,7 @@ defmodule FxmapTest do
   end
 
   describe "decode_raw/1" do
-    test "correctly decodes complex XML tuples into a map with string keys" do
+    test "correctly decodes XML tuples into a map with string keys" do
       expected_map = %{
         "root" => %{
           "empty_tag" => "empty_tag",

@@ -8,6 +8,7 @@ defmodule Najva.Accounts do
   alias Ecto.Multi
 
   alias Najva.Accounts.{User, UserToken, UserNotifier}
+  alias Najva.Ejabberd
 
   ## Database getters
 
@@ -97,7 +98,7 @@ defmodule Najva.Accounts do
     Multi.new()
     |> Multi.insert(:user, User.registration_changeset(%User{}, attrs))
     |> Multi.run(:ejabberd_reg, fn _repo, %{user: user} ->
-      case :ejabberd_admin.register(user.username, %Najva{}.host, attrs["password"]) do
+      case Ejabberd.register(user.username, %Najva{}.host, attrs["password"]) do
         {:ok, _} -> {:ok, :registered}
         {:error, :conflict, _, msg} -> {:error, msg}
         {:error, :cannot_register, _, msg} -> {:error, msg}
@@ -242,7 +243,7 @@ defmodule Najva.Accounts do
     end)
     # 3. Sync the new password to ejabberd
     |> Multi.run(:ejabberd_sync, fn _repo, %{user: updated_user} ->
-      case :ejabberd_auth.set_password(
+      case Ejabberd.set_password(
              updated_user.username,
              %Najva{}.host,
              attrs["password"]
@@ -383,7 +384,7 @@ defmodule Najva.Accounts do
     Multi.new()
     |> Multi.delete(:user, user)
     |> Multi.run(:ejabberd_unreg, fn _repo, _changes ->
-      case :ejabberd_admin.unregister(user.username, %Najva{}.host) do
+      case Ejabberd.unregister(user.username, %Najva{}.host) do
         {:ok, _} ->
           {:ok, :deleted}
 

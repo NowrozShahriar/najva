@@ -2,7 +2,7 @@ defmodule Najva.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "users" do
+  schema "local_users" do
     field :username, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true

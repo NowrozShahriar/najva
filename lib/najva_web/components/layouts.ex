@@ -13,6 +13,51 @@ defmodule NajvaWeb.Layouts do
   embed_templates "layouts/*"
 
   @doc """
+  The main layout for the application.
+  """
+  attr :live_action, :atom, required: true
+  attr :current_scope, :map, required: true
+  slot :inner_block, required: true
+
+  def app(assigns) do
+    ~H"""
+    <% main_container =
+      " bg-base-200/30 mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse sm:flex-row sm:p-0.5 " %>
+    <main class={main_container}>
+      
+    <!-- NavBar -->
+      <.navbar live_action={@live_action} />
+      
+    <!-- ListPane -->
+      <% listpane =
+        " bg-base-100/50 min-h-0 w-full py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out "
+
+      listpane_other =
+        " hidden md:flex min-w-72 max-w-80 lg:min-w-80 xl:max-w-96 2xl:min-w-96 "
+
+      listpane_root = " md:max-w-96 md:min-w-96 " %>
+
+      <div class={listpane <> if @live_action != :root, do: listpane_other, else: listpane_root}>
+        
+    <!-- Heading -->
+        <div class="px-2">
+          <.heading live_action={@live_action} current_scope={@current_scope} />
+        </div>
+        
+    <!-- chat list -->
+        <%!-- <.list_chats chat_list={@chat_list} /> --%>
+      </div>
+      
+    <!-- MainPanel -->
+      <% mainpanel = " size-full sm:m-0.5 sm:h-auto sm:rounded-lg " %>
+      <div class={[mainpanel, @live_action == :root && " hidden md:block "]}>
+        {render_slot(@inner_block)}
+      </div>
+    </main>
+    """
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
 
   ## Examples
@@ -51,89 +96,6 @@ defmodule NajvaWeb.Layouts do
         {gettext("Attempting to reconnect")}
         <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
       </.flash>
-    </div>
-    """
-  end
-
-  @doc """
-  Provides dark vs light theme toggle based on themes defined in app.css.
-
-  See <head> in root.html.heex which applies the theme before page load.
-  """
-  def theme_toggle(assigns) do
-    ~H"""
-    <div
-      id="theme-manager"
-      phx-hook="ThemeIndicator"
-      class=" flex flex-wrap items-center bg-base-200 rounded-2xl p-2"
-    >
-      <button
-        id="theme-button-system"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="system"
-        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
-      >
-        <.icon name="hero-computer-desktop-micro" class="size-4 opacity-75 hover:opacity-100" />
-      </button>
-
-      <button
-        id="theme-button-light"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="light"
-        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
-      >
-        <.icon name="hero-sun-micro" class="size-4 opacity-75 hover:opacity-100" /> light
-      </button>
-
-      <% light_themes = [
-        "cupcake",
-        "bumblebee",
-        "emerald",
-        "corporate",
-        "retro",
-        "cyberpunk",
-        "valentine",
-        "garden",
-        "lofi",
-        "pastel",
-        "fantasy",
-        "wireframe",
-        "cmyk",
-        "autumn",
-        "acid",
-        "lemonade",
-        "winter",
-        "nord",
-        "caramellatte",
-        "silk"
-      ] %>
-      <.theme_buttons themes={light_themes} />
-
-      <button
-        id="theme-button-dark"
-        phx-click={JS.dispatch("phx:set-theme")}
-        data-phx-theme="dark"
-        class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
-      >
-        <.icon name="hero-moon-micro" class="size-4 opacity-75 hover:opacity-100" /> dark
-      </button>
-
-      <% dark_themes = [
-        "synthwave",
-        "halloween",
-        "forest",
-        "aqua",
-        "black",
-        "luxury",
-        "dracula",
-        "business",
-        "night",
-        "coffee",
-        "dim",
-        "sunset",
-        "abyss"
-      ] %>
-      <.theme_buttons themes={dark_themes} />
     </div>
     """
   end

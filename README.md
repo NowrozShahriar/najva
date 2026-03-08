@@ -20,14 +20,16 @@
 ![mobile](./readme_media/screenshot_mobile_chrome.jpeg) -->
 ![fullscreen](./readme_media/screenshot_fullscreen.png)
 
----
+*If you're the owner of [this](https://raw.githubusercontent.com/NowrozShahriar/najva/refs/heads/main/priv/static/images/background.avif), please message [me](https://x.com/NowrozShahriar).*
+
 
 ## Installation
 
 ### Prerequisites
 
 - Elixir
-- Erlang
+- Postgres
+
 
 Make sure both are installed and available in your system's PATH.
 
@@ -45,8 +47,8 @@ mix phx.server
 ### ⚠️ Common Issues
 
 You might run into a few errors related to missing OpenSSL or some C libraries, depending on your system setup.
-Don’t panic — just copy the error and paste it into your AI assistant (like GitHub Copilot, ChatGPT, etc.).
-With a few terminal commands, things should be up and running smoothly.
+Don’t panic — just copy the error and paste it into your AI assistant.
+With a few terminal commands, things should be up and running.
 
 ### ✅ Access
 

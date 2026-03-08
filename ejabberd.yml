@@ -28,7 +28,7 @@ default_db: sql
 sql_type: pgsql
 sql_server: "localhost"
 sql_port: 5432
-sql_database: "ejabberd_db"
+sql_database: "najva_dev"
 sql_username: "postgres"
 sql_password: "postgres"
 sql_pool_size: 10
@@ -49,7 +49,7 @@ listen:
     request_handlers:
       /admin: ejabberd_web_admin
       /api: mod_http_api
-      # /bosh: mod_bosh
+      /bosh: mod_bosh
       /captcha: ejabberd_captcha
       /upload: mod_http_upload
       /ws: ejabberd_http_ws
