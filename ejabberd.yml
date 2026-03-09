@@ -234,6 +234,7 @@ modules:
   mod_vcard_xupdate: {}
   mod_version:
     show_os: false
+  'Elixir.Najva.Ejabberd.ModNajva': {}
 
 ### Local Variables:
 ### mode: yaml

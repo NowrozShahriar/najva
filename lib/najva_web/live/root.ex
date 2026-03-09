@@ -14,6 +14,7 @@ defmodule NajvaWeb.Live.Root do
     >
       <Pages.profile :if={@live_action == :profile} />
       <Pages.settings :if={@live_action == :settings} />
+      <%!-- <button phx-click="send_test_message">Send Test Message</button> --%>
     </Layouts.app>
     """
   end
@@ -42,6 +43,12 @@ defmodule NajvaWeb.Live.Root do
   def handle_params(_params, url, socket) do
     {:noreply, assign(socket, current_path: url)}
   end
+
+  # @impl true
+  # def handle_event("send_test_message", _params, socket) do
+  #   Ejabberd.send_test_message(socket.assigns.jid, "abir2@localhost", "Hello from Najva!")
+  #   {:noreply, socket}
+  # end
 
   @impl true
   def handle_info({:message, {chat_id, new_message}}, socket) do

@@ -69,7 +69,8 @@ defmodule Najva.MixProject do
       {:bandit, "~> 1.10"},
       {:tidewave, "~> 0.5.4", only: :dev},
       {:horde, "~> 0.10.0"},
-      {:ejabberd, "~> 26.1"},
+      {:ejabberd, "~> 26.2"},
+      {:fast_xml, "~> 1.1"},
       {:xmpp, "~> 1.12"},
       {:p1_pgsql, ">= 0.0.0"},
       {:exsync, "~> 0.4.1"}
