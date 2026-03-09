@@ -45,6 +45,12 @@ defmodule Najva.Ejabberd.ModNajva do
     :ok
   end
 
+  def reload(host, new_opts, _old_opts) do
+    stop(host)
+    start(host, new_opts)
+    :ok
+  end
+
   # --- Required boilerplate for modern ejabberd modules ---
   def depends(_, _), do: []
   def mod_options(_), do: []

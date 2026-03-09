@@ -50,16 +50,16 @@ defmodule NajvaWeb.Live.Root do
   #   {:noreply, socket}
   # end
 
-  @impl true
-  def handle_info({:message, {chat_id, new_message}}, socket) do
-    new_chat_list = Map.put(socket.assigns.chat_list, chat_id, new_message)
-    {:noreply, assign(socket, chat_list: new_chat_list)}
-  end
+  # @impl true
+  # def handle_info({:message, {chat_id, new_message}}, socket) do
+  #   new_chat_list = Map.put(socket.assigns.chat_list, chat_id, new_message)
+  #   {:noreply, assign(socket, chat_list: new_chat_list)}
+  # end
 
   # Catch-all for other PubSub messages
   @impl true
   def handle_info(msg, socket) do
-    IO.inspect(msg, label: "ROOT HANDLE INFO")
+    IO.inspect(msg, label: "/root handle_info")
     {:noreply, socket}
   end
 
