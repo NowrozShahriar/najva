@@ -23,14 +23,14 @@ defmodule NajvaWeb.Live.Root do
   def mount(_params, _session, socket) do
     if connected?(socket) do
       jid = %{
-        sid: {socket.id, self()},
+        sid: Ejabberd.make_sid(),
         username: socket.assigns.current_scope.user.username,
         host: %Najva{}.host,
         res: Integer.to_string(System.os_time(), 36)
       }
 
-      Ejabberd.open_session(jid)
-      Ejabberd.send_presence(jid)
+      # Ejabberd.open_session(jid)
+      # Ejabberd.send_presence(jid)
 
       # Store these in the socket so we can close the session later
       {:ok, assign(socket, jid: jid)}
@@ -56,7 +56,6 @@ defmodule NajvaWeb.Live.Root do
   #   {:noreply, assign(socket, chat_list: new_chat_list)}
   # end
 
-  # Catch-all for other PubSub messages
   @impl true
   def handle_info(msg, socket) do
     IO.inspect(msg, label: "/root handle_info")
@@ -64,6 +63,6 @@ defmodule NajvaWeb.Live.Root do
   end
 
   # This is called automatically when the user closes the tab or navigates away
-  @impl true
-  def terminate(_reason, socket), do: Ejabberd.close_session(socket.assigns.jid)
+  # @impl true
+  # def terminate(_reason, socket), do: Ejabberd.close_session(socket.assigns.jid)
 end

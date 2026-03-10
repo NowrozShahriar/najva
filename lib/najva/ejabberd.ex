@@ -16,13 +16,16 @@ defmodule Najva.Ejabberd do
 
   def open_session(%{sid: sid, username: username, host: host, res: res}),
     do:
-      :ejabberd_sm.open_session(sid, username, host, res, [])
+      :ejabberd_sm.open_session(sid, username, host, res, 10, [])
       |> IO.inspect(label: "Open session for #{username}@#{host}/#{res}")
 
   def close_session(%{sid: sid, username: username, host: host, res: res}),
     do:
       :ejabberd_sm.close_session(sid, username, host, res)
       |> IO.inspect(label: "Close session for #{username}@#{host}/#{res}")
+
+  def make_sid, do: :ejabberd_sm.make_sid()
+  # |> IO.inspect(label: "Make sid")
 
   def send_presence(%{username: username, host: host, res: res}) do
     :ejabberd_router.route(
@@ -35,7 +38,8 @@ defmodule Najva.Ejabberd do
         []
       }
     )
-    |> IO.inspect(label: "Send presence for #{username}@#{host}/#{res}")
+
+    # |> IO.inspect(label: "Send presence for #{username}@#{host}/#{res}")
   end
 
   def send_test_message(%{username: username, host: host, res: res}, to_string, body) do
