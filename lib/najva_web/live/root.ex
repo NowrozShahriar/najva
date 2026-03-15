@@ -11,6 +11,7 @@ defmodule NajvaWeb.Live.Root do
     <Layouts.app
       live_action={@live_action}
       current_scope={@current_scope}
+      chat_list={@chat_list}
     >
       <Pages.profile :if={@live_action == :profile} />
       <Pages.settings :if={@live_action == :settings} />
@@ -21,6 +22,8 @@ defmodule NajvaWeb.Live.Root do
 
   @impl true
   def mount(_params, _session, socket) do
+    socket = assign(socket, chat_list: %{})
+
     if connected?(socket) do
       jid = %{
         sid: Ejabberd.make_sid(),

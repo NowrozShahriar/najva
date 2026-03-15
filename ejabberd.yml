@@ -179,10 +179,10 @@ modules:
       "Access-Control-Allow-Origin": "https://@HOST@"
       "Access-Control-Allow-Methods": "GET,HEAD,PUT,OPTIONS"
       "Access-Control-Allow-Headers": "Content-Type"
-  mod_last: {}
-  mod_mam:
-    assume_mam_usage: true
-    default: always
+  # mod_last: {}
+  # mod_mam:
+  #   assume_mam_usage: true
+  #   default: always
   mod_muc:
     access:
       - allow

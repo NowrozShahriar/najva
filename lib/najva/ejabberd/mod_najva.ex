@@ -6,8 +6,6 @@ defmodule Najva.Ejabberd.ModNajva do
 
   # 1. This runs when ejabberd starts the module
   def start(host, _opts) do
-    # -- PATH A: The IQ Handler --
-    # Tell ejabberd: "If you see an IQ with xmlns='najva:iq', send it to :handle_iq"
     :gen_iq_handler.add_iq_handler(
       :ejabberd_local,
       host,
@@ -16,9 +14,6 @@ defmodule Najva.Ejabberd.ModNajva do
       :handle_iq
     )
 
-    # -- PATH B: The Packet Hook --
-    # Tell ejabberd: "Every time a packet is routed, let me look at it first"
-    # 50 is the priority (execution order if there are multiple hooks)
     :ejabberd_hooks.add(
       :filter_packet,
       :global,

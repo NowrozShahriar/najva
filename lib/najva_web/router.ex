@@ -49,6 +49,8 @@ defmodule NajvaWeb.Router do
       on_mount: [{NajvaWeb.UserAuth, :require_authenticated}] do
       live "/", Live.Root, :root
       live "/profile", Live.Root, :profile
+      live "/messages", Live.Root, :messages
+      live "/contacts", Live.Root, :contacts
       live "/settings", Live.Root, :settings
       live "/settings/account", Live.AccountSettings, :edit
       live "/settings/confirm-email/:token", Live.AccountSettings, :confirm_email

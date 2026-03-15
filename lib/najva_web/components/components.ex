@@ -137,41 +137,44 @@ defmodule NajvaWeb.Components do
     <% navpanel =
       " bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:py4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg "
 
-    navpanel_child = " m-0.5 size-11 mask mask-squircle p-1 "
+    navpanel_child =
+      " m-0.5 size-11 p-1.5 "
 
     navpanel_child_active =
-      " bg-primary text-primary-content hover:bg-primary hover:text-primary-content "
+      " btn-primary bg-transparent text-primary "
 
     navpanel_child_inactive =
-      " hover:bg-neutral hover:text-neutral-content "
+      " hover:text-base-content/75 "
 
     navpanel_icon = " size-full " %>
     <nav class={navpanel}>
       
-    <!-- All Chats -->
+    <!-- Posts -->
       <.link
         patch="/"
-        title="All chats"
+        title="Posts"
         class={navpanel_child <> if @live_action == :root, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-newspaper" class={navpanel_icon} />
       </.link>
       
-    <!-- Inbox -->
-      <button
-        title="Inbox"
-        class={navpanel_child <> navpanel_child_inactive}
+    <!-- Messages -->
+      <.link
+        patch="/messages"
+        title="Messages"
+        class={navpanel_child <> " md:hidden" <> if @live_action == :messages, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-chat-bubble-oval-left-ellipsis" class={navpanel_icon} />
-      </button>
+      </.link>
       
-    <!-- Groups -->
-      <button
-        title="Groups"
-        class={navpanel_child <> navpanel_child_inactive}
+    <!-- Contacts -->
+      <.link
+        patch="/contacts"
+        title="Contacts"
+        class={navpanel_child <> if @live_action == :contacts, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-user-group" class={navpanel_icon} />
-      </button>
+      </.link>
       
     <!-- Favorites -->
       <button
@@ -189,10 +192,10 @@ defmodule NajvaWeb.Components do
         <.icon name="hero-archive-box" class={navpanel_icon} />
       </button>
       
-    <!-- Contacts -->
+    <!-- Saved -->
       <button
-        title="Contacts"
-        class={navpanel_child <> navpanel_child_inactive}
+        title="Saved"
+        class={navpanel_child <> " hidden sm:block" <> navpanel_child_inactive}
       >
         <.icon name="hero-bookmark-square" class={navpanel_icon} />
       </button>
@@ -217,6 +220,7 @@ defmodule NajvaWeb.Components do
   """
   attr :live_action, :atom, required: true
   attr :current_scope, :map, required: true
+  attr :class, :any, default: nil
 
   def heading(assigns) do
     ~H"""
@@ -241,7 +245,7 @@ defmodule NajvaWeb.Components do
     # search_field =
     #   " bg-base-200 border-base-200 hover:border-neutral focus:border-primary w-full rounded-full border-2 px-4 py-1 focus:outline-none " %>
 
-    <div class={header}>
+    <div class={[header, @class]}>
       <.link patch="/" class={title}>Najva</.link>
 
       <div :if={@current_scope} class="flex min-w-0 items-center p-1">
@@ -287,7 +291,29 @@ defmodule NajvaWeb.Components do
 
   def list_chats(assigns) do
     ~H"""
-    <div class="flex-1 flex flex-col overflow-y-auto p-1 space-y-1">
+    <ul class="list overflow-y-auto p-1 space-y-1">
+      <li class="list-row gap-2 p-2 hover:bg-base-200 items-center">
+        <div class="">
+          <%!-- <img
+            class="size-10 rounded-box"
+            src="https://img.daisyui.com/images/profile/demo/1@94.webp"
+          /> --%>
+          <div class="size-12 bg-secondary rounded-full flex items-center justify-center text-primary-content font-bold text-xl">
+            {String.at("Dio Lupa", 0)}
+          </div>
+        </div>
+        <div class="flex flex-col gap-1 overflow-hidden">
+          <div>Dio Lupa</div>
+          <div class="opacity-60 truncate">
+            Remaining Reason
+          </div>
+        </div>
+        <button class=" bg-transparent h-full w-5">
+          <.icon name="hero-ellipsis-vertical" class="size-full" />
+        </button>
+      </li>
+    </ul>
+    <%!-- <div class="flex-1 flex flex-col overflow-y-auto p-1 space-y-1">
       <div
         :for={{name, message} <- @chat_list}
         class="grid grid-cols-[auto_1fr_auto] gap-x-4 items-center px-3 py-2 sm:p-1 hover:bg-base-200 cursor-pointer rounded-2xl"
@@ -303,7 +329,7 @@ defmodule NajvaWeb.Components do
           {message.time |> DateTime.from_unix!(:microsecond) |> Calendar.strftime("%H:%M")}
         </div>
       </div>
-    </div>
+    </div> --%>
     """
   end
 end

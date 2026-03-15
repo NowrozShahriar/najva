@@ -17,6 +17,7 @@ defmodule NajvaWeb.Layouts do
   """
   attr :live_action, :atom, required: true
   attr :current_scope, :map, required: true
+  attr :chat_list, :map, required: true
   slot :inner_block, required: true
 
   def app(assigns) do
@@ -30,14 +31,9 @@ defmodule NajvaWeb.Layouts do
       
     <!-- ListPane -->
       <% listpane =
-        " bg-base-100/50 min-h-0 w-full py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out "
+        " bg-base-100/50 min-h-0 w-full py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out hidden md:flex min-w-1/3 lg:min-w-1/4 " %>
 
-      listpane_other =
-        " hidden md:flex min-w-72 max-w-80 lg:min-w-80 xl:max-w-96 2xl:min-w-96 "
-
-      listpane_root = " md:max-w-96 md:min-w-96 " %>
-
-      <div class={listpane <> if @live_action != :root, do: listpane_other, else: listpane_root}>
+      <div class={listpane}>
         
     <!-- Heading -->
         <div class="px-2">
@@ -45,12 +41,13 @@ defmodule NajvaWeb.Layouts do
         </div>
         
     <!-- chat list -->
-        <%!-- <.list_chats chat_list={@chat_list} /> --%>
+        <.list_chats chat_list={@chat_list} />
       </div>
       
     <!-- MainPanel -->
-      <% mainpanel = " size-full sm:m-0.5 sm:h-auto sm:rounded-lg " %>
-      <div class={[mainpanel, @live_action == :root && " hidden md:block "]}>
+      <% mainpanel = " size-full sm:m-0.5 sm:h-auto sm:rounded-lg p-1" %>
+      <div class={mainpanel}>
+        <.heading class=" md:hidden " live_action={@live_action} current_scope={@current_scope} />
         {render_slot(@inner_block)}
       </div>
     </main>
