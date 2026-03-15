@@ -17,37 +17,32 @@ defmodule NajvaWeb.Layouts do
   """
   attr :live_action, :atom, required: true
   attr :current_scope, :map, required: true
-  attr :chat_list, :map, required: true
-  slot :inner_block, required: true
+  slot :listpane_content, required: true
+  slot :inner_block
 
   def app(assigns) do
     ~H"""
     <% main_container =
       " bg-base-200/30 mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse sm:flex-row sm:p-0.5 " %>
     <main class={main_container}>
-      
-    <!-- NavBar -->
       <.navbar live_action={@live_action} />
-      
-    <!-- ListPane -->
-      <% listpane =
-        " bg-base-100/50 min-h-0 w-full py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out hidden md:flex min-w-1/3 lg:min-w-1/4 " %>
-
-      <div class={listpane}>
-        
-    <!-- Heading -->
-        <div class="px-2">
-          <.heading live_action={@live_action} current_scope={@current_scope} />
-        </div>
-        
-    <!-- chat list -->
-        <.list_chats chat_list={@chat_list} />
-      </div>
+      <.listpane live_action={@live_action} current_scope={@current_scope}>
+        {render_slot(@listpane_content)}
+      </.listpane>
       
     <!-- MainPanel -->
-      <% mainpanel = " size-full sm:m-0.5 sm:h-auto sm:rounded-lg p-1" %>
+      <% mainpanel =
+        " size-full sm:m-0.5 sm:h-auto sm:rounded-lg p-1 " <>
+          if @live_action in [:messages, :contacts, :favourites, :saved, :archive],
+            do: " hidden md:block ",
+            else: "" %>
       <div class={mainpanel}>
-        <.heading class=" md:hidden " live_action={@live_action} current_scope={@current_scope} />
+        <.heading
+          :if={@live_action == :root}
+          class=" md:hidden p-1 "
+          live_action={@live_action}
+          current_scope={@current_scope}
+        />
         {render_slot(@inner_block)}
       </div>
     </main>

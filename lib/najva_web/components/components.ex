@@ -21,29 +21,6 @@ defmodule NajvaWeb.Components do
   #   end
 
   @doc """
-  buttons from list for Layouts.theme_toggle.
-
-  ## Example
-
-      <.theme_buttons themes={["garden", "forest"]} />
-  """
-  attr :themes, :list, required: true
-
-  def theme_buttons(assigns) do
-    ~H"""
-    <button
-      :for={theme <- @themes}
-      id={"theme-button-" <> theme}
-      data-phx-theme={theme}
-      phx-click={Phoenix.LiveView.JS.dispatch("phx:set-theme")}
-      class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
-    >
-      {theme}
-    </button>
-    """
-  end
-
-  @doc """
   Provides dark vs light theme toggle based on themes defined in app.css.
 
   See <head> in root.html.heex which applies the theme before page load.
@@ -127,6 +104,29 @@ defmodule NajvaWeb.Components do
   end
 
   @doc """
+  buttons from list for Layouts.theme_toggle.
+
+  ## Example
+
+      <.theme_buttons themes={["garden", "forest"]} />
+  """
+  attr :themes, :list, required: true
+
+  def theme_buttons(assigns) do
+    ~H"""
+    <button
+      :for={theme <- @themes}
+      id={"theme-button-" <> theme}
+      data-phx-theme={theme}
+      phx-click={Phoenix.LiveView.JS.dispatch("phx:set-theme")}
+      class="theme-btn px-2 py-0.5 m-0.5 rounded-full cursor-pointer"
+    >
+      {theme}
+    </button>
+    """
+  end
+
+  @doc """
   """
   attr :live_action, :atom, required: true
   # attr :active_list, :atom, required: true
@@ -138,7 +138,7 @@ defmodule NajvaWeb.Components do
       " bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:py4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg "
 
     navpanel_child =
-      " m-0.5 size-11 p-1.5 "
+      " m-0.5 flex items-center justify-center w-14 sm:size-11 p-1.5 "
 
     navpanel_child_active =
       " btn-primary bg-transparent text-primary "
@@ -146,7 +146,7 @@ defmodule NajvaWeb.Components do
     navpanel_child_inactive =
       " hover:text-base-content/75 "
 
-    navpanel_icon = " size-full " %>
+    navpanel_icon = " size-9 sm:size-full " %>
     <nav class={navpanel}>
       
     <!-- Posts -->
@@ -177,28 +177,31 @@ defmodule NajvaWeb.Components do
       </.link>
       
     <!-- Favorites -->
-      <button
+      <.link
+        patch="/favourites"
         title="Favorites"
-        class={navpanel_child <> navpanel_child_inactive}
+        class={navpanel_child <> if @live_action == :favourites, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-heart" class={navpanel_icon} />
-      </button>
+      </.link>
       
     <!-- Archive (only visible on desktop) -->
-      <button
+      <.link
+        patch="/archive"
         title="Archive"
-        class={navpanel_child <> " hidden sm:block" <> navpanel_child_inactive}
+        class={navpanel_child <> " hidden sm:block" <> if @live_action == :archive, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-archive-box" class={navpanel_icon} />
-      </button>
+      </.link>
       
     <!-- Saved -->
-      <button
+      <.link
+        patch="/saved"
         title="Saved"
-        class={navpanel_child <> " hidden sm:block" <> navpanel_child_inactive}
+        class={navpanel_child <> " hidden sm:block" <> if @live_action == :saved, do: navpanel_child_active, else: navpanel_child_inactive}
       >
         <.icon name="hero-bookmark-square" class={navpanel_icon} />
-      </button>
+      </.link>
       
     <!-- Settings -->
       <.link
@@ -212,6 +215,33 @@ defmodule NajvaWeb.Components do
         <.icon name="hero-cog-6-tooth" class={navpanel_icon} />
       </.link>
     </nav>
+    """
+  end
+
+  @doc """
+
+  """
+  attr :live_action, :atom, required: true
+  attr :current_scope, :map, required: true
+  slot :inner_block, required: true
+
+  def listpane(assigns) do
+    ~H"""
+    <% listpane =
+      " bg-base-100/50 min-h-0 py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out min-w-1/3 lg:min-w-1/4 " <>
+        if @live_action not in [:messages, :contacts, :favourites, :saved, :archive],
+          do: " hidden md:flex ",
+          else: "" %>
+
+    <div class={listpane}>
+      <div class="px-2">
+        <.heading live_action={@live_action} current_scope={@current_scope} />
+      </div>
+
+      <div>
+        {render_slot(@inner_block)}
+      </div>
+    </div>
     """
   end
 
@@ -292,17 +322,17 @@ defmodule NajvaWeb.Components do
   def list_chats(assigns) do
     ~H"""
     <ul class="list overflow-y-auto p-1 space-y-1">
-      <li class="list-row gap-2 p-2 hover:bg-base-200 items-center">
+      <li class="list-row gap-2 py-2 px-1 mx-0.5 hover:bg-base-200 items-center">
         <div class="">
           <%!-- <img
             class="size-10 rounded-box"
             src="https://img.daisyui.com/images/profile/demo/1@94.webp"
           /> --%>
-          <div class="size-12 bg-secondary rounded-full flex items-center justify-center text-primary-content font-bold text-xl">
+          <div class="size-12 mx-1 bg-secondary rounded-full flex items-center justify-center text-primary-content font-bold text-xl">
             {String.at("Dio Lupa", 0)}
           </div>
         </div>
-        <div class="flex flex-col gap-1 overflow-hidden">
+        <div class="flex flex-col gap-0.5 overflow-hidden">
           <div>Dio Lupa</div>
           <div class="opacity-60 truncate">
             Remaining Reason

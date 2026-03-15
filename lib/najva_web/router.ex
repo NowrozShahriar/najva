@@ -51,6 +51,9 @@ defmodule NajvaWeb.Router do
       live "/profile", Live.Root, :profile
       live "/messages", Live.Root, :messages
       live "/contacts", Live.Root, :contacts
+      live "/favourites", Live.Root, :favourites
+      live "/saved", Live.Root, :saved
+      live "/archive", Live.Root, :archive
       live "/settings", Live.Root, :settings
       live "/settings/account", Live.AccountSettings, :edit
       live "/settings/confirm-email/:token", Live.AccountSettings, :confirm_email

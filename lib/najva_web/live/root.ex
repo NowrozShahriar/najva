@@ -11,11 +11,19 @@ defmodule NajvaWeb.Live.Root do
     <Layouts.app
       live_action={@live_action}
       current_scope={@current_scope}
-      chat_list={@chat_list}
     >
-      <Pages.profile :if={@live_action == :profile} />
-      <Pages.settings :if={@live_action == :settings} />
-      <%!-- <button phx-click="send_test_message">Send Test Message</button> --%>
+      <:listpane_content>
+        <.list_chats chat_list={@chat_list} />
+      </:listpane_content>
+
+      <%= case @live_action do %>
+        <% :profile -> %>
+          <Pages.profile />
+        <% :settings -> %>
+          <Pages.settings />
+        <% _ -> %>
+          <button phx-click="send_test_message">Send Test Message</button>
+      <% end %>
     </Layouts.app>
     """
   end
