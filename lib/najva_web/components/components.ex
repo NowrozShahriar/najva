@@ -228,7 +228,7 @@ defmodule NajvaWeb.Components do
   def listpane(assigns) do
     ~H"""
     <% listpane =
-      " bg-base-100/50 min-h-0 py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out min-w-1/3 lg:min-w-1/4 " <>
+      " bg-base-100/50 min-h-0 py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out min-w-1/3 lg:min-w-1/4 xl:min-w-1/5 " <>
         if @live_action not in [:messages, :contacts, :favourites, :saved, :archive],
           do: " hidden md:flex ",
           else: "" %>

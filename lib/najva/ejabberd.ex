@@ -42,15 +42,18 @@ defmodule Najva.Ejabberd do
     # |> IO.inspect(label: "Send presence for #{username}@#{host}/#{res}")
   end
 
-  def send_test_message(%{username: username, host: host, res: res}, to_string, body) do
+  def send_message(%{username: username, host: host, res: res}, to_string, body, msg_id) do
     from_jid = {:jid, username, host, res, username, host, res}
     to_jid = :jid.decode(to_string)
 
     packet = {
       :xmlel,
       "message",
-      [{"type", "chat"}, {"from", :jid.encode(from_jid)}, {"to", to_string}],
-      [{:xmlel, "body", [], [{:xmlcdata, body}]}]
+      [{"type", "chat"}, {"from", :jid.encode(from_jid)}, {"to", to_string}, {"id", msg_id}],
+      [
+        {:xmlel, "body", [], [{:xmlcdata, body}]},
+        {:xmlel, "origin-id", [{"xmlns", "urn:xmpp:sid:0"}, {"id", msg_id}], []}
+      ]
     }
 
     :ejabberd_router.route(from_jid, to_jid, packet)

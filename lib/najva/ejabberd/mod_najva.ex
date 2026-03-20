@@ -22,6 +22,22 @@ defmodule Najva.Ejabberd.ModNajva do
       50
     )
 
+    :ejabberd_hooks.add(
+      :user_receive_packet,
+      host,
+      Najva.Ejabberd.ModNajva.Hooks,
+      :on_user_receive,
+      50
+    )
+
+    :ejabberd_hooks.add(
+      :offline_message_hook,
+      host,
+      Najva.Ejabberd.ModNajva.Hooks,
+      :on_offline_message,
+      50
+    )
+
     :ok
   end
 
@@ -34,6 +50,22 @@ defmodule Najva.Ejabberd.ModNajva do
       :global,
       Najva.Ejabberd.ModNajva.Interceptor,
       :on_packet_intercept,
+      50
+    )
+
+    :ejabberd_hooks.delete(
+      :user_receive_packet,
+      host,
+      Najva.Ejabberd.ModNajva.Hooks,
+      :on_user_receive,
+      50
+    )
+
+    :ejabberd_hooks.delete(
+      :offline_message_hook,
+      host,
+      Najva.Ejabberd.ModNajva.Hooks,
+      :on_offline_message,
       50
     )
 

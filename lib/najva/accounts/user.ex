@@ -2,6 +2,8 @@ defmodule Najva.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, :string, autogenerate: false}
+  @derive {Phoenix.Param, key: :username}
   schema "local_users" do
     field :username, :string
     field :password, :string, virtual: true, redact: true
@@ -9,8 +11,10 @@ defmodule Najva.Accounts.User do
     field :email, :string
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    field :accept_username_change_warning, :boolean, virtual: true
+    field :accept_account_recovery_warning, :boolean, virtual: true
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime, inserted_at: false)
   end
 
   @doc """
@@ -122,11 +126,19 @@ defmodule Najva.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:username, :password, :email])
+    |> cast(attrs, [
+      :username,
+      :password,
+      :email,
+      :accept_username_change_warning,
+      :accept_account_recovery_warning
+    ])
     |> validate_username(opts)
     |> validate_confirmation(:password, message: "does not match password")
     |> validate_password(opts)
     |> validate_optional_email(opts)
+    |> validate_acceptance(:accept_username_change_warning, message: "must be accepted")
+    |> validate_acceptance(:accept_account_recovery_warning, message: "must be accepted")
   end
 
   defp validate_optional_email(changeset, opts) do
@@ -159,7 +171,7 @@ defmodule Najva.Accounts.User do
     changeset =
       changeset
       |> validate_required([:username])
-      |> validate_length(:username, min: 3, max: 30)
+      |> validate_length(:username, min: 3, max: 25)
       |> validate_format(:username, ~r/^[a-z0-9_]+$/,
         message: "only letters, numbers and underscores allowed"
       )

@@ -17,7 +17,7 @@ defmodule Najva.Accounts.UserToken do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
-    belongs_to :user, Najva.Accounts.User
+    belongs_to :user, Najva.Accounts.User, type: :string
 
     timestamps(type: :utc_datetime, updated_at: false)
   end

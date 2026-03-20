@@ -10,6 +10,23 @@ defmodule Najva.Accounts do
   alias Najva.Accounts.{User, UserToken, UserNotifier}
   alias Najva.Ejabberd
 
+  @host %Najva{}.host
+
+  def generate_user_id() do
+    time32 = System.os_time(:millisecond) |> Integer.to_string(32)
+    # min 36^8 and max 36^9 - 1
+    rand36 = Enum.random(2_821_109_907_456..101_559_956_668_415) |> Integer.to_string(36)
+    time32 <> rand36
+  end
+
+  @doc """
+  Gets the user id by username.
+  """
+  def get_id_by_username(username) when is_binary(username) do
+    from(u in User, where: u.username == ^username, select: u.id)
+    |> Repo.one()
+  end
+
   ## Database getters
 
   @doc """
@@ -77,7 +94,7 @@ defmodule Najva.Accounts do
 
   """
   def register_user(attrs) do
-    %User{}
+    %User{id: generate_user_id()}
     |> User.email_changeset(attrs)
     |> Repo.insert()
   end
@@ -96,9 +113,9 @@ defmodule Najva.Accounts do
   """
   def register_user_with_password(attrs) do
     Multi.new()
-    |> Multi.insert(:user, User.registration_changeset(%User{}, attrs))
+    |> Multi.insert(:user, User.registration_changeset(%User{id: generate_user_id()}, attrs))
     |> Multi.run(:ejabberd_reg, fn _repo, %{user: user} ->
-      case Ejabberd.register(user.username, %Najva{}.host, attrs["password"]) do
+      case Ejabberd.register(user.id, @host, attrs["password"]) do
         {:ok, _} -> {:ok, :registered}
         {:error, :conflict, _, msg} -> {:error, msg}
         {:error, :cannot_register, _, msg} -> {:error, msg}
@@ -187,7 +204,7 @@ defmodule Najva.Accounts do
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
-    context = "email:#{user.email || user.username}"
+    context = "email:#{user.email || user.id}"
 
     Repo.transact(fn ->
       with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
@@ -244,8 +261,8 @@ defmodule Najva.Accounts do
     # 3. Sync the new password to ejabberd
     |> Multi.run(:ejabberd_sync, fn _repo, %{user: updated_user} ->
       case Ejabberd.set_password(
-             updated_user.username,
-             %Najva{}.host,
+             updated_user.id,
+             @host,
              attrs["password"]
            ) do
         :ok ->
@@ -384,7 +401,7 @@ defmodule Najva.Accounts do
     Multi.new()
     |> Multi.delete(:user, user)
     |> Multi.run(:ejabberd_unreg, fn _repo, _changes ->
-      case Ejabberd.unregister(user.username, %Najva{}.host) do
+      case Ejabberd.unregister(user.id, @host) do
         {:ok, _} ->
           {:ok, :deleted}
 

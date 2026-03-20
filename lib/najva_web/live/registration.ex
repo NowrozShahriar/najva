@@ -40,10 +40,12 @@ defmodule NajvaWeb.Live.Registration do
           phx-mounted={JS.focus()}
         />
 
-        <p class="text-sm text-zinc-500 mt-2">
-          <.icon name="hero-exclamation-triangle-mini" class="size-4 inline-block" />
-          Username cannot be changed later.
-        </p>
+        <.input
+          field={@form[:accept_username_change_warning]}
+          type="checkbox"
+          label="Username cannot be changed later."
+          required
+        />
 
         <%!-- <.input
           field={@form[:email]}
@@ -68,10 +70,12 @@ defmodule NajvaWeb.Live.Registration do
           required
         />
 
-        <p class="text-sm text-zinc-500 mt-2">
-          <.icon name="hero-exclamation-triangle-mini" class="size-4 inline-block" />
-          If password is lost, account cannot be recovered, unless you add an email.
-        </p>
+        <.input
+          field={@form[:accept_account_recovery_warning]}
+          type="checkbox"
+          label="If password is lost, account cannot be recovered, unless you add an email."
+          required
+        />
 
         <.button
           phx-disable-with="Creating account..."

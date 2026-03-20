@@ -40,5 +40,5 @@ npm-debug.log
 
 ejabberd.log
 error.log
-database/*
+db/*
 Mnesia.*

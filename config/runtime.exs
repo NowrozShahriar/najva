@@ -20,6 +20,26 @@ if System.get_env("PHX_SERVER") do
   config :najva, NajvaWeb.Endpoint, server: true
 end
 
+## Paths configuration
+rootdefault =
+  case System.get_env("RELIVE", "false") do
+    "true" -> "_build/relive"
+    "false" -> ""
+  end
+
+rootpath = System.get_env("RELEASE_ROOT", rootdefault)
+
+## ejabberd configuration
+config :ejabberd,
+  file: Path.join(rootpath, "ejabberd.yml"),
+  log_path: Path.join(rootpath, "ejabberd.log")
+
+config :mnesia,
+  dir: Path.join(rootpath, "db/mnesia.#{node()}/")
+
+config :exsync,
+  reload_callback: {:ejabberd_admin, :update, []}
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
@@ -66,25 +86,6 @@ if config_env() == :prod do
       port: port
     ],
     secret_key_base: secret_key_base
-
-  ## ejabberd configuration
-  rootdefault =
-    case System.get_env("RELIVE", "false") do
-      "true" -> "_build/relive"
-      "false" -> ""
-    end
-
-  rootpath = System.get_env("RELEASE_ROOT", rootdefault)
-
-  config :ejabberd,
-    file: Path.join(rootpath, "ejabberd.yml"),
-    log_path: Path.join(rootpath, "ejabberd.log")
-
-  config :mnesia,
-    dir: Path.join(rootpath, "database/")
-
-  config :exsync,
-    reload_callback: {:ejabberd_admin, :update, []}
 
   # ## SSL Support
   #
