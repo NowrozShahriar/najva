@@ -12,12 +12,18 @@ defmodule Najva.Accounts do
 
   @host %Najva{}.host
 
+  @doc """
+  Generates a unique user id of 18 characters. The first 9 chars are time in base 32 and the remaining 9 chars are randomness in base 36.
+  First half is in base 32 because it is intended to be decoded to extract the creation time.
+  """
   def generate_user_id() do
     time32 = System.os_time(:millisecond) |> Integer.to_string(32)
     # min 36^8 and max 36^9 - 1
     rand36 = Enum.random(2_821_109_907_456..101_559_956_668_415) |> Integer.to_string(36)
     time32 <> rand36
   end
+
+  ## Database getters
 
   @doc """
   Gets the user id by username.
@@ -26,8 +32,6 @@ defmodule Najva.Accounts do
     from(u in User, where: u.username == ^username, select: u.id)
     |> Repo.one()
   end
-
-  ## Database getters
 
   @doc """
   Gets a user by email.

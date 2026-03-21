@@ -64,7 +64,7 @@ defmodule NajvaWeb.Live.Root do
       jid,
       "abir2@localhost",
       "Hello from Najva!",
-      "#{jid.username}_#{System.os_time()}"
+      "chat"
     )
 
     {:noreply, socket}

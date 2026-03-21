@@ -42,19 +42,24 @@ defmodule Najva.Ejabberd do
     # |> IO.inspect(label: "Send presence for #{username}@#{host}/#{res}")
   end
 
-  def send_message(%{username: username, host: host, res: res}, to_string, body, msg_id) do
+  def send_message(%{username: username, host: host, res: res}, to_string, content, type) do
     from_jid = {:jid, username, host, res, username, host, res}
     to_jid = :jid.decode(to_string)
+    time = System.os_time(:nanosecond)
+    msg_id = "#{username}_#{time |> Integer.to_string(36)}"
 
-    packet = {
-      :xmlel,
-      "message",
-      [{"type", "chat"}, {"from", :jid.encode(from_jid)}, {"to", to_string}, {"id", msg_id}],
-      [
-        {:xmlel, "body", [], [{:xmlcdata, body}]},
-        {:xmlel, "origin-id", [{"xmlns", "urn:xmpp:sid:0"}, {"id", msg_id}], []}
-      ]
-    }
+    packet =
+      {:xmlel, "message",
+       [
+         {"from", :jid.encode(from_jid)},
+         {"to", to_string},
+         {"type", type},
+         {"id", msg_id}
+       ],
+       [
+         {:xmlel, "n", [{"xmlns", "najva:v1"}],
+          [{:xmlel, "content", [{"time", time}], [xmlcdata: content]}]}
+       ]}
 
     :ejabberd_router.route(from_jid, to_jid, packet)
     |> IO.inspect(label: "Send message for #{username}@#{host}/#{res} to #{to_string}")
