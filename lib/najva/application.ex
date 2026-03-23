@@ -17,6 +17,10 @@ defmodule Najva.Application do
       # Start Horde modules
       # Najva.HordeRegistry,
       # Najva.HordeSupervisor,
+      # # Initialize Mnesia chat tables
+      # {Task, &Najva.Chat.Store.init_tables/0},
+      # # Periodic Mnesia → PostgreSQL sync
+      # Najva.Chat.Sync,
       # Start to serve requests, typically the last entry
       NajvaWeb.Endpoint
     ]

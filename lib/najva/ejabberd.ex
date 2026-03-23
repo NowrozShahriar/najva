@@ -1,67 +1,76 @@
 defmodule Najva.Ejabberd do
-  def register(username, host, password),
-    do:
-      :ejabberd_admin.register(username, host, password)
-      |> IO.inspect(label: "Register #{username}@#{host}")
+  @host %Najva{}.host
 
-  def unregister(username, host),
+  def register(username, password),
     do:
-      :ejabberd_admin.unregister(username, host)
-      |> IO.inspect(label: "Unregister #{username}@#{host}")
+      :ejabberd_admin.register(username, @host, password)
+      |> IO.inspect(label: "Registered #{username}@#{@host}")
 
-  def set_password(username, host, password),
+  def unregister(username),
     do:
-      :ejabberd_auth.set_password(username, host, password)
-      |> IO.inspect(label: "Set password for #{username}@#{host}")
+      :ejabberd_admin.unregister(username, @host)
+      |> IO.inspect(label: "Unregistered #{username}@#{@host}")
 
-  def open_session(%{sid: sid, username: username, host: host, res: res}),
+  def set_password(username, password),
     do:
-      :ejabberd_sm.open_session(sid, username, host, res, 10, [])
-      |> IO.inspect(label: "Open session for #{username}@#{host}/#{res}")
+      :ejabberd_auth.set_password(username, @host, password)
+      |> IO.inspect(label: "Set new password for #{username}@#{@host}")
 
-  def close_session(%{sid: sid, username: username, host: host, res: res}),
+  def open_session(%{sid: sid, username: username, res: res}),
     do:
-      :ejabberd_sm.close_session(sid, username, host, res)
-      |> IO.inspect(label: "Close session for #{username}@#{host}/#{res}")
+      :ejabberd_sm.open_session(sid, username, @host, res, 10, [])
+      |> IO.inspect(label: "Opened session for #{username}@#{@host}/#{res}")
+
+  def close_session(%{sid: sid, username: username, res: res}),
+    do:
+      :ejabberd_sm.close_session(sid, username, @host, res)
+      |> IO.inspect(label: "Closed session for #{username}@#{@host}/#{res}")
 
   def make_sid, do: :ejabberd_sm.make_sid()
   # |> IO.inspect(label: "Make sid")
 
-  def send_presence(%{username: username, host: host, res: res}) do
-    :ejabberd_router.route(
-      {:jid, username, host, res, username, host, res},
-      {:jid, "", host, "", "", host, ""},
-      {
-        :xmlel,
-        "presence",
-        [{"from", "#{username}@#{host}/#{res}"}],
-        []
-      }
-    )
+  # def send_presence(%{username: username, res: res}) do
+  #   :ejabberd_router.route(
+  #     {:jid, username, @host, res, username, @host, res},
+  #     {:jid, "", @host, "", "", @host, ""},
+  #     {
+  #       :xmlel,
+  #       "presence",
+  #       [{"from", "#{username}@#{@host}/#{res}"}],
+  #       []
+  #     }
+  #   )
+  #   |> IO.inspect(label: "Send presence for #{username}@#{@host}/#{res}")
+  # end
 
-    # |> IO.inspect(label: "Send presence for #{username}@#{host}/#{res}")
-  end
-
-  def send_message(%{username: username, host: host, res: res}, to_string, content, type) do
-    from_jid = {:jid, username, host, res, username, host, res}
-    to_jid = :jid.decode(to_string)
-    time = System.os_time(:nanosecond)
-    msg_id = "#{username}_#{time |> Integer.to_string(36)}"
-
+  def send_message(
+        %{username: username, res: res},
+        peer,
+        peer_host,
+        msg_id,
+        time,
+        content
+      ) do
     packet =
       {:xmlel, "message",
        [
-         {"from", :jid.encode(from_jid)},
-         {"to", to_string},
-         {"type", type},
-         {"id", msg_id}
+         {"from", "#{username}@#{@host}/#{res}"},
+         {"to",
+          if peer_host != "" do
+            "#{peer}@#{peer_host}"
+          else
+            "#{peer}@#{@host}"
+          end}
        ],
        [
-         {:xmlel, "n", [{"xmlns", "najva:v1"}],
-          [{:xmlel, "content", [{"time", time}], [xmlcdata: content]}]}
+         {:xmlel, "n", [{"xmlns", "najva:v1"}, {"type", "chat"}],
+          [{:xmlel, "content", [{"time", time}, {"id", msg_id}], [xmlcdata: content]}]}
        ]}
 
-    :ejabberd_router.route(from_jid, to_jid, packet)
-    |> IO.inspect(label: "Send message for #{username}@#{host}/#{res} to #{to_string}")
+    :ejabberd_router.route(
+      {:jid, username, @host, res, username, @host, res},
+      {:jid, peer, peer_host, "", peer, peer_host, ""},
+      packet
+    )
   end
 end

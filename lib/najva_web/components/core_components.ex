@@ -188,7 +188,7 @@ defmodule NajvaWeb.CoreComponents do
     <div class="fieldset mb-2">
       <label>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
-        <span class="label">
+        <span class="label gap-3 items-start justify-start">
           <input
             type="checkbox"
             id={@id}
@@ -197,7 +197,10 @@ defmodule NajvaWeb.CoreComponents do
             checked={@checked}
             class={@class || "checkbox checkbox-sm"}
             {@rest}
-          />{@label}
+          />
+          <span :if={@label} class="label-text whitespace-normal text-left leading-relaxed flex-1">
+            {@label}
+          </span>
         </span>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>

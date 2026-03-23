@@ -3,10 +3,9 @@ defmodule NajvaWeb.Live.Root do
   import NajvaWeb.Components
   alias Najva.Ejabberd
   alias NajvaWeb.Pages
+  alias Najva.Chat
 
   on_mount {NajvaWeb.UserAuth, :mount_current_scope}
-
-  @host %Najva{}.host
 
   @impl true
   def render(assigns) do
@@ -39,14 +38,12 @@ defmodule NajvaWeb.Live.Root do
       jid = %{
         sid: Ejabberd.make_sid(),
         username: socket.assigns.current_scope.user.id,
-        host: @host,
         res: Integer.to_string(System.os_time(), 36)
       }
 
       Ejabberd.open_session(jid)
-      Ejabberd.send_presence(jid)
+      # Ejabberd.send_presence(jid)
 
-      # Store these in the socket so we can close the session later
       {:ok, assign(socket, jid: jid)}
     else
       {:ok, socket}
@@ -60,29 +57,25 @@ defmodule NajvaWeb.Live.Root do
 
   @impl true
   def handle_event("send_test_message", _params, %{assigns: %{jid: jid}} = socket) do
-    Ejabberd.send_message(
+    Chat.send_message(
       jid,
-      "abir2@localhost",
-      "Hello from Najva!",
-      "chat"
+      "1jk7vuu72cmn1fuayx",
+      "localhost",
+      "Hello from Najva!"
     )
 
     {:noreply, socket}
   end
 
-  # @impl true
-  # def handle_info({:message, {chat_id, new_message}}, socket) do
-  #   new_chat_list = Map.put(socket.assigns.chat_list, chat_id, new_message)
-  #   {:noreply, assign(socket, chat_list: new_chat_list)}
-  # end
-
   @impl true
-  def handle_info(msg, socket) do
-    IO.inspect(msg, label: "/root handle_info")
+  def handle_info(
+        {:message, _id, _type, _lang, from, to, _subj, _body, _thread, [n], _meta},
+        socket
+      ) do
+    Chat.receive_message(from, to, n)
     {:noreply, socket}
   end
 
-  # This is called automatically when the user closes the tab or navigates away
   @impl true
   def terminate(_reason, socket), do: Ejabberd.close_session(socket.assigns.jid)
 end

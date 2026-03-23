@@ -17,16 +17,8 @@ defmodule Najva.Ejabberd.ModNajva do
     :ejabberd_hooks.add(
       :filter_packet,
       :global,
-      Najva.Ejabberd.ModNajva.Interceptor,
-      :on_packet_intercept,
-      50
-    )
-
-    :ejabberd_hooks.add(
-      :user_receive_packet,
-      host,
       Najva.Ejabberd.ModNajva.Hooks,
-      :on_user_receive,
+      :on_packet_intercept,
       50
     )
 
@@ -48,16 +40,8 @@ defmodule Najva.Ejabberd.ModNajva do
     :ejabberd_hooks.delete(
       :filter_packet,
       :global,
-      Najva.Ejabberd.ModNajva.Interceptor,
-      :on_packet_intercept,
-      50
-    )
-
-    :ejabberd_hooks.delete(
-      :user_receive_packet,
-      host,
       Najva.Ejabberd.ModNajva.Hooks,
-      :on_user_receive,
+      :on_packet_intercept,
       50
     )
 

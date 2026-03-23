@@ -10,8 +10,6 @@ defmodule Najva.Accounts do
   alias Najva.Accounts.{User, UserToken, UserNotifier}
   alias Najva.Ejabberd
 
-  @host %Najva{}.host
-
   @doc """
   Generates a unique user id of 18 characters. The first 9 chars are time in base 32 and the remaining 9 chars are randomness in base 36.
   First half is in base 32 because it is intended to be decoded to extract the creation time.
@@ -20,7 +18,7 @@ defmodule Najva.Accounts do
     time32 = System.os_time(:millisecond) |> Integer.to_string(32)
     # min 36^8 and max 36^9 - 1
     rand36 = Enum.random(2_821_109_907_456..101_559_956_668_415) |> Integer.to_string(36)
-    time32 <> rand36
+    (time32 <> rand36) |> String.downcase()
   end
 
   ## Database getters
@@ -119,7 +117,7 @@ defmodule Najva.Accounts do
     Multi.new()
     |> Multi.insert(:user, User.registration_changeset(%User{id: generate_user_id()}, attrs))
     |> Multi.run(:ejabberd_reg, fn _repo, %{user: user} ->
-      case Ejabberd.register(user.id, @host, attrs["password"]) do
+      case Ejabberd.register(user.id, attrs["password"]) do
         {:ok, _} -> {:ok, :registered}
         {:error, :conflict, _, msg} -> {:error, msg}
         {:error, :cannot_register, _, msg} -> {:error, msg}
@@ -264,11 +262,7 @@ defmodule Najva.Accounts do
     end)
     # 3. Sync the new password to ejabberd
     |> Multi.run(:ejabberd_sync, fn _repo, %{user: updated_user} ->
-      case Ejabberd.set_password(
-             updated_user.id,
-             @host,
-             attrs["password"]
-           ) do
+      case Ejabberd.set_password(updated_user.id, attrs["password"]) do
         :ok ->
           {:ok, :synced}
 
@@ -405,7 +399,7 @@ defmodule Najva.Accounts do
     Multi.new()
     |> Multi.delete(:user, user)
     |> Multi.run(:ejabberd_unreg, fn _repo, _changes ->
-      case Ejabberd.unregister(user.id, @host) do
+      case Ejabberd.unregister(user.id) do
         {:ok, _} ->
           {:ok, :deleted}
 
