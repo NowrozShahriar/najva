@@ -9,7 +9,6 @@ defmodule Najva.Repo.Migrations.CreateChatTables do
           null: false
 
       add :peer, :string, null: false
-      add :peer_host, :string, null: false
       add :msg_id, :string, primary_key: true, null: false
       add :state, :string, null: false
       add :content, :text, null: false
@@ -17,7 +16,7 @@ defmodule Najva.Repo.Migrations.CreateChatTables do
       add :meta, :map, default: %{}
     end
 
-    create index(:direct_messages, [:owner, :peer, :peer_host, :time])
+    create index(:direct_messages, [:owner, :peer, :time])
 
     create table(:conversations, primary_key: false) do
       add :owner,
@@ -26,7 +25,6 @@ defmodule Najva.Repo.Migrations.CreateChatTables do
           null: false
 
       add :peer, :string, primary_key: true, null: false
-      add :peer_host, :string, primary_key: true, null: false
       add :last_msg, :string
       add :time, :bigint, null: false
       add :new_msg_count, :integer, default: 0

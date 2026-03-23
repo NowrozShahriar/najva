@@ -1,108 +1,86 @@
 defmodule Najva.Chat do
-  alias Najva.Fxmap
   alias Najva.Repo
-  alias Najva.Chat.{Conversation, Message}
+  alias Najva.Chat.{Conversation, DirectMessage}
   alias Najva.Ejabberd
 
   @host %Najva{}.host
 
-  def send_message(jid, peer, peer_host, content) do
+  @doc """
+  Puts outgoing messages into the database then calls the ejabberd router
+  """
+  def send_message(jid, peer_jid, content) do
     time = System.os_time(:millisecond)
     msg_id = "#{jid.username}_#{Integer.to_string(time, 36)}"
 
-    filtered_host =
-      case peer_host do
-        @host ->
-          ""
-
-        "" ->
-          ""
-
-        _ ->
-          peer_host
-      end
-
     # 1. Insert message record for sender
-    %Message{}
-    |> Message.changeset(%{
+    %DirectMessage{}
+    |> DirectMessage.changeset(%{
       owner: jid.username,
-      peer: peer,
-      peer_host: filtered_host,
+      peer: peer_jid,
       msg_id: msg_id,
-      state: "sending",
+      state: "sent",
       content: content,
       time: time
     })
     |> Repo.insert!()
 
-    # 2. Upsert conversation record for sender
-    %Conversation{}
-    |> Conversation.changeset(%{
-      owner: jid.username,
-      peer: peer,
-      peer_host: filtered_host,
-      last_msg: content,
-      time: time
-    })
-    |> Repo.insert!(
-      on_conflict: {:replace, [:last_msg, :time]},
-      conflict_target: [:owner, :peer, :peer_host]
-    )
+    # # 2. Upsert conversation record for sender
+    # %Conversation{}
+    # |> Conversation.changeset(%{
+    #   owner: jid.username,
+    #   peer: peer_jid,
+    #   last_msg: content,
+    #   time: time
+    # })
+    # |> Repo.insert!(
+    #   on_conflict: {:replace, [:last_msg, :time]},
+    #   conflict_target: [:owner, :peer]
+    # )
 
     # 3. Route via ejabberd
-    Ejabberd.send_message(jid, peer, peer_host, msg_id, time, content)
+    Ejabberd.send_message(jid, peer_jid, msg_id, time, content)
   end
 
   @doc """
-  Receive a message — called by ejabberd hooks.
-  1. Insert into receiver's context with state "received"
-  2. Upsert/Update the local conversation record
+  Receives parsed message `%{"content" => %{"@id" => "...", "@time" => "...", "@cdata" => "..."}}` from StanzaHandler and puts it into the database.
   """
-  def receive_message(from, to, n) do
-    # Decoded stanza structure based on Fxmap.decode(n):
-    # %{"n" => %{"content" => %{"@id" => "...", "@time" => "...", "@cdata" => "..."}}}
-    stanza = Fxmap.decode(n)
+  def receive_message(
+        {:jid, from_user, from_server, _, _, _, _},
+        {:jid, to_user, _, _, _, _, _},
+        content
+      ) do
+    peer =
+      if from_server == @host do
+        from_user
+      else
+        "#{from_user}@#{from_server}"
+      end
 
-    # Extract sender/recipient info from JID tuples: {:jid, user, server, res, luser, lserver, lres}
-    peer = elem(from, 1)
-    peer_host = elem(from, 2)
-    owner = elem(to, 1)
+    %DirectMessage{}
+    |> DirectMessage.changeset(%{
+      owner: to_user,
+      peer: peer,
+      msg_id: content["@id"],
+      state: "received",
+      content: content["@cdata"],
+      time: content["@time"]
+    })
+    |> Repo.insert(on_conflict: :nothing, conflict_target: [:owner, :msg_id])
 
-    case stanza["n"]["content"] do
-      %{"@id" => msg_id, "@time" => time_val, "@cdata" => content} ->
-        # attributes from XML are strings via Fxmap
-        time = String.to_integer(time_val)
-        filtered_host = if peer_host == @host, do: "", else: peer_host
-
-        # 1. Insert message record for recipient
-        %Message{}
-        |> Message.changeset(%{
-          owner: owner,
-          peer: peer,
-          peer_host: filtered_host,
-          msg_id: msg_id,
-          state: "received",
-          content: content,
-          time: time
-        })
-        |> Repo.insert!()
-
-        # 2. Upsert conversation record for recipient
-        %Conversation{}
-        |> Conversation.changeset(%{
-          owner: owner,
-          peer: peer,
-          peer_host: filtered_host,
-          last_msg: content,
-          time: time
-        })
-        |> Repo.insert!(
-          on_conflict: {:replace, [:last_msg, :time]},
-          conflict_target: [:owner, :peer, :peer_host]
-        )
-
-      _ ->
-        IO.warn("Najva.Chat.receive_message: Unknown stanza format: #{inspect(stanza)}")
-    end
+    #         # 2. Upsert conversation record for recipient
+    #         %Conversation{}
+    #         |> Conversation.changeset(%{
+    #           owner: owner,
+    #           peer: peer,
+    #           last_msg: content,
+    #           time: time
+    #         })
+    #         |> Repo.insert!(
+    #           on_conflict: {:replace, [:last_msg, :time]},
+    #           conflict_target: [:owner, :peer]
+    #         )
+    #
+    #       _ ->
+    #         IO.warn("Najva.Chat.receive_message: Unknown stanza format: #{inspect(stanza)}")
   end
 end

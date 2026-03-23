@@ -3,7 +3,7 @@ defmodule Najva.Ejabberd.ModNajva.Hooks do
   Ejabberd hook handlers for filter_packet and offline_message_hook.
   """
 
-  alias Najva.Chat
+  alias Najva.StanzaHandler
 
   @doc """
   Called by ejabberd for every single stanza.
@@ -12,16 +12,16 @@ defmodule Najva.Ejabberd.ModNajva.Hooks do
   """
 
   def on_packet_intercept(packet) do
-    case packet do
-      msg when elem(msg, 0) == :message ->
-        IO.inspect(packet, label: "Intercepted message")
-
-      presence when elem(presence, 0) == :presence ->
-        IO.inspect(packet, label: "Intercepted presence")
-
-      _ ->
-        IO.inspect(packet, label: "Intercepted packet")
-    end
+    #     case packet do
+    #       msg when elem(msg, 0) == :message ->
+    #         IO.inspect(packet, label: "Intercepted message")
+    #
+    #       presence when elem(presence, 0) == :presence ->
+    #         IO.inspect(packet, label: "Intercepted presence")
+    #
+    #       _ ->
+    #         IO.inspect(packet, label: "Intercepted packet")
+    #     end
 
     packet
   end
@@ -31,9 +31,7 @@ defmodule Najva.Ejabberd.ModNajva.Hooks do
   Hook: :offline_message_hook
   Callback signature: on_offline_message(Packet)
   """
-  def on_offline_message(
-        {:bounce, {:message, _id, _type, _lang, from, to, _subj, _body, _thread, [n], _meta}}
-      ) do
-    Chat.receive_message(from, to, n)
+  def on_offline_message({:bounce, message}) do
+    StanzaHandler.handle_message(message)
   end
 end

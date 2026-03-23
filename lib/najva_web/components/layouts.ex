@@ -15,6 +15,7 @@ defmodule NajvaWeb.Layouts do
   @doc """
   The main layout for the application.
   """
+  attr :flash, :map, required: true
   attr :live_action, :atom, required: true
   attr :current_scope, :map, required: true
   slot :listpane_content, required: true
@@ -22,6 +23,7 @@ defmodule NajvaWeb.Layouts do
 
   def app(assigns) do
     ~H"""
+    <.flash_group flash={@flash} />
     <% main_container =
       " bg-base-200/30 mx-auto flex h-dvh max-w-screen-2xl flex-col-reverse sm:flex-row sm:p-0.5 " %>
     <main class={main_container}>

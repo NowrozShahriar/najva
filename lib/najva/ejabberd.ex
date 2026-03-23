@@ -45,12 +45,23 @@ defmodule Najva.Ejabberd do
 
   def send_message(
         %{username: username, res: res},
-        peer,
-        peer_host,
+        peer_jid,
         msg_id,
         time,
         content
       ) do
+    {peer, peer_host} =
+      case peer_jid do
+        <<user::binary-size(18)>> ->
+          {user, @host}
+
+        <<user::binary-size(18), "@", host::binary>> ->
+          {user, host}
+
+        _ ->
+          raise "Invalid JID: #{peer_jid}"
+      end
+
     packet =
       {:xmlel, "message",
        [

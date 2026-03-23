@@ -1,9 +1,8 @@
 defmodule NajvaWeb.Live.Root do
   use NajvaWeb, :live_view
   import NajvaWeb.Components
-  alias Najva.Ejabberd
   alias NajvaWeb.Pages
-  alias Najva.Chat
+  alias Najva.{Chat, Ejabberd, StanzaHandler}
 
   on_mount {NajvaWeb.UserAuth, :mount_current_scope}
 
@@ -13,6 +12,7 @@ defmodule NajvaWeb.Live.Root do
     <Layouts.app
       live_action={@live_action}
       current_scope={@current_scope}
+      flash={@flash}
     >
       <:listpane_content>
         <.list_chats chat_list={@chat_list} />
@@ -59,8 +59,7 @@ defmodule NajvaWeb.Live.Root do
   def handle_event("send_test_message", _params, %{assigns: %{jid: jid}} = socket) do
     Chat.send_message(
       jid,
-      "1jk7vuu72cmn1fuayx",
-      "localhost",
+      "1jkdji0bv1p2kl4hjo",
       "Hello from Najva!"
     )
 
@@ -68,12 +67,9 @@ defmodule NajvaWeb.Live.Root do
   end
 
   @impl true
-  def handle_info(
-        {:message, _id, _type, _lang, from, to, _subj, _body, _thread, [n], _meta},
-        socket
-      ) do
-    Chat.receive_message(from, to, n)
-    {:noreply, socket}
+  def handle_info({:route, message}, socket) do
+    StanzaHandler.handle_message(message)
+    {:noreply, put_flash(socket, :info, "New message received!")}
   end
 
   @impl true

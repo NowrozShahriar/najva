@@ -10,7 +10,6 @@ defmodule Najva.Chat.Conversation do
   schema "conversations" do
     field :owner, :string, primary_key: true
     field :peer, :string, primary_key: true
-    field :peer_host, :string, primary_key: true
     field :last_msg, :string
     field :time, :integer
     field :new_msg_count, :integer, default: 0
@@ -22,8 +21,7 @@ defmodule Najva.Chat.Conversation do
     entry
     |> cast(
       attrs,
-      [:owner, :peer, :peer_host, :last_msg, :time, :new_msg_count, :peer_read_upto, :meta],
-      empty_values: []
+      [:owner, :peer, :last_msg, :time, :new_msg_count, :peer_read_upto, :meta]
     )
     |> validate_required([:owner, :peer, :time])
   end
