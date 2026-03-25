@@ -1,6 +1,6 @@
 # Najva
 
-**Najva** aims to become *the go-to web client for XMPP*, spreading the light of security and freedom by making XMPP more accessible — and actually usable in everyday life.
+**Najva** 🤐🤫😶‍🌫️
 
 
 ## Current State
@@ -8,6 +8,7 @@
 ## 🚧 *Still in early development / pre-alpha* 🚧
 
 - Just made sure the UI appears perfect on mobile to desktop, and everything in between.
+- Authentication done.
 
 
 ---
