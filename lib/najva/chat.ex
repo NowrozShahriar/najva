@@ -1,9 +1,7 @@
 defmodule Najva.Chat do
   alias Najva.Repo
-  alias Najva.Chat.{Conversation, DirectMessage}
+  alias Najva.Chat.DirectMessage
   alias Najva.Ejabberd
-
-  @host %Najva{}.host
 
   @doc """
   Puts outgoing messages into the database then calls the ejabberd router
@@ -42,29 +40,11 @@ defmodule Najva.Chat do
   end
 
   @doc """
-  Receives parsed message `%{"content" => %{"@id" => "...", "@time" => "...", "@cdata" => "..."}}` from StanzaHandler and puts it into the database.
+  Receives parsed message from StanzaHandler and puts it into the database.
   """
-  def receive_message(
-        {:jid, from_user, from_server, _, _, _, _},
-        {:jid, to_user, _, _, _, _, _},
-        content
-      ) do
-    peer =
-      if from_server == @host do
-        from_user
-      else
-        "#{from_user}@#{from_server}"
-      end
-
+  def receive_message(message) do
     %DirectMessage{}
-    |> DirectMessage.changeset(%{
-      owner: to_user,
-      peer: peer,
-      msg_id: content["@id"],
-      state: "received",
-      content: content["@cdata"],
-      time: content["@time"]
-    })
+    |> DirectMessage.changeset(message)
     |> Repo.insert(on_conflict: :nothing, conflict_target: [:owner, :msg_id])
 
     #         # 2. Upsert conversation record for recipient

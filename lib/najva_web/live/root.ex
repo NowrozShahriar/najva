@@ -2,7 +2,7 @@ defmodule NajvaWeb.Live.Root do
   use NajvaWeb, :live_view
   import NajvaWeb.Components
   alias NajvaWeb.Pages
-  alias Najva.{Chat, Ejabberd, StanzaHandler}
+  alias Najva.Chat
 
   on_mount {NajvaWeb.UserAuth, :mount_current_scope}
 
@@ -35,14 +35,10 @@ defmodule NajvaWeb.Live.Root do
     socket = assign(socket, chat_list: %{})
 
     if connected?(socket) do
-      jid = %{
-        sid: Ejabberd.make_sid(),
-        username: socket.assigns.current_scope.user.id,
-        res: Integer.to_string(System.os_time(), 36)
-      }
+      user_id = socket.assigns.current_scope.user.id
+      jid = Najva.UserSession.get_jid(user_id)
 
-      Ejabberd.open_session(jid)
-      # Ejabberd.send_presence(jid)
+      Phoenix.PubSub.subscribe(Najva.PubSub, "user_session:#{user_id}")
 
       {:ok, assign(socket, jid: jid)}
     else
@@ -67,11 +63,11 @@ defmodule NajvaWeb.Live.Root do
   end
 
   @impl true
-  def handle_info({:route, message}, socket) do
-    StanzaHandler.handle_message(message)
+  def handle_info(message, socket) do
+    IO.inspect(message, label: "/root received")
     {:noreply, put_flash(socket, :info, "New message received!")}
   end
 
   @impl true
-  def terminate(_reason, socket), do: Ejabberd.close_session(socket.assigns.jid)
+  def terminate(_reason, _socket), do: :ok
 end
