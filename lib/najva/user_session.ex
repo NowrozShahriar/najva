@@ -3,8 +3,12 @@ defmodule Najva.UserSession do
 
   alias Najva.{Ejabberd, UserSessionRegistry, UserSessionSupervisor, StanzaHandler}
 
+  @idle_timeout 30_000
+
   @doc """
   Ensures a session GenServer is started for the user and returns the associated JID.
+  The calling process will be monitored, and the session will be closed after a 30s
+  idle period with no subscribers.
   """
   def get_jid(user_id) do
     case ensure_started(user_id) do
@@ -54,18 +58,54 @@ defmodule Najva.UserSession do
 
     Ejabberd.open_session(jid)
 
-    {:ok, %{user_id: user_id, jid: jid}}
+    {:ok, %{user_id: user_id, jid: jid, monitors: %{}, timer_ref: nil}}
   end
 
   @impl true
-  def handle_call(:get_jid, _from, %{jid: jid} = state) do
-    {:reply, jid, state}
+  def handle_call(:get_jid, {pid, _ref}, state) do
+    state =
+      if Enum.find(state.monitors, fn {_, monitored_pid} -> monitored_pid == pid end) do
+        state
+      else
+        if state.timer_ref do
+          Process.cancel_timer(state.timer_ref)
+        end
+
+        ref = Process.monitor(pid)
+        %{state | monitors: Map.put(state.monitors, ref, pid), timer_ref: nil}
+      end
+
+    {:reply, state.jid, state}
   end
 
   @impl true
   def handle_info({:route, message}, state) do
     StanzaHandler.handle_message(message, true)
     {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
+    new_monitors = Map.delete(state.monitors, ref)
+
+    new_state =
+      if map_size(new_monitors) == 0 do
+        timer_ref = Process.send_after(self(), :stop_idle, @idle_timeout)
+        %{state | monitors: new_monitors, timer_ref: timer_ref}
+      else
+        %{state | monitors: new_monitors}
+      end
+
+    {:noreply, new_state}
+  end
+
+  @impl true
+  def handle_info(:stop_idle, state) do
+    if map_size(state.monitors) == 0 do
+      {:stop, :normal, state}
+    else
+      {:noreply, state}
+    end
   end
 
   @impl true
