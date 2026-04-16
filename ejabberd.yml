@@ -159,18 +159,18 @@ shaper_rules:
   s2s_shaper: fast
 
 modules:
-  mod_adhoc: {}
-  mod_adhoc_api: {}
-  mod_admin_extra: {}
-  mod_announce:
-    access: announce
+  # mod_adhoc: {}
+  # mod_adhoc_api: {}
+  # mod_admin_extra: {}
+  # mod_announce:
+  #   access: announce
   mod_avatar: {}
   mod_blocking: {}
   mod_caps: {}
   mod_carboncopy: {}
   mod_client_state: {}
-  mod_configure: {}
-  mod_disco: {}
+  # mod_configure: {}
+  # mod_disco: {}
   mod_fail2ban: {}
   mod_http_api: {}
   mod_http_upload:
