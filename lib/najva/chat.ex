@@ -1,6 +1,6 @@
 defmodule Najva.Chat do
   alias Najva.Repo
-  alias Najva.Chat.DirectMessage
+  alias Najva.Chat.{DirectMessage, ChatList}
   alias Najva.Ejabberd
 
   @doc """
@@ -47,20 +47,6 @@ defmodule Najva.Chat do
     |> DirectMessage.changeset(message)
     |> Repo.insert(on_conflict: :nothing, conflict_target: [:owner, :msg_id])
 
-    #         # 2. Upsert conversation record for recipient
-    #         %Conversation{}
-    #         |> Conversation.changeset(%{
-    #           owner: owner,
-    #           peer: peer,
-    #           last_msg: content,
-    #           time: time
-    #         })
-    #         |> Repo.insert!(
-    #           on_conflict: {:replace, [:last_msg, :time]},
-    #           conflict_target: [:owner, :peer]
-    #         )
-    #
-    #       _ ->
-    #         IO.warn("Najva.Chat.receive_message: Unknown stanza format: #{inspect(stanza)}")
+    ChatList.update_received_msg(message.owner, message.peer, message.content, message.time)
   end
 end

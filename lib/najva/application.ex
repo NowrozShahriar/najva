@@ -18,8 +18,8 @@ defmodule Najva.Application do
       {Horde.Registry, keys: :unique, name: Najva.UserSessionRegistry, members: :auto},
       {Horde.DynamicSupervisor,
        strategy: :one_for_one, name: Najva.UserSessionSupervisor, members: :auto},
-      # # Initialize Mnesia chat tables
-      # {Task, &Najva.Chat.Store.init_tables/0},
+      # Initialize Mnesia chat tables
+      {Task, &Najva.Chat.ChatList.init/0},
       # # Periodic Mnesia → PostgreSQL sync
       # Najva.Chat.Sync,
       # Start to serve requests, typically the last entry
