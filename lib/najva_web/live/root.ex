@@ -32,10 +32,11 @@ defmodule NajvaWeb.Live.Root do
 
   @impl true
   def mount(_params, _session, socket) do
-    socket = assign(socket, chat_list: %{})
+    user_id = socket.assigns.current_scope.user.id
+    chat_list = :mnesia.dirty_index_read(:conversation, user_id, :owner)
+    socket = assign(socket, chat_list: chat_list)
 
     if connected?(socket) do
-      user_id = socket.assigns.current_scope.user.id
       jid = Najva.UserSession.get_jid(user_id)
 
       Phoenix.PubSub.subscribe(Najva.PubSub, "user_session:#{user_id}")

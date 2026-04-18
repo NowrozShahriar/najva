@@ -1,6 +1,6 @@
 defmodule Najva.Chat do
   alias Najva.Repo
-  alias Najva.Chat.{DirectMessage, ChatList}
+  alias Najva.Chat.{DirectMessage, ConversationBuffer}
   alias Najva.Ejabberd
 
   @doc """
@@ -22,7 +22,7 @@ defmodule Najva.Chat do
     })
     |> Repo.insert!()
 
-    ChatList.update_sent_msg(jid.username, peer_jid, content, time)
+    ConversationBuffer.update_sent_msg(jid.username, peer_jid, content, time)
 
     # 3. Route via ejabberd
     Ejabberd.send_message(jid, peer_jid, msg_id, time, content)
@@ -51,6 +51,11 @@ defmodule Najva.Chat do
     |> DirectMessage.changeset(message)
     |> Repo.insert(on_conflict: :nothing, conflict_target: [:owner, :msg_id])
 
-    ChatList.update_received_msg(message.owner, message.peer, message.content, message.time)
+    ConversationBuffer.update_received_msg(
+      message.owner,
+      message.peer,
+      message.content,
+      message.time
+    )
   end
 end

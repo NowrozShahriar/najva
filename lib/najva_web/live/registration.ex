@@ -40,12 +40,12 @@ defmodule NajvaWeb.Live.Registration do
           phx-mounted={JS.focus()}
         />
 
-        <.input
+        <%!-- <.input
           field={@form[:accept_username_change_warning]}
           type="checkbox"
           label="Username cannot be changed later."
           required
-        />
+        /> --%>
 
         <%!-- <.input
           field={@form[:email]}

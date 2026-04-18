@@ -1,6 +1,6 @@
 # Najva
 
-**Najva** 🤐🤫😶‍🌫️
+**Najva** 🤫😶‍🌫️
 
 
 ## Current State
@@ -9,10 +9,6 @@
 
 - Just made sure the UI appears perfect on mobile to desktop, and everything in between.
 - Authentication done.
-
-
----
-
 
 
 ### **First Look:**

@@ -1,4 +1,4 @@
-defmodule Najva.Chat.ChatList do
+defmodule Najva.Chat.ConversationBuffer do
   @moduledoc """
   A simple Mnesia wrapper for the conversation list.
   """
@@ -115,4 +115,21 @@ defmodule Najva.Chat.ChatList do
         {:error, :not_found}
     end
   end
+
+  @doc """
+  5. List chats for a given owner.
+  Optional `before_time` allows pagination (returns chats where time < before_time).
+  Sorting is expected to be handled by the frontend.
+  """
+
+  ## this is temporary, the idea is we will let the chat_list in mnesia grow then during the daily postgres backup we keep only the 50 most recent chats in mnesia, so when user want to load more we pull them from postgres.
+  def list_chats(owner, before_time \\ nil) do
+    :mnesia.dirty_index_read(:conversation, owner, :owner)
+    |> Enum.filter(fn {:conversation, _, _, _, _, time, _, _, _} ->
+      is_nil(before_time) or time < before_time
+    end)
+    |> Enum.sort_by(fn {:conversation, _, _, _, _, time, _, _, _} -> time end, :desc)
+  end
 end
+
+# :mnesia.dirty_match_object({:conversation, :_, :_, :_, :_, :_, :_, :_, :_})

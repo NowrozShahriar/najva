@@ -317,49 +317,58 @@ defmodule NajvaWeb.Components do
       <.list_chats chat_list={@chat_list} />
   """
 
-  attr :chat_list, :map, required: true
+  attr :chat_list, :list, required: true
 
   def list_chats(assigns) do
     ~H"""
     <ul class="list overflow-y-auto p-1 space-y-1">
-      <li class="list-row gap-2 py-2 px-1 mx-0.5 hover:bg-base-200 items-center">
-        <div class="">
-          <%!-- <img
-            class="size-10 rounded-box"
-            src="https://img.daisyui.com/images/profile/demo/1@94.webp"
-          /> --%>
-          <div class="size-12 mx-1 bg-secondary rounded-full flex items-center justify-center text-primary-content font-bold text-xl">
-            {String.at("Dio Lupa", 0)}
+      <%= for {:conversation, _id, _owner, peer, snippet, timestamp, unread_count, _msg_id, _meta} <- @chat_list do %>
+        <li class="group list-row gap-3 py-3 px-2 mx-1 hover:bg-base-200/80 items-center cursor-pointer rounded-2xl transition-all duration-300 active:scale-[0.98]">
+          <div class="relative">
+            <div class="size-12 bg-gradient-to-tr from-primary/80 to-secondary/80 rounded-full flex items-center justify-center text-primary-content font-bold text-xl uppercase shadow-sm">
+              {String.at(peer, 0)}
+            </div>
+            <div
+              :if={unread_count > 0}
+              class="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-error text-[10px] font-black text-error-content ring-2 ring-base-100 shadow-sm"
+            >
+              {if unread_count > 99, do: "99+", else: unread_count}
+            </div>
           </div>
-        </div>
-        <div class="flex flex-col gap-0.5 overflow-hidden">
-          <div>Dio Lupa</div>
-          <div class="opacity-60 truncate">
-            Remaining Reason
+
+          <div class="flex flex-col gap-0.5 overflow-hidden flex-1">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-base-content/90 truncate text-sm sm:text-base">{peer}</span>
+              <span class="text-[10px] uppercase font-bold tracking-wider opacity-40">
+                {timestamp |> DateTime.from_unix!(:millisecond) |> Calendar.strftime("%H:%M")}
+              </span>
+            </div>
+            <div class="flex justify-between items-center gap-2">
+              <div class={[
+                "text-sm truncate leading-relaxed",
+                if(unread_count > 0,
+                  do: "text-base-content font-medium opacity-100",
+                  else: "opacity-60"
+                )
+              ]}>
+                {snippet || "No messages yet"}
+              </div>
+              <div
+                :if={unread_count > 0}
+                class="size-2 rounded-full bg-primary flex-shrink-0 animate-pulse"
+              >
+              </div>
+            </div>
           </div>
-        </div>
-        <button class=" bg-transparent h-full w-5">
-          <.icon name="hero-ellipsis-vertical" class="size-full" />
-        </button>
-      </li>
+
+          <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden sm:block">
+            <button class="btn btn-ghost btn-xs btn-circle">
+              <.icon name="hero-ellipsis-vertical" class="size-4" />
+            </button>
+          </div>
+        </li>
+      <% end %>
     </ul>
-    <%!-- <div class="flex-1 flex flex-col overflow-y-auto p-1 space-y-1">
-      <div
-        :for={{name, message} <- @chat_list}
-        class="grid grid-cols-[auto_1fr_auto] gap-x-4 items-center px-3 py-2 sm:p-1 hover:bg-base-200 cursor-pointer rounded-2xl"
-      >
-        <div class="size-12 bg-secondary mask mask-squircle flex items-center justify-center text-primary-content font-bold text-xl">
-          {String.at(name, 0)}
-        </div>
-        <div class="flex flex-col overflow-hidden">
-          <div class="font-bold">{name}</div>
-          <div class="text-sm truncate">{message.text}</div>
-        </div>
-        <div class="text-xs self-start pt-1">
-          {message.time |> DateTime.from_unix!(:microsecond) |> Calendar.strftime("%H:%M")}
-        </div>
-      </div>
-    </div> --%>
     """
   end
 end
