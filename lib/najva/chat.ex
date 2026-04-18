@@ -22,21 +22,25 @@ defmodule Najva.Chat do
     })
     |> Repo.insert!()
 
-    # # 2. Upsert conversation record for sender
-    # %Conversation{}
-    # |> Conversation.changeset(%{
-    #   owner: jid.username,
-    #   peer: peer_jid,
-    #   last_msg: content,
-    #   time: time
-    # })
-    # |> Repo.insert!(
-    #   on_conflict: {:replace, [:last_msg, :time]},
-    #   conflict_target: [:owner, :peer]
-    # )
+    ChatList.update_sent_msg(jid.username, peer_jid, content, time)
 
     # 3. Route via ejabberd
     Ejabberd.send_message(jid, peer_jid, msg_id, time, content)
+
+    # 4. Carbon copy: broadcast to sender's own topic
+    Phoenix.PubSub.broadcast(
+      Najva.PubSub,
+      "user_session:#{jid.username}",
+      {:message,
+       %{
+         owner: jid.username,
+         peer: peer_jid,
+         msg_id: msg_id,
+         state: "sent",
+         content: content,
+         time: time
+       }}
+    )
   end
 
   @doc """

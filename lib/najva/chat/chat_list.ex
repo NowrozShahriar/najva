@@ -27,10 +27,10 @@ defmodule Najva.Chat.ChatList do
 
     # 3. Create table with disc copies for persistence
     case :mnesia.create_table(:conversation,
-      attributes: @fields,
-      disc_copies: [node()],
-      index: [:owner]
-    ) do
+           attributes: @fields,
+           disc_copies: [node()],
+           index: [:owner]
+         ) do
       {:atomic, :ok} -> :ok
       {:aborted, {:already_exists, :conversation}} -> :ok
       error -> error

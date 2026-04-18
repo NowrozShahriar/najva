@@ -63,9 +63,21 @@ defmodule NajvaWeb.Live.Root do
   end
 
   @impl true
+  def handle_info({:message, message}, socket) do
+    IO.inspect(message, label: "\n /root received message")
+
+    flash_msg =
+      if message.state == "sent",
+        do: "Message sent to #{message.peer} (Carbon Copy)",
+        else: "New message from #{message.peer}"
+
+    {:noreply, put_flash(socket, :info, flash_msg)}
+  end
+
+  @impl true
   def handle_info(message, socket) do
-    IO.inspect(message, label: "/root received")
-    {:noreply, put_flash(socket, :info, "New message received!")}
+    IO.inspect(message, label: "\n /root received")
+    {:noreply, socket}
   end
 
   @impl true

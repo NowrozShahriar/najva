@@ -167,7 +167,7 @@ modules:
   mod_avatar: {}
   mod_blocking: {}
   mod_caps: {}
-  mod_carboncopy: {}
+  # mod_carboncopy: {}
   mod_client_state: {}
   # mod_configure: {}
   # mod_disco: {}
