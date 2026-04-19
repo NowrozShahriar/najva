@@ -19,7 +19,7 @@ defmodule Najva.Application do
       {Horde.DynamicSupervisor,
        strategy: :one_for_one, name: Najva.UserSessionSupervisor, members: :auto},
       # Initialize Mnesia chat tables
-      {Task, &Najva.Chat.ChatList.init/0},
+      {Task, &Najva.Chat.ConversationBuffer.init/0},
       # # Periodic Mnesia → PostgreSQL sync
       # Najva.Chat.Sync,
       # Start to serve requests, typically the last entry
