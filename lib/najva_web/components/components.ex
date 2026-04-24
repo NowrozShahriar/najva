@@ -323,21 +323,13 @@ defmodule NajvaWeb.Components do
     ~H"""
     <ul class="list overflow-y-auto h-full space-y-1">
       <%= for {:conversation, _id, owner, peer, snippet, timestamp, unread_count, _msg_id, _meta} <- @chat_list do %>
-        <%!-- <li class="group list-row gap-3 py-3 px-2 mx-1 hover:bg-base-200/80 items-center cursor-pointer rounded-2xl transition-all duration-300 active:scale-[0.98]">
-          <div class="relative">
-            <div class="size-12 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold text-xl uppercase shadow-sm">
-              {String.at(peer, 0)}
-            </div>
-          </div>
-          </div>
-        </li> --%>
-        <li class="list-row gap-2 py-2 px-2 mx-0.5 hover:bg-base-200 items-center">
+        <li class="list-row hover:bg-base-200 active:bg-base-200 mx-0.5 cursor-default items-center gap-2 px-2 py-2 transition-all duration-200">
           <div class="">
             <%!-- <img
-            class="size-10 rounded-box"
+            class="size-11 rounded-full"
             src="https://img.daisyui.com/images/profile/demo/1@94.webp"
-          /> --%>
-            <div class="size-11 bg-secondary rounded-full flex items-center justify-center text-primary-content font-bold text-xl">
+            /> --%>
+            <div class="bg-secondary text-secondary-content flex size-11 items-center justify-center rounded-full text-xl font-bold uppercase">
               {String.at(peer, 0)}
             </div>
           </div>
@@ -364,7 +356,7 @@ defmodule NajvaWeb.Components do
                 <p class="truncate">
                   {snippet || "No messages yet"}
                 </p>
-                <span class="rounded-full bg-accent font-bold text-xs text-accent-content ml-1 py-[1px] px-1 whitespace-nowrap">
+                <span class="bg-accent text-accent-content ml-1 whitespace-nowrap rounded-full px-1 py-[1px] text-xs font-bold">
                   {unread_count}
                 </span>
               <% else %>
