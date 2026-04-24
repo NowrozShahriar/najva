@@ -228,7 +228,7 @@ defmodule NajvaWeb.Components do
   def listpane(assigns) do
     ~H"""
     <% listpane =
-      " bg-base-100/50 min-h-0 py-2 sm:m-0.5 sm:h-auto sm:rounded-lg flex flex-col flex-1 transition-all duration-300 ease-in-out min-w-1/3 lg:min-w-1/4 xl:min-w-1/5 " <>
+      " bg-base-100/50 min-w-1/3 lg:min-w-1/4 xl:min-w-1/5 flex min-h-0 flex-1 flex-col py-2 transition-all duration-300 ease-in-out sm:m-0.5 sm:rounded-lg " <>
         if @live_action not in [:messages, :contacts, :favourites, :saved, :archive],
           do: " hidden md:flex ",
           else: "" %>
@@ -238,7 +238,7 @@ defmodule NajvaWeb.Components do
         <.heading live_action={@live_action} current_scope={@current_scope} />
       </div>
 
-      <div>
+      <div class="flex-1 min-h-0">
         {render_slot(@inner_block)}
       </div>
     </div>
@@ -321,50 +321,58 @@ defmodule NajvaWeb.Components do
 
   def list_chats(assigns) do
     ~H"""
-    <ul class="list overflow-y-auto p-1 space-y-1">
-      <%= for {:conversation, _id, _owner, peer, snippet, timestamp, unread_count, _msg_id, _meta} <- @chat_list do %>
-        <li class="group list-row gap-3 py-3 px-2 mx-1 hover:bg-base-200/80 items-center cursor-pointer rounded-2xl transition-all duration-300 active:scale-[0.98]">
+    <ul class="list overflow-y-auto h-full space-y-1">
+      <%= for {:conversation, _id, owner, peer, snippet, timestamp, unread_count, _msg_id, _meta} <- @chat_list do %>
+        <%!-- <li class="group list-row gap-3 py-3 px-2 mx-1 hover:bg-base-200/80 items-center cursor-pointer rounded-2xl transition-all duration-300 active:scale-[0.98]">
           <div class="relative">
-            <div class="size-12 bg-gradient-to-tr from-primary/80 to-secondary/80 rounded-full flex items-center justify-center text-primary-content font-bold text-xl uppercase shadow-sm">
+            <div class="size-12 bg-primary rounded-full flex items-center justify-center text-primary-content font-bold text-xl uppercase shadow-sm">
               {String.at(peer, 0)}
             </div>
-            <div
-              :if={unread_count > 0}
-              class="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-error text-[10px] font-black text-error-content ring-2 ring-base-100 shadow-sm"
-            >
-              {if unread_count > 99, do: "99+", else: unread_count}
+          </div>
+          </div>
+        </li> --%>
+        <li class="list-row gap-2 py-2 px-2 mx-0.5 hover:bg-base-200 items-center">
+          <div class="">
+            <%!-- <img
+            class="size-10 rounded-box"
+            src="https://img.daisyui.com/images/profile/demo/1@94.webp"
+          /> --%>
+            <div class="size-11 bg-secondary rounded-full flex items-center justify-center text-primary-content font-bold text-xl">
+              {String.at(peer, 0)}
             </div>
           </div>
-
-          <div class="flex flex-col gap-0.5 overflow-hidden flex-1">
+          <div class="flex flex-col gap-0.5 overflow-hidden">
             <div class="flex justify-between items-center">
-              <span class="font-bold text-base-content/90 truncate text-sm sm:text-base">{peer}</span>
-              <span class="text-[10px] uppercase font-bold tracking-wider opacity-40">
-                {timestamp |> DateTime.from_unix!(:millisecond) |> Calendar.strftime("%H:%M")}
-              </span>
-            </div>
-            <div class="flex justify-between items-center gap-2">
-              <div class={[
-                "text-sm truncate leading-relaxed",
-                if(unread_count > 0,
-                  do: "text-base-content font-medium opacity-100",
-                  else: "opacity-60"
-                )
-              ]}>
-                {snippet || "No messages yet"}
-              </div>
-              <div
-                :if={unread_count > 0}
-                class="size-2 rounded-full bg-primary flex-shrink-0 animate-pulse"
-              >
+              <h3 class="font-semibold truncate">
+                {if peer == owner do
+                  "Saved Messages"
+                else
+                  peer
+                end}
+              </h3>
+              <div class="flex items-center opacity-60">
+                <p class="text-xs whitespace-nowrap ml-1">
+                  {timestamp
+                  |> DateTime.from_unix!(:millisecond)
+                  |> Calendar.strftime("%H:%M")}
+                </p>
+                <button><.icon name="hero-ellipsis-vertical" class="size-4" /></button>
               </div>
             </div>
-          </div>
-
-          <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden sm:block">
-            <button class="btn btn-ghost btn-xs btn-circle">
-              <.icon name="hero-ellipsis-vertical" class="size-4" />
-            </button>
+            <div class="flex justify-between items-center">
+              <%= if unread_count > 0 and peer != owner do %>
+                <p class="truncate">
+                  {snippet || "No messages yet"}
+                </p>
+                <span class="rounded-full bg-accent font-bold text-xs text-accent-content ml-1 py-[1px] px-1 whitespace-nowrap">
+                  {unread_count}
+                </span>
+              <% else %>
+                <p class="opacity-60 truncate">
+                  {snippet || "No messages yet"}
+                </p>
+              <% end %>
+            </div>
           </div>
         </li>
       <% end %>
