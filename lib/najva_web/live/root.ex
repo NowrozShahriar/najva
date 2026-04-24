@@ -15,7 +15,7 @@ defmodule NajvaWeb.Live.Root do
       flash={@flash}
     >
       <:listpane_content>
-        <.list_chats chat_list={@chat_list} />
+        <.list_chats chat_list={@streams.chat_list} />
       </:listpane_content>
 
       <%= case @live_action do %>
@@ -33,12 +33,15 @@ defmodule NajvaWeb.Live.Root do
   @impl true
   def mount(_params, _session, socket) do
     user_id = socket.assigns.current_scope.user.id
-    chat_list = :mnesia.dirty_index_read(:conversation, user_id, :owner)
-    socket = assign(socket, chat_list: chat_list)
+    chat_list = Chat.ConversationBuffer.list_chats(user_id)
+
+    socket =
+      stream(socket, :chat_list, chat_list,
+        dom_id: fn {:conversation, {owner, peer}, _, _, _, _, _, _, _} -> owner <> peer end
+      )
 
     if connected?(socket) do
       jid = Najva.UserSession.get_jid(user_id)
-
       Phoenix.PubSub.subscribe(Najva.PubSub, "user_session:#{user_id}")
 
       {:ok, assign(socket, jid: jid)}
@@ -64,13 +67,35 @@ defmodule NajvaWeb.Live.Root do
   end
 
   @impl true
+  def handle_event("select_chat", %{"peer" => peer}, socket) do
+    user_id = socket.assigns.current_scope.user.id
+
+    case Chat.ConversationBuffer.reset_new_msg_count(user_id, peer) do
+      {:ok, record} ->
+        {:noreply, stream_insert(socket, :chat_list, record)}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_info({:message, message}, socket) do
     IO.inspect(message, label: "\n /root received message")
 
     flash_msg =
-      if message.state == "sent",
-        do: "Message sent to #{message.peer} (Carbon Copy)",
-        else: "New message from #{message.peer}"
+      if message.state == "received",
+        do: "New message from #{message.peer}",
+        else: "Message sent to #{message.peer}"
+
+    socket =
+      case Chat.ConversationBuffer.get_conversation(message.owner, message.peer) do
+        {:ok, record} ->
+          stream_insert(socket, :chat_list, record, at: 0)
+
+        {:error, _} ->
+          socket
+      end
 
     {:noreply, put_flash(socket, :info, flash_msg)}
   end

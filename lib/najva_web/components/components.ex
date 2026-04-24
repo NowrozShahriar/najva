@@ -317,13 +317,18 @@ defmodule NajvaWeb.Components do
       <.list_chats chat_list={@chat_list} />
   """
 
-  attr :chat_list, :list, required: true
+  attr :chat_list, :any, required: true
 
   def list_chats(assigns) do
     ~H"""
-    <ul class="list overflow-y-auto h-full space-y-1">
-      <%= for {:conversation, _id, owner, peer, snippet, timestamp, unread_count, _msg_id, _meta} <- @chat_list do %>
-        <li class="list-row hover:bg-base-200 active:bg-base-200 mx-0.5 cursor-default items-center gap-2 px-2 py-2 transition-all duration-200">
+    <ul id="chat-list" phx-update="stream" class="list overflow-y-auto h-full space-y-1">
+      <%= for {id, {:conversation, _id, owner, peer, snippet, timestamp, unread_count, _msg_id, _meta}} <- @chat_list do %>
+        <li
+          id={id}
+          phx-click="select_chat"
+          phx-value-peer={peer}
+          class="list-row hover:bg-base-200 active:bg-base-200 mx-0.5 cursor-default items-center gap-2 px-2 py-2 transition-all duration-200"
+        >
           <div class="">
             <%!-- <img
             class="size-11 rounded-full"

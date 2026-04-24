@@ -130,6 +130,15 @@ defmodule Najva.Chat.ConversationBuffer do
     end)
     |> Enum.sort_by(fn {:conversation, _, _, _, _, time, _, _, _} -> time end, :desc)
   end
+
+  def get_conversation(owner, peer) do
+    id = {owner, peer}
+
+    case :mnesia.dirty_read(:conversation, id) do
+      [record] -> {:ok, record}
+      [] -> {:error, :not_found}
+    end
+  end
 end
 
 # :mnesia.dirty_match_object({:conversation, :_, :_, :_, :_, :_, :_, :_, :_})
