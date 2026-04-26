@@ -135,7 +135,7 @@ defmodule NajvaWeb.Components do
     ~H"""
     <!-- Navigation bar: vertical on desktop, horizontal on mobile -->
     <% navpanel =
-      " bg-base-100 mt-0.5 flex justify-evenly p-0.5 sm:py4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg "
+      " bg-base-100 mt-0.5 justify-evenly p-0.5 sm:py4 sm:m-0.5 sm:flex-col sm:justify-normal sm:rounded-lg "
 
     navpanel_child =
       " m-0.5 flex items-center justify-center w-14 sm:size-11 p-1.5 "
@@ -147,7 +147,7 @@ defmodule NajvaWeb.Components do
       " hover:text-base-content/75 "
 
     navpanel_icon = " size-9 sm:size-full " %>
-    <nav class={navpanel <> if @live_action == :chat, do: " hidden md:flex "}>
+    <nav class={navpanel <> if @live_action == :chat, do: " hidden md:flex ", else: " flex "}>
       
     <!-- Posts -->
       <.link

@@ -46,7 +46,6 @@ defmodule NajvaWeb.Live.Root do
       )
       |> stream_configure(:messages, dom_id: fn %{msg_id: msg_id} -> "msg-#{msg_id}" end)
       |> stream(:chat_list, chat_list)
-      |> stream(:messages, [])
 
     if connected?(socket) do
       jid = Najva.UserSession.get_jid(user_id)
