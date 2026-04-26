@@ -147,7 +147,7 @@ defmodule NajvaWeb.Components do
       " hover:text-base-content/75 "
 
     navpanel_icon = " size-9 sm:size-full " %>
-    <nav class={navpanel <> if @live_action == :chat, do: " hidden md:flex ", else: " flex "}>
+    <nav class={navpanel <> if @live_action == :chat, do: " hidden sm:flex ", else: " flex "}>
       
     <!-- Posts -->
       <.link
@@ -325,7 +325,7 @@ defmodule NajvaWeb.Components do
       <%= for {id, {:conversation, _id, owner, peer, last_msg, timestamp, unread_count, _msg_id, _meta}} <- @chat_list do %>
         <li
           id={id}
-          phx-click="select_chat"
+          phx-click="open_chat"
           phx-value-peer={peer}
           class="list-row hover:bg-base-200 active:bg-base-200 mx-0.5 cursor-default items-center gap-2 px-2 py-2 transition-all duration-200"
         >

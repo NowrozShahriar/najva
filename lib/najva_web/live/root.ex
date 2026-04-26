@@ -74,21 +74,13 @@ defmodule NajvaWeb.Live.Root do
   end
 
   @impl true
-  def handle_event("select_chat", %{"peer" => peer}, socket) do
-    user_id = socket.assigns.current_scope.user.id
-
-    case Chat.ConversationBuffer.reset_new_msg_count(user_id, peer) do
-      {:ok, record} ->
-        {:noreply, stream_insert(socket, :chat_list, record)}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
+  def handle_event("open_chat", %{"peer" => peer}, socket) do
+    {:noreply, push_patch(socket, to: ~p"/messages/#{peer}")}
   end
 
   @impl true
   def handle_info({:message, message}, socket) do
-    IO.inspect(message, label: "\n /root received message")
+    # IO.inspect(message, label: "\n /root received message")
 
     flash_msg =
       if message.state == "received",
