@@ -22,6 +22,7 @@ defmodule Najva.Chat do
     })
     |> Repo.insert!()
 
+    # 2. Update chat list for sender
     ConversationBuffer.update_sent_msg(jid.username, peer_jid, content, time)
 
     # 3. Route via ejabberd
@@ -57,5 +58,15 @@ defmodule Najva.Chat do
       message.content,
       message.time
     )
+  end
+
+  def get_messages(owner, peer) do
+    import Ecto.Query
+
+    from(m in DirectMessage,
+      where: m.owner == ^owner and m.peer == ^peer,
+      order_by: [asc: m.time]
+    )
+    |> Repo.all()
   end
 end

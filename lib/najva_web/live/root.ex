@@ -23,6 +23,8 @@ defmodule NajvaWeb.Live.Root do
           <Pages.profile />
         <% :settings -> %>
           <Pages.settings />
+        <% :chat -> %>
+          <Pages.chat messages={@streams.messages} peer={@peer} />
         <% _ -> %>
           <button class="btn" phx-click="send_test_message">Send Test Message</button>
       <% end %>
@@ -36,9 +38,15 @@ defmodule NajvaWeb.Live.Root do
     chat_list = Chat.ConversationBuffer.list_chats(user_id)
 
     socket =
-      stream(socket, :chat_list, chat_list,
-        dom_id: fn {:conversation, {owner, peer}, _, _, _, _, _, _, _} -> owner <> peer end
+      socket
+      |> stream_configure(:chat_list,
+        dom_id: fn {:conversation, {owner, peer}, _, _, _, _, _, _, _} ->
+          "conv-#{owner}#{peer}"
+        end
       )
+      |> stream_configure(:messages, dom_id: fn %{msg_id: msg_id} -> "msg-#{msg_id}" end)
+      |> stream(:chat_list, chat_list)
+      |> stream(:messages, [])
 
     if connected?(socket) do
       jid = Najva.UserSession.get_jid(user_id)

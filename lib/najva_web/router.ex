@@ -50,6 +50,7 @@ defmodule NajvaWeb.Router do
       live "/", Live.Root, :root
       live "/profile", Live.Root, :profile
       live "/messages", Live.Root, :messages
+      live "/messages/:peer", Live.Root, :chat
       live "/contacts", Live.Root, :contacts
       live "/favourites", Live.Root, :favourites
       live "/saved", Live.Root, :saved
