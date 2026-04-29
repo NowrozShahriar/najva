@@ -31,14 +31,19 @@ let Hooks = {}
 
 Hooks.BackButton = {
   mounted() {
-    this.goBack = (e) => {
+    this.handleEvent = (e) => {
       e.preventDefault()
-      window.history.back()
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // Fallback: If no history, redirect to the home page
+        window.location.href = "/";
+      }
     }
-    this.el.addEventListener("click", this.goBack)
+    this.el.addEventListener("click", this.handleEvent)
   },
   destroyed() {
-    this.el.removeEventListener("click", this.goBack)
+    this.el.removeEventListener("click", this.handleEvent)
   }
 }
 

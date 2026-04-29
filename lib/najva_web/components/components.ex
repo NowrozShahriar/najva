@@ -322,57 +322,56 @@ defmodule NajvaWeb.Components do
   def list_chats(assigns) do
     ~H"""
     <ul id="chat-list" phx-update="stream" class="list overflow-y-auto h-full space-y-1">
-      <%= for {id, {:conversation, _id, owner, peer, last_msg, timestamp, unread_count, _msg_id, _meta}} <- @chat_list do %>
-        <li
-          id={id}
-          phx-click="open_chat"
-          phx-value-peer={peer}
-          class="list-row hover:bg-base-200 active:bg-base-200 mx-0.5 cursor-default items-center gap-2 px-2 py-2 transition-all duration-200"
-        >
-          <div class="">
-            <%!-- <img
-            class="size-11 rounded-full"
-            src="https://img.daisyui.com/images/profile/demo/1@94.webp"
-            /> --%>
-            <div class="bg-secondary text-secondary-content flex size-11 items-center justify-center rounded-full text-xl font-bold uppercase">
-              {String.at(peer, 0)}
+      <li
+        :for={{id, {:conversation, _id, owner, peer, last_msg, timestamp, unread_count, _msg_id, _meta}} <- @chat_list}
+        id={id}
+        phx-click="open_chat"
+        phx-value-peer={peer}
+        class="list-row hover:bg-base-200 active:bg-base-200 mx-0.5 cursor-default items-center gap-2 px-2 py-2 transition-all duration-200"
+      >
+        <div class="">
+          <%!-- <img
+          class="size-11 rounded-full"
+          src="https://img.daisyui.com/images/profile/demo/1@94.webp"
+          /> --%>
+          <div class="bg-secondary text-secondary-content flex size-11 items-center justify-center rounded-full text-xl font-bold uppercase">
+            {String.at(peer, 0)}
+          </div>
+        </div>
+        <div class="flex flex-col gap-0.5 overflow-hidden">
+          <div class="flex justify-between items-center">
+            <h3 class="font-semibold truncate">
+              {if peer == owner do
+                "Saved Messages"
+              else
+                peer
+              end}
+            </h3>
+            <div class="flex items-center opacity-60">
+              <p class="text-xs whitespace-nowrap ml-1">
+                {timestamp
+                |> DateTime.from_unix!(:millisecond)
+                |> Calendar.strftime("%H:%M")}
+              </p>
+              <button><.icon name="hero-ellipsis-vertical" class="size-4" /></button>
             </div>
           </div>
-          <div class="flex flex-col gap-0.5 overflow-hidden">
-            <div class="flex justify-between items-center">
-              <h3 class="font-semibold truncate">
-                {if peer == owner do
-                  "Saved Messages"
-                else
-                  peer
-                end}
-              </h3>
-              <div class="flex items-center opacity-60">
-                <p class="text-xs whitespace-nowrap ml-1">
-                  {timestamp
-                  |> DateTime.from_unix!(:millisecond)
-                  |> Calendar.strftime("%H:%M")}
-                </p>
-                <button><.icon name="hero-ellipsis-vertical" class="size-4" /></button>
-              </div>
-            </div>
-            <div class="flex justify-between items-center">
-              <%= if unread_count > 0 and peer != owner do %>
-                <p class="truncate">
-                  {last_msg || "No messages yet"}
-                </p>
-                <span class="bg-accent text-accent-content ml-1 whitespace-nowrap rounded-full px-1 py-[1px] text-xs font-bold">
-                  {unread_count}
-                </span>
-              <% else %>
-                <p class="opacity-60 truncate">
-                  {last_msg || "No messages yet"}
-                </p>
-              <% end %>
-            </div>
+          <div class="flex justify-between items-center">
+            <%= if unread_count > 0 and peer != owner do %>
+              <p class="truncate">
+                {last_msg || "No messages yet"}
+              </p>
+              <span class="bg-accent text-accent-content ml-1 whitespace-nowrap rounded-full px-1 py-[1px] text-xs font-bold">
+                {unread_count}
+              </span>
+            <% else %>
+              <p class="opacity-60 truncate">
+                {last_msg || "No messages yet"}
+              </p>
+            <% end %>
           </div>
-        </li>
-      <% end %>
+        </div>
+      </li>
     </ul>
     """
   end

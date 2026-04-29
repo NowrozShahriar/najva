@@ -58,8 +58,18 @@ defmodule NajvaWeb.Live.Root do
   end
 
   @impl true
-  def handle_params(_params, url, socket) do
-    {:noreply, assign(socket, current_path: url)}
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  @impl true
+  def handle_event(
+        "send_message",
+        %{"content" => content},
+        %{assigns: %{jid: jid, peer: peer}} = socket
+      ) do
+    Chat.send_message(jid, peer, content)
+    {:noreply, socket}
   end
 
   @impl true
@@ -80,31 +90,64 @@ defmodule NajvaWeb.Live.Root do
 
   @impl true
   def handle_info({:message, message}, socket) do
-    # IO.inspect(message, label: "\n /root received message")
-
     flash_msg =
       if message.state == "received",
         do: "New message from #{message.peer}",
         else: "Message sent to #{message.peer}"
 
     socket =
-      case Chat.ConversationBuffer.get_conversation(message.owner, message.peer) do
-        {:ok, record} ->
-          stream_insert(socket, :chat_list, record, at: 0)
+      if socket.assigns.live_action == :chat and socket.assigns.peer == message.peer do
+        case Chat.ConversationBuffer.reset_new_msg_count(message.owner, message.peer) do
+          {:ok, record} ->
+            socket
+            |> stream_insert(:chat_list, record, at: 0)
+            |> stream_insert(:messages, message)
 
-        {:error, _} ->
-          socket
+          _ ->
+            stream_insert(socket, :messages, message)
+        end
+      else
+        case Chat.ConversationBuffer.get_conversation(message.owner, message.peer) do
+          {:ok, record} ->
+            stream_insert(socket, :chat_list, record, at: 0)
+
+          _ ->
+            socket
+        end
+        |> put_flash(:info, flash_msg)
       end
 
-    {:noreply, put_flash(socket, :info, flash_msg)}
+    {:noreply, socket}
   end
 
   @impl true
-  def handle_info(message, socket) do
-    IO.inspect(message, label: "\n /root received")
+  def handle_info(info, socket) do
+    IO.inspect(info, label: "\n /root received")
     {:noreply, socket}
   end
 
   @impl true
   def terminate(_reason, _socket), do: :ok
+
+  defp apply_action(socket, :chat, %{"peer" => peer}) do
+    user_id = socket.assigns.current_scope.user.id
+    messages = Chat.get_messages(user_id, peer)
+
+    socket =
+      socket
+      |> assign(peer: peer)
+      |> stream(:messages, messages, reset: true)
+
+    case Chat.ConversationBuffer.reset_new_msg_count(user_id, peer) do
+      {:ok, record} -> stream_insert(socket, :chat_list, record)
+      :ignore -> socket
+      _ -> socket
+    end
+  end
+
+  defp apply_action(socket, _live_action, _params) do
+    socket
+    |> assign(peer: nil)
+    |> stream(:messages, [], reset: true)
+  end
 end

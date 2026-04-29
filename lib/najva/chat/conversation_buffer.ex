@@ -88,10 +88,13 @@ defmodule Najva.Chat.ConversationBuffer do
     id = {owner, peer}
 
     case :mnesia.dirty_read(:conversation, id) do
-      [{:conversation, ^id, ^owner, ^peer, last_msg, time, _old_count, read_upto, meta}] ->
+      [{:conversation, ^id, ^owner, ^peer, last_msg, time, count, read_upto, meta}] when count > 0 ->
         record = {:conversation, id, owner, peer, last_msg, time, 0, read_upto, meta}
         :mnesia.dirty_write(record)
         {:ok, record}
+
+      [{:conversation, ^id, ^owner, ^peer, _last_msg, _time, 0, _read_upto, _meta}] ->
+        :ignore
 
       [] ->
         {:error, :not_found}
