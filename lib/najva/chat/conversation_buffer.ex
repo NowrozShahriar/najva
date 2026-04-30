@@ -9,7 +9,6 @@ defmodule Najva.Chat.ConversationBuffer do
   @fields [
     :id,
     :owner,
-    :peer,
     :last_msg,
     :time,
     :new_msg_count,
@@ -49,11 +48,11 @@ defmodule Najva.Chat.ConversationBuffer do
 
     record =
       case :mnesia.dirty_read(:conversation, id) do
-        [{:conversation, ^id, ^owner, ^peer, _old_msg, _old_time, count, read_upto, meta}] ->
-          {:conversation, id, owner, peer, last_msg, time, count, read_upto, meta}
+        [{:conversation, ^id, ^owner, _old_msg, _old_time, count, read_upto, meta}] ->
+          {:conversation, id, owner, last_msg, time, count, read_upto, meta}
 
         [] ->
-          {:conversation, id, owner, peer, last_msg, time, 0, nil, %{}}
+          {:conversation, id, owner, last_msg, time, 0, nil, %{}}
       end
 
     :mnesia.dirty_write(record)
@@ -69,11 +68,11 @@ defmodule Najva.Chat.ConversationBuffer do
 
     record =
       case :mnesia.dirty_read(:conversation, id) do
-        [{:conversation, ^id, ^owner, ^peer, _old_msg, _old_time, count, read_upto, meta}] ->
-          {:conversation, id, owner, peer, last_msg, time, count + 1, read_upto, meta}
+        [{:conversation, ^id, ^owner, _old_msg, _old_time, count, read_upto, meta}] ->
+          {:conversation, id, owner, last_msg, time, count + 1, read_upto, meta}
 
         [] ->
-          {:conversation, id, owner, peer, last_msg, time, 1, nil, %{}}
+          {:conversation, id, owner, last_msg, time, 1, nil, %{}}
       end
 
     :mnesia.dirty_write(record)
@@ -88,12 +87,13 @@ defmodule Najva.Chat.ConversationBuffer do
     id = {owner, peer}
 
     case :mnesia.dirty_read(:conversation, id) do
-      [{:conversation, ^id, ^owner, ^peer, last_msg, time, count, read_upto, meta}] when count > 0 ->
-        record = {:conversation, id, owner, peer, last_msg, time, 0, read_upto, meta}
+      [{:conversation, ^id, ^owner, last_msg, time, count, read_upto, meta}]
+      when count > 0 ->
+        record = {:conversation, id, owner, last_msg, time, 0, read_upto, meta}
         :mnesia.dirty_write(record)
         {:ok, record}
 
-      [{:conversation, ^id, ^owner, ^peer, _last_msg, _time, 0, _read_upto, _meta}] ->
+      [{:conversation, ^id, ^owner, _last_msg, _time, 0, _read_upto, _meta}] ->
         :ignore
 
       [] ->
@@ -109,8 +109,8 @@ defmodule Najva.Chat.ConversationBuffer do
     id = {owner, peer}
 
     case :mnesia.dirty_read(:conversation, id) do
-      [{:conversation, ^id, ^owner, ^peer, last_msg, time, count, _old_read, meta}] ->
-        record = {:conversation, id, owner, peer, last_msg, time, count, read_upto_id, meta}
+      [{:conversation, ^id, ^owner, last_msg, time, count, _old_read, meta}] ->
+        record = {:conversation, id, owner, last_msg, time, count, read_upto_id, meta}
         :mnesia.dirty_write(record)
         {:ok, record}
 
@@ -128,10 +128,10 @@ defmodule Najva.Chat.ConversationBuffer do
   ## this is temporary, the idea is we will let the chat_list in mnesia grow then during the daily postgres backup we keep only the 50 most recent chats in mnesia, so when user want to load more we pull them from postgres.
   def list_chats(owner, before_time \\ nil) do
     :mnesia.dirty_index_read(:conversation, owner, :owner)
-    |> Enum.filter(fn {:conversation, _, _, _, _, time, _, _, _} ->
+    |> Enum.filter(fn {:conversation, _, _, _, time, _, _, _} ->
       is_nil(before_time) or time < before_time
     end)
-    |> Enum.sort_by(fn {:conversation, _, _, _, _, time, _, _, _} -> time end, :desc)
+    |> Enum.sort_by(fn {:conversation, _, _, _, time, _, _, _} -> time end, :desc)
   end
 
   def get_conversation(owner, peer) do
@@ -144,4 +144,4 @@ defmodule Najva.Chat.ConversationBuffer do
   end
 end
 
-# :mnesia.dirty_match_object({:conversation, :_, :_, :_, :_, :_, :_, :_, :_})
+# :mnesia.dirty_match_object({:conversation, :_, :_, :_, :_, :_, :_, :_})

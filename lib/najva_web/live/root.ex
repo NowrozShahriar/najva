@@ -40,7 +40,7 @@ defmodule NajvaWeb.Live.Root do
     socket =
       socket
       |> stream_configure(:chat_list,
-        dom_id: fn {:conversation, {owner, peer}, _, _, _, _, _, _, _} ->
+        dom_id: fn {:conversation, {owner, peer}, _, _, _, _, _, _} ->
           "conv-#{owner}#{peer}"
         end
       )
@@ -77,7 +77,7 @@ defmodule NajvaWeb.Live.Root do
     Chat.send_message(
       jid,
       "1jkdji0bv1p2kl4hjo",
-      "Hello from Najva!"
+      "Saved message."
     )
 
     {:noreply, socket}

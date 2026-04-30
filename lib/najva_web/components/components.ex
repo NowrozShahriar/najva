@@ -323,7 +323,11 @@ defmodule NajvaWeb.Components do
     ~H"""
     <ul id="chat-list" phx-update="stream" class="list overflow-y-auto h-full space-y-1">
       <li
-        :for={{id, {:conversation, _id, owner, peer, last_msg, timestamp, unread_count, _msg_id, _meta}} <- @chat_list}
+        :for={
+          {id,
+           {:conversation, {owner, peer}, _owner, last_msg, timestamp, unread_count, _msg_id, _meta}} <-
+            @chat_list
+        }
         id={id}
         phx-click="open_chat"
         phx-value-peer={peer}
