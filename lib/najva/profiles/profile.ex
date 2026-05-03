@@ -1,4 +1,4 @@
-defmodule Najva.Accounts.Profile do
+defmodule Najva.Profiles.Profile do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -6,15 +6,13 @@ defmodule Najva.Accounts.Profile do
   @foreign_key_type :string
   schema "profiles" do
     field :username, :string
-    field :status, Ecto.Enum, values: [:active, :unpublished, :warning], default: :active
+    field :status, Ecto.Enum, values: [active: 0, unpublished: 1, warning: 2], default: :active
     field :display_name, :string
     field :bio, :string
     field :avatar_url, :string
     field :cover_url, :string
     field :region, :string
     field :meta, :map
-
-    timestamps(type: :utc_datetime)
   end
 
   @doc false

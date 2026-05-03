@@ -11,7 +11,10 @@ defmodule Najva.Chat.DirectMessage do
     field :owner, :string, primary_key: true
     field :peer, :string
     field :msg_id, :string, primary_key: true
-    field :state, :string
+
+    field :state, Ecto.Enum,
+      values: [sent: 0, delivered: 1, received: 2, failed: 3, edited: 4, retracted: 5, deleted: 6]
+
     field :content, :string
     field :time, :integer
     field :meta, :map, default: %{}

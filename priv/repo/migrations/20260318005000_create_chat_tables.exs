@@ -10,7 +10,7 @@ defmodule Najva.Repo.Migrations.CreateChatTables do
 
       add :peer, :string, null: false
       add :msg_id, :string, primary_key: true, null: false
-      add :state, :string, null: false
+      add :state, :integer, null: false
       add :content, :text, null: false
       add :time, :bigint, null: false
       add :meta, :map, default: %{}

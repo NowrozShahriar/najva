@@ -20,7 +20,7 @@ defmodule NajvaWeb.Live.Root do
 
       <%= case @live_action do %>
         <% :profile -> %>
-          <Pages.profile />
+          <Pages.profile profile={@profile} current_scope={@current_scope} />
         <% :settings -> %>
           <Pages.settings />
         <% :chat -> %>
@@ -145,9 +145,18 @@ defmodule NajvaWeb.Live.Root do
     end
   end
 
+  defp apply_action(socket, :profile, _params) do
+    user_id = socket.assigns.current_scope.user.id
+    {:ok, profile} = Najva.Profiles.get_profile(user_id)
+
+    socket
+    |> assign(peer: nil, profile: profile)
+    |> stream(:messages, [], reset: true)
+  end
+
   defp apply_action(socket, _live_action, _params) do
     socket
-    |> assign(peer: nil)
+    |> assign(peer: nil, profile: nil)
     |> stream(:messages, [], reset: true)
   end
 end
