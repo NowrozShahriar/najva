@@ -15,7 +15,7 @@ defmodule Najva.Profiles do
     Multi.new()
     |> Multi.insert_or_update(:profile, Profile.changeset(profile, attrs))
     |> Multi.run(:mnesia_sync, fn _repo, %{profile: profile} ->
-      ProfileBuffer.write_to_mnesia(profile)
+      ProfileBuffer.add_profile(profile)
     end)
     |> Repo.transaction()
     |> case do
@@ -28,22 +28,46 @@ defmodule Najva.Profiles do
   @doc """
   Gets a profile.
   Tries Mnesia first for speed, falls back to Repo if not found.
+  If the profile doesn't exist in Repo, it creates one lazily.
   """
-  def get_profile(id) do
+  def get_profile(id, ip \\ nil) do
     case ProfileBuffer.get_by_id(id) do
       {:ok, record} ->
-        # Convert Mnesia record back to struct if needed,
-        # or just return the data. For now, returning struct is better.
         {:ok, record_to_struct(record)}
 
       {:error, :not_found} ->
-        case Repo.get(Profile, id) do
-          nil ->
+        case id do
+          <<_uid::binary-size(18), "@", host::binary>> when host != %Najva{}.host ->
             {:error, :not_found}
 
-          profile ->
-            sync_to_cache(profile)
-            {:ok, profile}
+          _local_user ->
+            case Repo.get(Profile, id) do
+              nil ->
+                # Lazy Create
+                case Repo.get(Najva.Accounts.User, id) do
+                  nil ->
+                    {:error, :user_not_found}
+
+                  user ->
+                    region = if ip, do: Najva.Utils.IP.get_region(ip), else: "Unknown"
+
+                    profile_attrs = %{
+                      id: id,
+                      username: user.username,
+                      region: region,
+                      status: :active
+                    }
+
+                    case put(%Profile{}, profile_attrs) do
+                      {:ok, profile} -> {:ok, profile}
+                      {:error, _changeset} -> {:error, :profile_creation_failed}
+                    end
+                end
+
+              profile ->
+                sync_to_cache(profile)
+                {:ok, profile}
+            end
         end
     end
   end
@@ -53,7 +77,7 @@ defmodule Najva.Profiles do
   Useful for initialization or recovery.
   """
   def sync_to_cache(%Profile{} = profile) do
-    ProfileBuffer.write_to_mnesia(profile)
+    ProfileBuffer.add_profile(profile)
   end
 
   defp record_to_struct(
@@ -70,5 +94,12 @@ defmodule Najva.Profiles do
       region: region,
       meta: meta
     }
+  end
+
+  @doc """
+  Deletes a profile from the cache.
+  """
+  def delete_profile_cache(id) do
+    ProfileBuffer.delete_profile(id)
   end
 end

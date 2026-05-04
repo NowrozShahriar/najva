@@ -7,8 +7,10 @@ defmodule Najva.Accounts do
   alias Najva.Repo
   alias Ecto.Multi
 
-  alias Najva.Accounts.{User, UserToken, UserNotifier}
+  alias Najva.Accounts.{User, UserToken, UserNotifier, DeletedUser}
   alias Najva.Ejabberd
+
+  require Logger
 
   @doc """
   Generates a unique user id of 18 characters. The first 9 chars are time in base 32 and the remaining 9 chars are randomness in base 36.
@@ -397,18 +399,47 @@ defmodule Najva.Accounts do
   end
 
   def delete_user(%User{} = user) do
-    Multi.new()
-    |> Multi.delete(:user, user)
-    |> Multi.run(:ejabberd_unreg, fn _repo, _changes ->
-      case Ejabberd.unregister(user.id) do
-        {:ok, _} ->
-          {:ok, :deleted}
+    multi =
+      Multi.new()
+      |> Multi.delete(:user, user)
+      |> Multi.insert(:deleted_record, %DeletedUser{user_id: user.id, username: user.username})
+      |> Multi.run(:ejabberd_unreg, fn _repo, _changes ->
+        case Ejabberd.unregister(user.id) do
+          {:ok, _} -> {:ok, :unregistered}
+          {:error, reason} -> {:error, "Ejabberd unregister failed: #{inspect(reason)}"}
+        end
+      end)
 
-        {:error, reason} ->
-          {:error, "Failed to delete user: #{inspect(reason)}"}
-      end
-    end)
-    |> Repo.transaction()
+    case Repo.transaction(multi) do
+      {:ok, %{deleted_record: deleted_record}} ->
+        {:ok, deleted_record}
+
+      {:error, :ejabberd_unreg, reason, _changes} ->
+        {:error, reason}
+
+      {:error, _step, reason, _changes} ->
+        {:error, reason}
+    end
+  end
+
+  @doc """
+  Attempts to clean up all caches for a deleted user.
+  If successful, removes the deleted_users record.
+  Returns :ok or :pending.
+  """
+  def cleanup_deleted_user(%DeletedUser{} = record) do
+    try do
+      Najva.Profiles.delete_profile_cache(record.user_id)
+      # Add other buffer deletions here in the future
+      # e.g. Najva.Chat.ConversationBuffer.delete_user_data(record.user_id)
+
+      Repo.delete(record)
+      :ok
+    rescue
+      e ->
+        Logger.warning("Cache cleanup failed for deleted user #{record.user_id}: #{inspect(e)}")
+        :pending
+    end
   end
 
   ## Token helper

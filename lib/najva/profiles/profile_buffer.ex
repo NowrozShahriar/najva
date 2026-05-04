@@ -40,7 +40,7 @@ defmodule Najva.Profiles.ProfileBuffer do
   end
 
   @doc "Writes a profile record to Mnesia (disc_copies)"
-  def write_to_mnesia(%Najva.Profiles.Profile{} = profile) do
+  def add_profile(%Najva.Profiles.Profile{} = profile) do
     record = {
       :profile,
       profile.id,
@@ -73,5 +73,10 @@ defmodule Najva.Profiles.ProfileBuffer do
       [record | _] -> {:ok, record}
       [] -> {:error, :not_found}
     end
+  end
+
+  @doc "Deletes a profile record from Mnesia"
+  def delete_profile(id) do
+    :mnesia.dirty_delete(:profile, id)
   end
 end

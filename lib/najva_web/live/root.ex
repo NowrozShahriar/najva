@@ -147,7 +147,7 @@ defmodule NajvaWeb.Live.Root do
 
   defp apply_action(socket, :profile, _params) do
     user_id = socket.assigns.current_scope.user.id
-    {:ok, profile} = Najva.Profiles.get_profile(user_id)
+    {:ok, profile} = Najva.Profiles.get_profile(user_id, socket.remote_ip)
 
     socket
     |> assign(peer: nil, profile: profile)

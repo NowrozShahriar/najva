@@ -78,10 +78,23 @@ defmodule NajvaWeb.UserSessionController do
 
   def delete_account(conn, _params) do
     user = conn.assigns.current_scope.user
-    Accounts.delete_user(user)
 
-    conn
-    |> put_flash(:info, "Account deleted successfully.")
-    |> UserAuth.log_out_user()
+    case Accounts.delete_user(user) do
+      {:ok, deleted_record} ->
+        flash =
+          case Accounts.cleanup_deleted_user(deleted_record) do
+            :ok -> "Account deleted successfully. All of your data has been removed."
+            :pending -> "Account deleted successfully. Some data may take some time to clean up."
+          end
+
+        conn
+        |> put_flash(:info, flash)
+        |> UserAuth.log_out_user()
+
+      {:error, reason} ->
+        conn
+        |> put_flash(:error, "Failed to delete account: #{inspect(reason)}")
+        |> redirect(to: ~p"/settings/account")
+    end
   end
 end
