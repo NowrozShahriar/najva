@@ -9,7 +9,7 @@ defmodule NajvaWeb.UserAuth do
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
-  @max_cookie_age_in_days 365
+  @max_cookie_age_in_days 90
   @remember_me_cookie "_najva_web_user_remember_me"
   @remember_me_options [
     sign: true,
@@ -24,7 +24,7 @@ defmodule NajvaWeb.UserAuth do
   # it will result in less time before a session token expires for a user to get issued a new
   # token. This can be set to a value greater than `@max_cookie_age_in_days` to disable
   # the reissuing of tokens completely.
-  @session_reissue_age_in_days 30
+  @session_reissue_age_in_days 7
 
   @doc """
   Logs the user in.
@@ -36,7 +36,7 @@ defmodule NajvaWeb.UserAuth do
     user_return_to = get_session(conn, :user_return_to)
 
     conn
-    |> create_or_extend_session(user, params)
+    |> create_session(user, params)
     |> redirect(to: user_return_to || signed_in_path(conn))
   end
 
@@ -94,38 +94,48 @@ defmodule NajvaWeb.UserAuth do
     token_age = DateTime.diff(DateTime.utc_now(:second), token_inserted_at, :day)
 
     if token_age >= @session_reissue_age_in_days do
-      create_or_extend_session(conn, user, %{})
+      extend_session(conn, user)
     else
       conn
     end
   end
 
-  # This function is the one responsible for creating session tokens
-  # and storing them safely in the session and cookies. It may be called
-  # either when logging in, during sudo mode, or to renew a session which
-  # will soon expire.
-  #
-  # When the session is created, rather than extended, the renew_session
-  # function will clear the session to avoid fixation attacks. See the
-  # renew_session function to customize this behaviour.
-  defp create_or_extend_session(conn, user, params) do
+  # Creates a brand new session for the user (used during login).
+  # Calls renew_session to clear the old session and prevent fixation attacks.
+  defp create_session(conn, user, params) do
     remember_me = params["remember_me"] == "true" or get_session(conn, :user_remember_me)
     context = if remember_me, do: "session", else: "one_time"
+    ip = get_client_ip(conn)
 
-    ip =
-      get_req_header(conn, "x-forwarded-for")
-      |> List.first()
-      |> case do
-        nil -> conn.remote_ip |> :inet.ntoa() |> to_string()
-        forwarded -> forwarded |> String.split(",") |> List.first() |> String.trim()
-      end
-
-    token = Accounts.generate_user_session_token(user, ip, context)
+    {:ok, token} = Accounts.generate_user_session_token(user, ip, context)
 
     conn
     |> renew_session(user)
     |> put_token_in_session(token)
     |> maybe_write_remember_me_cookie(token, params, remember_me)
+  end
+
+  # By extend session we mean replacing the current token with a new one while preserving the session.
+  defp extend_session(conn, user) do
+    old_token = get_session(conn, :user_token)
+    remember_me = get_session(conn, :user_remember_me)
+    context = if remember_me, do: "session", else: "one_time"
+    ip = get_client_ip(conn)
+
+    {:ok, token} = Accounts.reissue_user_session_token(user, old_token, ip, context)
+
+    conn
+    |> put_token_in_session(token)
+    |> maybe_write_remember_me_cookie(token, %{}, remember_me)
+  end
+
+  defp get_client_ip(conn) do
+    get_req_header(conn, "x-forwarded-for")
+    |> List.first()
+    |> case do
+      nil -> conn.remote_ip |> :inet.ntoa() |> to_string()
+      forwarded -> forwarded |> String.split(",") |> List.first() |> String.trim()
+    end
   end
 
   # Do not renew session if the user is already logged in

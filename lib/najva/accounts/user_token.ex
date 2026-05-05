@@ -10,7 +10,7 @@ defmodule Najva.Accounts.UserToken do
   # since someone with access to the email may take over the account.
   @magic_link_validity_in_minutes 15
   @email_change_validity_in_days 7
-  @session_validity_in_days 365
+  @session_validity_in_days 90
 
   schema "users_tokens" do
     field :token, :binary

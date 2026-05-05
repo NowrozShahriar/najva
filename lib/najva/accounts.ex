@@ -258,9 +258,10 @@ defmodule Najva.Accounts do
     # 1. Update the User in Postgres (This hashes the new password locally)
     |> Multi.update(:user, User.password_changeset(user, attrs))
     # 2. Fetch and delete all tokens associated with the user in Postgres
-    |> Multi.run(:tokens, fn repo, %{user: updated_user} ->
-      tokens = repo.all(from(t in UserToken, where: t.user_id == ^updated_user.id))
-      repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens, & &1.id)))
+    |> Multi.run(:expiring_tokens, fn repo, %{user: updated_user} ->
+      query = from(t in UserToken, where: t.user_id == ^updated_user.id)
+      tokens = repo.all(query)
+      repo.delete_all(query)
       {:ok, tokens}
     end)
     # 3. Sync the new password to ejabberd
@@ -283,12 +284,34 @@ defmodule Najva.Accounts do
   Generates a session token.
   """
   def generate_user_session_token(user, ip, context \\ "session") do
-    UserToken.get_excess_tokens_of_user(user.id)
-    |> Repo.delete_all()
+    Repo.transact(fn ->
+      UserToken.get_excess_tokens_of_user(user.id)
+      |> Repo.delete_all()
 
-    {token, user_token} = UserToken.build_session_token(user, ip, context)
-    Repo.insert!(user_token)
-    token
+      {token, user_token} = UserToken.build_session_token(user, ip, context)
+      Repo.insert!(user_token)
+      {:ok, token}
+    end)
+  end
+
+  @doc """
+  Reissues a session token by replacing the current token with a new one.
+
+  Deletes the token matching `old_token` and inserts a fresh token for
+  the given user. Returns the new raw token.
+  """
+  def reissue_user_session_token(user, old_token, ip, context \\ "session") do
+    Repo.transact(fn ->
+      Repo.delete_all(
+        from(t in UserToken,
+          where: t.token == ^old_token and t.context in ["session", "one_time"]
+        )
+      )
+
+      {token, user_token} = UserToken.build_session_token(user, ip, context)
+      Repo.insert!(user_token)
+      {:ok, token}
+    end)
   end
 
   @doc """
@@ -398,6 +421,11 @@ defmodule Najva.Accounts do
     :ok
   end
 
+  @doc """
+  Deletes the user table from postgres which in-turn recursively deletes all of user data in other postgres tables through foreign key constraints.
+  Deletes the user from ejabberd as well and stores the deleted user id and username
+  in a separate table and returns the record.
+  """
   def delete_user(%User{} = user) do
     multi =
       Multi.new()
@@ -432,8 +460,6 @@ defmodule Najva.Accounts do
       Najva.Profiles.delete_profile_cache(record.user_id)
       # Add other buffer deletions here in the future
       # e.g. Najva.Chat.ConversationBuffer.delete_user_data(record.user_id)
-
-      Repo.delete(record)
       :ok
     rescue
       e ->
