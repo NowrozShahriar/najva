@@ -73,7 +73,8 @@ defmodule Najva.MixProject do
       {:fast_xml, "~> 1.1"},
       {:xmpp, "~> 1.12"},
       {:p1_pgsql, ">= 0.0.0"},
-      {:exsync, "~> 0.4.1"}
+      {:exsync, "~> 0.4.1"},
+      {:remote_ip, "~> 1.2"}
     ]
   end
 
