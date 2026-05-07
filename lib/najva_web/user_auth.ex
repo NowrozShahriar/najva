@@ -105,7 +105,7 @@ defmodule NajvaWeb.UserAuth do
   defp create_session(conn, user, params) do
     remember_me = params["remember_me"] == "true" or get_session(conn, :user_remember_me)
     context = if remember_me, do: "session", else: "one_time"
-    ip = get_client_ip(conn)
+    ip = conn.remote_ip |> :inet.ntoa() |> to_string()
 
     {:ok, token} = Accounts.generate_user_session_token(user, ip, context)
 
@@ -120,22 +120,13 @@ defmodule NajvaWeb.UserAuth do
     old_token = get_session(conn, :user_token)
     remember_me = get_session(conn, :user_remember_me)
     context = if remember_me, do: "session", else: "one_time"
-    ip = get_client_ip(conn)
+    ip = conn.remote_ip |> :inet.ntoa() |> to_string()
 
     {:ok, token} = Accounts.reissue_user_session_token(user, old_token, ip, context)
 
     conn
     |> put_token_in_session(token)
     |> maybe_write_remember_me_cookie(token, %{}, remember_me)
-  end
-
-  defp get_client_ip(conn) do
-    get_req_header(conn, "x-forwarded-for")
-    |> List.first()
-    |> case do
-      nil -> conn.remote_ip |> :inet.ntoa() |> to_string()
-      forwarded -> forwarded |> String.split(",") |> List.first() |> String.trim()
-    end
   end
 
   # Do not renew session if the user is already logged in

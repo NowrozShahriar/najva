@@ -10,35 +10,45 @@ import Config
 # ## Using releases
 #
 # If you use `mix release`, you need to explicitly enable the server
-# by passing the PHX_SERVER=true when you start it:
+# by passing the NAJVA_SERVER=true when you start it:
 #
-#     PHX_SERVER=true bin/najva start
+#     NAJVA_SERVER=true bin/najva start
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
-if System.get_env("PHX_SERVER") do
+if System.get_env("NAJVA_SERVER") do
   config :najva, NajvaWeb.Endpoint, server: true
 end
 
 ## Paths configuration
-rootdefault =
-  case System.get_env("RELIVE", "false") do
-    "true" -> "_build/relive"
-    "false" -> ""
-  end
+# Override these via environment variables to change storage locations.
+# Defaults are suitable for a standard Linux installation.
 
-rootpath = System.get_env("RELEASE_ROOT", rootdefault)
+default_data_dir = if config_env() == :prod, do: "/var/lib/najva", else: "db"
+data_dir = System.get_env("NAJVA_DATA_DIR", default_data_dir)
 
-## ejabberd configuration
-config :ejabberd,
-  file: Path.join(rootpath, "ejabberd.yml"),
-  log_path: Path.join(rootpath, "ejabberd.log")
+upload_dir = Path.join(data_dir, "upload")
+
+# Ensure required storage directories exist at startup
+# File.mkdir_p!(Path.join(mnesia_dir, "#{node()}"))
+# File.mkdir_p!(upload_dir)
 
 config :mnesia,
-  dir: Path.join(rootpath, "db/mnesia.#{node()}/")
+  dir: Path.join(data_dir, "mnesia/#{node()}/")
 
-config :exsync,
-  reload_callback: {:ejabberd_admin, :update, []}
+config :ejabberd,
+  file: Path.join(Application.app_dir(:najva, "priv"), "ejabberd.yml")
+
+# Pre-register ejabberd handlers to use standard_io and level :none.
+# This prevents ejabberd from creating file-based handlers (ejabberd_log and error_log)
+# while still allowing logs to flow through the default Elixir Logger handler.
+for handler <- [:ejabberd_log, :error_log] do
+  case :logger.add_handler(handler, :logger_std_h, %{config: %{type: :standard_io}, level: :none}) do
+    :ok -> :ok
+    {:error, {:already_exist, _}} -> :ok
+    _ -> :ok
+  end
+end
 
 if config_env() == :prod do
   database_url =
@@ -70,7 +80,7 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = System.get_env("NAJVA_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
   config :najva, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
