@@ -190,6 +190,7 @@ defmodule NajvaWeb.Live.AccountSettings do
       %{valid?: true} = changeset ->
         Accounts.deliver_user_confirm_email_instructions(
           Ecto.Changeset.apply_action!(changeset, :insert),
+          socket.assigns.client_info,
           "email:#{user.email || user.id}",
           &url(~p"/settings/confirm-email/#{&1}")
         )

@@ -19,12 +19,22 @@ defmodule Najva.Application do
       {Horde.DynamicSupervisor,
        strategy: :one_for_one, name: Najva.UserSessionSupervisor, members: :auto},
       # Initialize Mnesia chat tables
-      {Task, &Najva.Chat.ConversationBuffer.init/0},
-      # # Periodic Mnesia → PostgreSQL sync
-      # Najva.Chat.Sync,
-      # Start to serve requests, typically the last entry
-      NajvaWeb.Endpoint
+      {Task, &Najva.Chat.ConversationBuffer.init/0}
     ]
+
+    # Load IP Databases (optional)
+    locus_dbs = [
+      location: "data/location.mmdb",
+      asn: "data/asn.mmdb"
+    ]
+
+    locus_specs =
+      for {id, rel_path} <- locus_dbs,
+          full_path = Path.join(:code.priv_dir(:najva), rel_path),
+          File.exists?(full_path),
+          do: :locus.loader_child_spec(id, full_path)
+
+    children = children ++ locus_specs ++ [NajvaWeb.Endpoint]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

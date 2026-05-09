@@ -1,3 +1,152 @@
-<div>
-  <h1>Profile</h1>
-</div>
+<%!-- <div class="h-full flex flex-col overflow-y-auto bg-zinc-50 dark:bg-zinc-950">
+  <!-- Header / Cover Area -->
+  <div class="relative h-48 sm:h-72 flex-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+      <%= if @profile.cover_url do %>
+        <img src={@profile.cover_url} class="w-full h-full object-cover" />
+      <% else %>
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.5),transparent)]">
+        </div>
+      <% end %>
+    </div>
+    <div class="absolute inset-0 bg-black/5"></div>
+  </div>
+  
+<!-- Content Area -->
+  <div class="relative px-4 sm:px-8 pb-12">
+    <div class="max-w-5xl mx-auto">
+      <!-- Profile Card Overlapping Header -->
+      <div class="relative -mt-24 sm:-mt-32 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
+        <div class="p-6 sm:p-12">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <!-- Avatar & Identity -->
+            <div class="flex flex-col md:flex-row items-center md:items-end gap-8 text-center md:text-left">
+              <div class="relative">
+                <div class="w-32 h-32 sm:w-44 sm:h-44 rounded-[2rem] overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-8 border-white dark:border-zinc-900 shadow-2xl transform transition-transform duration-500 hover:rotate-2">
+                  <%= if @profile.avatar_url do %>
+                    <img src={@profile.avatar_url} class="w-full h-full object-cover" />
+                  <% else %>
+                    <div class="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">
+                      <.icon name="hero-user" class="w-20 h-20" />
+                    </div>
+                  <% end %>
+                </div>
+                <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 border-4 border-white dark:border-zinc-900 rounded-2xl shadow-lg">
+                </div>
+              </div>
+
+              <div class="space-y-2 pb-2">
+                <h1 class="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-white tracking-tight">
+                  {@profile.display_name || @profile.username}
+                </h1>
+                <div class="flex items-center justify-center md:justify-start gap-2">
+                  <span class="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-bold rounded-lg uppercase tracking-wider">
+                    @{@profile.username}
+                  </span>
+                  <span class="text-zinc-400 dark:text-zinc-600">•</span>
+                  <span class="text-zinc-500 dark:text-zinc-500 font-medium capitalize">
+                    {@profile.status}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+<!-- Actions -->
+            <div class="flex items-center gap-4 pb-2">
+              <%= if @current_scope.user.id == @profile.id do %>
+                <.link
+                  patch={~p"/settings"}
+                  class="flex items-center justify-center gap-2 px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black rounded-2xl hover:scale-[1.03] active:scale-[0.97] transition-all shadow-2xl shadow-zinc-500/20"
+                >
+                  <.icon name="hero-pencil-square" class="w-5 h-5" /> Edit Profile
+                </.link>
+              <% else %>
+                <.link
+                  navigate={~p"/messages/#{@profile.id}"}
+                  class="flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:scale-[1.03] active:scale-[0.97] transition-all shadow-2xl shadow-indigo-500/30"
+                >
+                  <.icon name="hero-chat-bubble-bottom-center-text" class="w-5 h-5" />
+                  Send Message
+                </.link>
+              <% end %>
+            </div>
+          </div>
+          
+<!-- Main Info Sections -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-16 border-t border-zinc-100 dark:border-zinc-800 pt-12">
+            <!-- Sidebar: Details -->
+            <div class="lg:col-span-4 space-y-10">
+              <div class="space-y-4">
+                <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                  Biography
+                </h3>
+                <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium text-lg">
+                  {@profile.bio || "This user hasn't shared a bio yet. Keep it mysterious!"}
+                </p>
+              </div>
+
+              <div class="space-y-6 bg-zinc-50 dark:bg-zinc-800/30 p-8 rounded-[2rem]">
+                <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                  Information
+                </h3>
+                <div class="space-y-5">
+                  <div class="flex items-center gap-4 text-zinc-700 dark:text-zinc-300">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 shadow-sm">
+                      <.icon name="hero-map-pin" class="w-5 h-5 text-indigo-500" />
+                    </div>
+                    <div>
+                      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                        Location
+                      </p>
+                      <p class="font-bold">{@profile.region || "Planet Earth"}</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-4 text-zinc-700 dark:text-zinc-300">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 shadow-sm">
+                      <.icon name="hero-calendar-days" class="w-5 h-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                        Joined
+                      </p>
+                      <p class="font-bold">May 2026</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+<!-- Main: Activity / Showcase -->
+            <div class="lg:col-span-8 space-y-8">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+                  Recent Activity
+                </h3>
+                <div class="h-px flex-1 bg-zinc-100 dark:bg-zinc-800 ml-6"></div>
+              </div>
+
+              <div class="flex flex-col items-center justify-center py-24 px-10 bg-zinc-50 dark:bg-zinc-800/20 rounded-[2.5rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800/50">
+                <div class="w-20 h-20 bg-white dark:bg-zinc-900 rounded-3xl flex items-center justify-center shadow-xl shadow-zinc-500/5 mb-6 group hover:scale-110 transition-transform duration-500">
+                  <.icon
+                    name="hero-cube-transparent"
+                    class="w-10 h-10 text-zinc-300 dark:text-zinc-700 group-hover:text-indigo-500 transition-colors"
+                  />
+                </div>
+                <h4 class="text-xl font-black text-zinc-900 dark:text-white">
+                  Nothing to show yet
+                </h4>
+                <p class="text-zinc-500 dark:text-zinc-400 text-center max-w-sm mt-3 font-medium leading-relaxed">
+                  Activity and shared content will appear here once the user starts interacting with the platform.
+                </p>
+                <button class="mt-8 px-6 py-2 text-zinc-400 dark:text-zinc-600 font-bold hover:text-zinc-900 dark:hover:text-white transition-colors">
+                  View full history →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> --%>

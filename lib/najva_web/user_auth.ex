@@ -75,6 +75,14 @@ defmodule NajvaWeb.UserAuth do
     end
   end
 
+  def fetch_client_info(conn, _opts) do
+    if get_session(conn, :client_info) do
+      conn
+    else
+      put_session(conn, :client_info, Map.merge(get_user_agent(conn), get_ip_data(conn)))
+    end
+  end
+
   defp ensure_user_token(conn) do
     if token = get_session(conn, :user_token) do
       {token, conn}
@@ -94,7 +102,14 @@ defmodule NajvaWeb.UserAuth do
     token_age = DateTime.diff(DateTime.utc_now(:second), token_inserted_at, :day)
 
     if token_age >= @session_reissue_age_in_days do
-      extend_session(conn, user)
+      old_token = get_session(conn, :user_token)
+      {client_info, context, remember_me} = extract_details_for_token(conn)
+
+      {:ok, token} = Accounts.reissue_user_session_token(user, old_token, client_info, context)
+
+      conn
+      |> put_token_in_session(token)
+      |> maybe_write_remember_me_cookie(token, %{}, remember_me)
     else
       conn
     end
@@ -103,11 +118,14 @@ defmodule NajvaWeb.UserAuth do
   # Creates a brand new session for the user (used during login).
   # Calls renew_session to clear the old session and prevent fixation attacks.
   defp create_session(conn, user, params) do
-    remember_me = params["remember_me"] == "true" or get_session(conn, :user_remember_me)
-    context = if remember_me, do: "session", else: "one_time"
-    ip = conn.remote_ip |> :inet.ntoa() |> to_string()
+    {client_info, context, remember_me} = extract_details_for_token(conn, params)
 
-    {:ok, token} = Accounts.generate_user_session_token(user, ip, context)
+    {:ok, token} =
+      if old_token = get_session(conn, :user_token) do
+        Accounts.reissue_user_session_token(user, old_token, client_info, context)
+      else
+        Accounts.generate_user_session_token(user, client_info, context)
+      end
 
     conn
     |> renew_session(user)
@@ -115,18 +133,55 @@ defmodule NajvaWeb.UserAuth do
     |> maybe_write_remember_me_cookie(token, params, remember_me)
   end
 
-  # By extend session we mean replacing the current token with a new one while preserving the session.
-  defp extend_session(conn, user) do
-    old_token = get_session(conn, :user_token)
-    remember_me = get_session(conn, :user_remember_me)
+  defp extract_details_for_token(conn, params \\ %{}) do
+    remember_me = params["remember_me"] == "true" or get_session(conn, :user_remember_me)
     context = if remember_me, do: "session", else: "one_time"
+
+    client_info =
+      Map.merge(get_user_agent(conn), get_ip_data(conn))
+
+    {client_info, context, remember_me}
+  end
+
+  defp get_user_agent(conn) do
+    user_agent = get_req_header(conn, "user-agent") |> List.first()
+    parsed_ua = UAParser.parse(user_agent)
+
+    %{
+      user_agent: user_agent,
+      browser: parsed_ua.family,
+      os: parsed_ua.os.family
+    }
+  end
+
+  defp get_ip_data(conn) do
     ip = conn.remote_ip |> :inet.ntoa() |> to_string()
 
-    {:ok, token} = Accounts.reissue_user_session_token(user, old_token, ip, context)
+    isp =
+      case :locus.lookup(:asn, ip) do
+        {:ok, entry} -> get_in(entry, ["autonomous_system_organization"])
+        _ -> nil
+      end
 
-    conn
-    |> put_token_in_session(token)
-    |> maybe_write_remember_me_cookie(token, %{}, remember_me)
+    geo_data =
+      case :locus.lookup(:location, ip) do
+        {:ok, entry} -> entry
+        _ -> %{}
+      end
+
+    subdivisions =
+      geo_data
+      |> Map.get("subdivisions", [])
+      |> Enum.map(fn sub -> sub["names"]["en"] end)
+
+    country = geo_data["country"]["names"]["en"]
+
+    %{
+      ip: ip,
+      isp: isp,
+      location: [country | subdivisions],
+      iso: geo_data["country"]["iso_code"]
+    }
   end
 
   # Do not renew session if the user is already logged in
@@ -257,7 +312,8 @@ defmodule NajvaWeb.UserAuth do
   end
 
   defp mount_current_scope(socket, session) do
-    Phoenix.Component.assign_new(socket, :current_scope, fn ->
+    socket
+    |> Phoenix.Component.assign_new(:current_scope, fn ->
       {user, _} =
         if user_token = session["user_token"] do
           Accounts.get_user_by_session_token(user_token)
@@ -265,6 +321,7 @@ defmodule NajvaWeb.UserAuth do
 
       Scope.for_user(user)
     end)
+    |> Phoenix.Component.assign_new(:client_info, fn -> session["client_info"] end)
   end
 
   @doc "Returns the path to redirect to after log in."

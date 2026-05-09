@@ -85,6 +85,11 @@ defmodule Najva.UserSession do
   end
 
   @impl true
+  def handle_info({:exit, _reason}, state) do
+    {:stop, :normal, state}
+  end
+
+  @impl true
   def handle_info({:DOWN, ref, :process, _pid, _reason}, state) do
     new_monitors = Map.delete(state.monitors, ref)
 

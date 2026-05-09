@@ -283,12 +283,12 @@ defmodule Najva.Accounts do
   @doc """
   Generates a session token.
   """
-  def generate_user_session_token(user, ip, context \\ "session") do
+  def generate_user_session_token(user, client_info, context \\ "session") do
     Repo.transact(fn ->
       UserToken.get_excess_tokens_of_user(user.id)
       |> Repo.delete_all()
 
-      {token, user_token} = UserToken.build_session_token(user, ip, context)
+      {token, user_token} = UserToken.build_session_token(user, client_info, context)
       Repo.insert!(user_token)
       {:ok, token}
     end)
@@ -300,7 +300,7 @@ defmodule Najva.Accounts do
   Deletes the token matching `old_token` and inserts a fresh token for
   the given user. Returns the new raw token.
   """
-  def reissue_user_session_token(user, old_token, ip, context \\ "session") do
+  def reissue_user_session_token(user, old_token, client_info, context \\ "session") do
     Repo.transact(fn ->
       Repo.delete_all(
         from(t in UserToken,
@@ -308,7 +308,7 @@ defmodule Najva.Accounts do
         )
       )
 
-      {token, user_token} = UserToken.build_session_token(user, ip, context)
+      {token, user_token} = UserToken.build_session_token(user, client_info, context)
       Repo.insert!(user_token)
       {:ok, token}
     end)
@@ -391,10 +391,15 @@ defmodule Najva.Accounts do
       {:ok, %{to: ..., body: ...}}
 
   """
-  def deliver_user_confirm_email_instructions(%User{} = user, context, update_email_url_fun)
+  def deliver_user_confirm_email_instructions(
+        %User{} = user,
+        client_info,
+        context,
+        update_email_url_fun
+      )
       when is_function(update_email_url_fun, 1) do
     {encoded_token, user_token} =
-      UserToken.build_email_token(user, context)
+      UserToken.build_email_token(user, client_info, context)
 
     Repo.insert!(user_token)
     UserNotifier.deliver_confirm_email_instructions(user, update_email_url_fun.(encoded_token))
@@ -403,9 +408,9 @@ defmodule Najva.Accounts do
   @doc """
   Delivers the magic link login instructions to the given user.
   """
-  def deliver_login_instructions(%User{} = user, magic_link_url_fun)
+  def deliver_login_instructions(%User{} = user, client_info, magic_link_url_fun)
       when is_function(magic_link_url_fun, 1) do
-    {encoded_token, user_token} = UserToken.build_email_token(user, "login")
+    {encoded_token, user_token} = UserToken.build_email_token(user, client_info, "login")
     Repo.insert!(user_token)
     UserNotifier.deliver_login_instructions(user, magic_link_url_fun.(encoded_token))
   end
@@ -450,23 +455,24 @@ defmodule Najva.Accounts do
     end
   end
 
-  @doc """
-  Attempts to clean up all caches for a deleted user.
-  If successful, removes the deleted_users record.
-  Returns :ok or :pending.
-  """
-  def cleanup_deleted_user(%DeletedUser{} = record) do
-    try do
-      Najva.Profiles.delete_profile_cache(record.user_id)
-      # Add other buffer deletions here in the future
-      # e.g. Najva.Chat.ConversationBuffer.delete_user_data(record.user_id)
-      :ok
-    rescue
-      e ->
-        Logger.warning("Cache cleanup failed for deleted user #{record.user_id}: #{inspect(e)}")
-        :pending
-    end
-  end
+  # @doc """
+  # Attempts to clean up all caches for a deleted user.
+  # If successful, removes the deleted_users record.
+  # Returns :ok or :pending.
+  # """
+
+  # def cleanup_deleted_user(%DeletedUser{} = record) do
+  #   try do
+  #     Najva.Profiles.delete_profile_cache(record.user_id)
+  #     # Add other buffer deletions here in the future
+  #     # e.g. Najva.Chat.ConversationBuffer.delete_user_data(record.user_id)
+  #     :ok
+  #   rescue
+  #     e ->
+  #       Logger.warning("Cache cleanup failed for deleted user #{record.user_id}: #{inspect(e)}")
+  #       :pending
+  #   end
+  # end
 
   ## Token helper
 

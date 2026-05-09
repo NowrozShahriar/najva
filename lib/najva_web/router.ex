@@ -12,6 +12,7 @@ defmodule NajvaWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
+    plug :fetch_client_info
   end
 
   pipeline :api do

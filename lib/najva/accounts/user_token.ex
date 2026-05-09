@@ -15,7 +15,14 @@ defmodule Najva.Accounts.UserToken do
   schema "users_tokens" do
     field :token, :binary
     field :context, :string
+    field :ip, :string
     field :sent_to, :string
+    field :isp, :string
+    field :location, {:array, :string}
+    field :iso, :string
+    field :browser, :string
+    field :os, :string
+    field :user_agent, :string
     field :authenticated_at, :utc_datetime
     belongs_to :user, Najva.Accounts.User, type: :string
 
@@ -41,7 +48,7 @@ defmodule Najva.Accounts.UserToken do
   and devices in the UI and allow users to explicitly expire any
   session they deem invalid.
   """
-  def build_session_token(user, ip, context) do
+  def build_session_token(user, client_info, context) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
 
@@ -50,7 +57,13 @@ defmodule Najva.Accounts.UserToken do
        user_id: user.id,
        token: token,
        context: context,
-       sent_to: ip,
+       ip: client_info.ip,
+       isp: client_info.isp,
+       location: client_info.location,
+       iso: client_info.iso,
+       browser: client_info.browser,
+       os: client_info.os,
+       user_agent: client_info.user_agent,
        authenticated_at: dt
      }}
   end
@@ -87,11 +100,11 @@ defmodule Najva.Accounts.UserToken do
   Users can easily adapt the existing code to provide other types of delivery methods,
   for example, by phone numbers.
   """
-  def build_email_token(user, context) do
-    build_hashed_token(user, context, user.email)
+  def build_email_token(user, client_info, context) do
+    build_hashed_token(user, client_info, context, user.email)
   end
 
-  defp build_hashed_token(user, context, sent_to) do
+  defp build_hashed_token(user, client_info, context, sent_to) do
     token = :crypto.strong_rand_bytes(@rand_size)
     hashed_token = :crypto.hash(@hash_algorithm, token)
 
@@ -100,6 +113,13 @@ defmodule Najva.Accounts.UserToken do
        token: hashed_token,
        context: context,
        sent_to: sent_to,
+       ip: client_info.ip,
+       isp: client_info.isp,
+       location: client_info.location,
+       iso: client_info.iso,
+       browser: client_info.browser,
+       os: client_info.os,
+       user_agent: client_info.user_agent,
        user_id: user.id
      }}
   end

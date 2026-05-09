@@ -54,7 +54,7 @@ defmodule NajvaWeb.UserSessionController do
     true = Accounts.sudo_mode?(user)
 
     case Accounts.update_user_password(user, user_params) do
-      {:ok, %{user: _user, tokens: expired_tokens}} ->
+      {:ok, %{user: _user, expiring_tokens: expired_tokens}} ->
         # disconnect all existing LiveViews with old sessions
         UserAuth.disconnect_sessions(expired_tokens)
 
@@ -80,12 +80,17 @@ defmodule NajvaWeb.UserSessionController do
     user = conn.assigns.current_scope.user
 
     case Accounts.delete_user(user) do
-      {:ok, deleted_record} ->
+      {:ok, _deleted_record} ->
         flash =
-          case Accounts.cleanup_deleted_user(deleted_record) do
-            :ok -> "Account deleted successfully. All of your data has been removed."
-            :pending -> "Account deleted successfully. Some data may take some time to clean up."
-          end
+          "Account deleted successfully. Temporary cached data may persist briefly before cleanup completes."
+
+        #           case Accounts.cleanup_deleted_user(deleted_record) do
+        #             :ok ->
+        #               "Account deleted successfully. All of your data has been removed."
+        #
+        #             :pending ->
+        #               "Account deleted successfully. Temporary cached data may persist briefly before cleanup completes."
+        #           end
 
         conn
         |> put_flash(:info, flash)

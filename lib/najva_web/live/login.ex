@@ -119,6 +119,7 @@ defmodule NajvaWeb.Live.Login do
     if user = Accounts.get_user_by_email(email) do
       Accounts.deliver_login_instructions(
         user,
+        socket.assigns.client_info,
         &url(~p"/log-in/#{&1}")
       )
     end

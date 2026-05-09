@@ -170,7 +170,7 @@ defmodule Najva.Accounts.User do
       |> validate_required([:username])
       |> validate_length(:username, min: 3, max: 25)
       |> validate_format(:username, ~r/^[a-z0-9_]+$/,
-        message: "only letters, numbers and underscores allowed"
+        message: "only lowercase letters, numbers and underscores are allowed"
       )
 
     if Keyword.get(opts, :validate_unique, true) do

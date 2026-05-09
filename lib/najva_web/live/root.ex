@@ -146,11 +146,11 @@ defmodule NajvaWeb.Live.Root do
   end
 
   defp apply_action(socket, :profile, _params) do
-    user_id = socket.assigns.current_scope.user.id
-    {:ok, profile} = Najva.Profiles.get_profile(user_id, socket.remote_ip)
+    # user_id = socket.assigns.current_scope.user.id
+    # {:ok, profile} = Najva.Profiles.get_profile(user_id, socket.assigns.remote_ip)
 
     socket
-    |> assign(peer: nil, profile: profile)
+    |> assign(peer: nil, profile: nil)
     |> stream(:messages, [], reset: true)
   end
 

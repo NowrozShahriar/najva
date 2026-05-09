@@ -72,7 +72,8 @@ defmodule Najva.MixProject do
       {:ejabberd, "~> 26.4"},
       {:p1_pgsql, "~> 1.1.41"},
       {:remote_ip, "~> 1.2"},
-      {:locus, "~> 2.3"}
+      {:locus, "~> 2.3"},
+      {:ua_parser, "~> 1.10"}
     ]
   end
 
