@@ -91,7 +91,7 @@ defmodule NajvaWeb.Live.Root do
   @impl true
   def handle_info({:message, message}, socket) do
     flash_msg =
-      if message.state == "received",
+      if message.state == :received,
         do: "New message from #{message.peer}",
         else: "Message sent to #{message.peer}"
 
@@ -146,12 +146,19 @@ defmodule NajvaWeb.Live.Root do
   end
 
   defp apply_action(socket, :profile, _params) do
-    # user_id = socket.assigns.current_scope.user.id
-    # {:ok, profile} = Najva.Profiles.get_profile(user_id, socket.assigns.remote_ip)
+    user_id = socket.assigns.current_scope.user.id
+    case Najva.Profiles.get_profile(user_id) do
+      {:ok, profile} ->
+        socket
+        |> assign(peer: nil, profile: profile)
+        |> stream(:messages, [], reset: true)
 
-    socket
-    |> assign(peer: nil, profile: nil)
-    |> stream(:messages, [], reset: true)
+      {:error, _reason} ->
+        socket
+        |> assign(peer: nil, profile: nil)
+        |> stream(:messages, [], reset: true)
+        |> put_flash(:error, "Could not load profile")
+    end
   end
 
   defp apply_action(socket, _live_action, _params) do

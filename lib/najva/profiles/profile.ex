@@ -11,7 +11,7 @@ defmodule Najva.Profiles.Profile do
     field :bio, :string
     field :avatar_url, :string
     field :cover_url, :string
-    field :region, :string
+    field :region, {:array, :string}
     field :meta, :map
   end
 
@@ -19,8 +19,6 @@ defmodule Najva.Profiles.Profile do
   def changeset(profile, attrs) do
     profile
     |> cast(attrs, [
-      :id,
-      :username,
       :status,
       :display_name,
       :bio,
@@ -29,7 +27,7 @@ defmodule Najva.Profiles.Profile do
       :region,
       :meta
     ])
-    |> validate_required([:id, :username, :status])
+    |> validate_required([:id, :username, :status, :region])
     |> unique_constraint(:username)
   end
 end

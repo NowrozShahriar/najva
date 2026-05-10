@@ -1,6 +1,7 @@
 defmodule Najva.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Najva.Accounts.DeletedUser
 
   @primary_key {:id, :string, autogenerate: false}
   @derive {Phoenix.Param, key: :username}
@@ -176,6 +177,7 @@ defmodule Najva.Accounts.User do
     if Keyword.get(opts, :validate_unique, true) do
       changeset
       |> unsafe_validate_unique(:username, Najva.Repo)
+      |> unsafe_validate_unique(:username, Najva.Repo, query: DeletedUser)
       |> unique_constraint(:username)
     else
       changeset

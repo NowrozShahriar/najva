@@ -16,15 +16,8 @@ defmodule Najva.Chat.ConversationBuffer do
     :meta
   ]
 
-  @doc "Initialize Mnesia and Create the Table (Idempotent)"
-  def init do
-    # 1. Create schema directory on disk (ignored if already exists)
-    :mnesia.create_schema([node()])
-
-    # 2. Start Mnesia (ignored if already started)
-    :mnesia.start()
-
-    # 3. Create table with disc copies for persistence
+  @doc "Initialize the Conversation table in Mnesia (Idempotent)"
+  def init_table do
     case :mnesia.create_table(:conversation,
            attributes: @fields,
            disc_copies: [node()],
@@ -34,9 +27,6 @@ defmodule Najva.Chat.ConversationBuffer do
       {:aborted, {:already_exists, :conversation}} -> :ok
       error -> error
     end
-
-    # 4. Wait for the table to be loaded from disk/memory before proceeding
-    :mnesia.wait_for_tables([:conversation], 5000)
   end
 
   @doc """

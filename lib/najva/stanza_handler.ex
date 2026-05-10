@@ -20,7 +20,7 @@ defmodule Najva.StanzaHandler do
           owner: to_user,
           peer: peer,
           msg_id: map["n"]["content"]["@id"],
-          state: "received",
+          state: :received,
           content: map["n"]["content"]["@cdata"],
           time: map["n"]["content"]["@time"]
         }

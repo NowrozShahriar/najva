@@ -13,7 +13,7 @@ defmodule Najva.Chat.DirectMessage do
     field :msg_id, :string, primary_key: true
 
     field :state, Ecto.Enum,
-      values: [sent: 0, delivered: 1, received: 2, failed: 3, edited: 4, retracted: 5, deleted: 6]
+      values: [sent: 0, received: 1, delivered: 2, failed: 3, edited: 4, retracted: 5, deleted: 6]
 
     field :content, :string
     field :time, :integer
@@ -22,7 +22,8 @@ defmodule Najva.Chat.DirectMessage do
 
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:owner, :peer, :msg_id, :state, :content, :time, :meta])
+    |> cast(attrs, [:state, :content, :meta])
     |> validate_required([:owner, :peer, :msg_id, :state, :content, :time])
+    |> unique_constraint([:owner, :msg_id])
   end
 end

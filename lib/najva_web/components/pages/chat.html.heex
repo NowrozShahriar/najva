@@ -19,7 +19,7 @@
       id={id}
       class={[
         "max-w-[80%] p-3 rounded-2xl shadow-sm",
-        if(msg.state == "sent",
+        if(msg.state == :sent,
           do: "self-end bg-primary text-primary-content rounded-tr-none",
           else: "self-start bg-base-200 text-base-content rounded-tl-none"
         )

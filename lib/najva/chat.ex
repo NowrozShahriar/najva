@@ -11,14 +11,15 @@ defmodule Najva.Chat do
     msg_id = "#{jid.username}_#{Integer.to_string(time, 36)}"
 
     # 1. Insert message record for sender
-    %DirectMessage{}
-    |> DirectMessage.changeset(%{
+    %DirectMessage{
       owner: jid.username,
       peer: peer_jid,
       msg_id: msg_id,
-      state: "sent",
-      content: content,
       time: time
+    }
+    |> DirectMessage.changeset(%{
+      state: :sent,
+      content: content
     })
     |> Repo.insert!()
 
@@ -37,7 +38,7 @@ defmodule Najva.Chat do
          owner: jid.username,
          peer: peer_jid,
          msg_id: msg_id,
-         state: "sent",
+         state: :sent,
          content: content,
          time: time
        }}
@@ -48,7 +49,12 @@ defmodule Najva.Chat do
   Receives parsed message from StanzaHandler and puts it into the database.
   """
   def receive_message(message) do
-    %DirectMessage{}
+    %DirectMessage{
+      owner: message.owner,
+      peer: message.peer,
+      msg_id: message.msg_id,
+      time: message.time
+    }
     |> DirectMessage.changeset(message)
     |> Repo.insert(on_conflict: :nothing, conflict_target: [:owner, :msg_id])
 

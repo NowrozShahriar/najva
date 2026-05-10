@@ -125,7 +125,7 @@ defmodule NajvaWeb.Live.Registration do
   end
 
   def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.validate_registration_form(%User{}, user_params, validate_unique: false)
+    changeset = Accounts.validate_registration_form(%User{}, user_params)
     {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
   end
 

@@ -15,15 +15,9 @@ defmodule Najva.Profiles.ProfileBuffer do
     :meta
   ]
 
-  @doc "Initialize Mnesia and Create the Table (Idempotent)"
-  def init do
-    # 1. Create schema directory on disk
-    :mnesia.create_schema([node()])
-
-    # 2. Start Mnesia
-    :mnesia.start()
-
-    # 3. Create table with disc copies for persistence
+  @doc "Initialize the Profile table in Mnesia (Idempotent)"
+  def init_table do
+    # Create table with disc copies for persistence
     # We add an index on `:username` so we can do fast exact lookups by username as well.
     case :mnesia.create_table(:profile,
            attributes: @fields,
@@ -34,9 +28,6 @@ defmodule Najva.Profiles.ProfileBuffer do
       {:aborted, {:already_exists, :profile}} -> :ok
       error -> error
     end
-
-    # 4. Wait for the table to load
-    :mnesia.wait_for_tables([:profile], 5000)
   end
 
   @doc "Writes a profile record to Mnesia (disc_copies)"

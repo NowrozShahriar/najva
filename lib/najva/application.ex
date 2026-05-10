@@ -18,8 +18,8 @@ defmodule Najva.Application do
       {Horde.Registry, keys: :unique, name: Najva.UserSessionRegistry, members: :auto},
       {Horde.DynamicSupervisor,
        strategy: :one_for_one, name: Najva.UserSessionSupervisor, members: :auto},
-      # Initialize Mnesia chat tables
-      {Task, &Najva.Chat.ConversationBuffer.init/0}
+      # Initialize Mnesia tables
+      {Task, &Najva.Mnesia.init/0}
     ]
 
     # Load IP Databases (optional)

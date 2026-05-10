@@ -8,7 +8,7 @@ defmodule Najva.Accounts do
   alias Ecto.Multi
 
   alias Najva.Accounts.{User, UserToken, UserNotifier, DeletedUser}
-  alias Najva.Ejabberd
+  alias Najva.{Ejabberd, Profiles}
 
   require Logger
 
@@ -309,7 +309,10 @@ defmodule Najva.Accounts do
       )
 
       {token, user_token} = UserToken.build_session_token(user, client_info, context)
+
       Repo.insert!(user_token)
+      Profiles.update_region(user.id)
+
       {:ok, token}
     end)
   end

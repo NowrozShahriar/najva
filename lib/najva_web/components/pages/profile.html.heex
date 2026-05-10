@@ -1,4 +1,4 @@
-<%!-- <div class="h-full flex flex-col overflow-y-auto bg-zinc-50 dark:bg-zinc-950">
+<div class="h-full flex flex-col overflow-y-auto bg-zinc-50 dark:bg-zinc-950">
   <!-- Header / Cover Area -->
   <div class="relative h-48 sm:h-72 flex-none">
     <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
@@ -11,8 +11,8 @@
     </div>
     <div class="absolute inset-0 bg-black/5"></div>
   </div>
-  
-<!-- Content Area -->
+
+  <!-- Content Area -->
   <div class="relative px-4 sm:px-8 pb-12">
     <div class="max-w-5xl mx-auto">
       <!-- Profile Card Overlapping Header -->
@@ -50,8 +50,8 @@
                 </div>
               </div>
             </div>
-            
-<!-- Actions -->
+
+            <!-- Actions -->
             <div class="flex items-center gap-4 pb-2">
               <%= if @current_scope.user.id == @profile.id do %>
                 <.link
@@ -71,8 +71,8 @@
               <% end %>
             </div>
           </div>
-          
-<!-- Main Info Sections -->
+
+          <!-- Main Info Sections -->
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-16 border-t border-zinc-100 dark:border-zinc-800 pt-12">
             <!-- Sidebar: Details -->
             <div class="lg:col-span-4 space-y-10">
@@ -98,7 +98,13 @@
                       <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                         Location
                       </p>
-                      <p class="font-bold">{@profile.region || "Planet Earth"}</p>
+                      <p class="font-bold">
+                        <%= if Enum.empty?(@profile.region) do %>
+                          Planet Earth
+                        <% else %>
+                          {Enum.join(@profile.region, ", ")}
+                        <% end %>
+                      </p>
                     </div>
                   </div>
 
@@ -116,8 +122,8 @@
                 </div>
               </div>
             </div>
-            
-<!-- Main: Activity / Showcase -->
+
+            <!-- Main: Activity / Showcase -->
             <div class="lg:col-span-8 space-y-8">
               <div class="flex items-center justify-between">
                 <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
@@ -149,4 +155,4 @@
       </div>
     </div>
   </div>
-</div> --%>
+</div>
