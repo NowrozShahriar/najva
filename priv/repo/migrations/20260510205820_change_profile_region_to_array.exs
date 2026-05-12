@@ -7,6 +7,7 @@ defmodule Najva.Repo.Migrations.ChangeProfileRegionToArray do
 
   def up do
     execute "ALTER TABLE profiles ALTER COLUMN region TYPE varchar[] USING ARRAY[region]"
+
     alter table(:profiles) do
       modify :region, {:array, :string}, null: false, default: []
     end
@@ -14,6 +15,7 @@ defmodule Najva.Repo.Migrations.ChangeProfileRegionToArray do
 
   def down do
     execute "ALTER TABLE profiles ALTER COLUMN region TYPE varchar USING region[1]"
+
     alter table(:profiles) do
       modify :region, :string, null: false
     end

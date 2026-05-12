@@ -76,6 +76,51 @@ Hooks.ThemeIndicator = {
   }
 }
 
+Hooks.ChatScroll = {
+  mounted() {
+    this.scrollBottom()
+  },
+  updated() {
+    this.scrollBottom()
+  },
+  scrollBottom() {
+    this.el.scrollTop = this.el.scrollHeight
+  }
+}
+
+const parseDate = (el) => {
+  const dt = el.getAttribute("datetime")
+  return new Date(dt.includes("T") ? dt : parseInt(dt))
+}
+
+Hooks.LocalTime = {
+  mounted() { this.updated() },
+  updated() {
+    this.el.innerText = new Intl.DateTimeFormat(undefined, {
+      hour: "2-digit", minute: "2-digit", hour12: true,
+      day: "2-digit", month: "short", year: "numeric"
+    }).format(parseDate(this.el))
+  }
+}
+
+Hooks.SmartTime = {
+  mounted() { this.updated() },
+  updated() {
+    const date = parseDate(this.el)
+    const now = new Date()
+    const isToday = date.toDateString() === now.toDateString()
+    const diffDays = Math.round((now.setHours(0,0,0,0) - new Date(date).setHours(0,0,0,0)) / 864e5)
+
+    let opts = { hour12: true }
+    if (isToday) opts = { ...opts, hour: "2-digit", minute: "2-digit" }
+    else if (diffDays < 7) opts = { ...opts, weekday: "short" }
+    else if (date.getFullYear() === now.getFullYear()) opts = { ...opts, month: "short", day: "numeric" }
+    else opts = { ...opts, year: "2-digit", month: "2-digit", day: "2-digit" }
+
+    this.el.innerText = new Intl.DateTimeFormat(undefined, opts).format(date)
+  }
+}
+
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

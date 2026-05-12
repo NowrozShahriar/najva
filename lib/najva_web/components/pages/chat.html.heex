@@ -1,51 +1,116 @@
-<div class="flex flex-col h-full bg-base-100 sm:rounded-lg overflow-hidden border border-base-300 shadow-sm">
-  <div class="p-4 border-b border-base-300 bg-base-200/50 flex items-center gap-3">
-    <div class="bg-primary text-primary-content size-10 rounded-full flex items-center justify-center font-bold">
-      {String.at(@peer || "?", 0) |> String.upcase()}
+<div class="flex flex-col h-full bg-base-100 sm:rounded-2xl overflow-hidden border border-base-300 shadow-xl transition-all">
+  <!-- Chat Header -->
+  <div class="px-4 py-3 border-b border-base-300 bg-base-100/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-10">
+    <div class="flex items-center gap-3">
+      <div class="avatar online placeholder">
+        <div class="bg-primary text-primary-content size-10 rounded-2xl font-black shadow-lg shadow-primary/20">
+          <span>{String.at(@peer || "?", 0) |> String.upcase()}</span>
+        </div>
+      </div>
+      <div>
+        <h2 class="font-black text-base-content leading-none tracking-tight">{@peer}</h2>
+        <div class="flex items-center gap-1.5 mt-1">
+          <div class="size-1.5 rounded-full bg-success animate-pulse"></div>
+          <p class="text-[10px] font-bold opacity-50 uppercase tracking-widest">Active Now</p>
+        </div>
+      </div>
     </div>
-    <div>
-      <h2 class="font-bold text-lg leading-none">{@peer}</h2>
-      <p class="text-xs opacity-60">Online</p>
+
+    <div class="flex items-center gap-1">
+      <button class="btn btn-ghost btn-circle btn-sm opacity-60 hover:opacity-100">
+        <.icon name="hero-phone" class="size-5" />
+      </button>
+      <button class="btn btn-ghost btn-circle btn-sm opacity-60 hover:opacity-100">
+        <.icon name="hero-video-camera" class="size-5" />
+      </button>
+      <div class="divider divider-horizontal mx-0 h-8 opacity-20"></div>
+      <button class="btn btn-ghost btn-circle btn-sm opacity-60 hover:opacity-100">
+        <.icon name="hero-information-circle" class="size-5" />
+      </button>
     </div>
   </div>
-
+  
+<!-- Messages List -->
   <div
     id="messages-list"
     phx-update="stream"
-    class="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col"
+    phx-hook="ChatScroll"
+    class="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col bg-[radial-gradient(circle_at_center,var(--color-base-200)_0%,transparent_100%)] bg-fixed"
   >
     <div
       :for={{id, msg} <- @messages}
       id={id}
       class={[
-        "max-w-[80%] p-3 rounded-2xl shadow-sm",
-        if(msg.state == :sent,
-          do: "self-end bg-primary text-primary-content rounded-tr-none",
-          else: "self-start bg-base-200 text-base-content rounded-tl-none"
-        )
+        "max-w-[85%] sm:max-w-[70%] group flex flex-col transition-all duration-300",
+        if(msg.state == :sent, do: "self-end items-end", else: "self-start items-start")
       ]}
     >
-      <p class="text-sm">
-        {msg.content}
-      </p>
-      <p class="text-[10px] mt-1 opacity-70 text-right">
-        {msg.time |> DateTime.from_unix!(:millisecond) |> Calendar.strftime("%H:%M")}
-      </p>
+      <div class={[
+        "relative p-3.5 px-4 shadow-sm transition-all group-hover:shadow-md",
+        if(msg.state == :sent,
+          do:
+            "bg-gradient-to-br from-primary to-primary/90 text-primary-content rounded-[1.5rem] rounded-tr-none",
+          else:
+            "bg-base-200 text-base-content rounded-[1.5rem] rounded-tl-none border border-base-300/50"
+        )
+      ]}>
+        <p class="text-sm leading-relaxed font-medium">
+          {msg.content}
+        </p>
+      </div>
+
+      <div class={[
+        "flex items-center gap-1.5 mt-1.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+        if(msg.state == :sent, do: "flex-row-reverse", else: "")
+      ]}>
+        <time
+          id={"msg-time-#{id}"}
+          datetime={msg.time}
+          phx-hook="LocalTime"
+          class="text-[10px] font-bold opacity-40 uppercase tracking-tighter"
+        />
+        <div :if={msg.state == :sent} class="opacity-40">
+          <.icon name="hero-check" class="size-3" />
+        </div>
+      </div>
     </div>
   </div>
+  
+<!-- Chat Input -->
+  <div class="p-4 bg-base-100/50 backdrop-blur-sm border-t border-base-300">
+    <form phx-submit="send_message" class="flex items-end gap-2 max-w-4xl mx-auto">
+      <div class="flex-none pb-1">
+        <button type="button" class="btn btn-ghost btn-circle btn-sm opacity-40 hover:opacity-100">
+          <.icon name="hero-plus-circle" class="size-6" />
+        </button>
+      </div>
 
-  <div class="p-4 border-t border-base-300 bg-base-200/30">
-    <form phx-submit="send_message" class="flex gap-2">
-      <input
-        type="text"
-        name="content"
-        placeholder="Type a message..."
-        class="flex-1 input input-bordered rounded-full focus:outline-none"
-        autocomplete="off"
-      />
-      <button type="submit" class="btn btn-primary btn-circle">
-        <.icon name="hero-paper-airplane" class="size-5" />
-      </button>
+      <div class="flex-1 relative">
+        <input
+          type="text"
+          name="content"
+          placeholder="Type your message..."
+          class="w-full bg-base-200 focus:bg-base-100 input input-bordered rounded-2xl border-base-300 focus:border-primary focus:outline-none pr-12 transition-all min-h-[3rem]"
+          autocomplete="off"
+        />
+        <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <button
+            type="button"
+            class="btn btn-ghost btn-xs btn-circle opacity-30 hover:opacity-100"
+          >
+            <.icon name="hero-face-smile" class="size-5" />
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-none pb-1">
+        <button type="submit" class="btn btn-primary btn-circle shadow-lg shadow-primary/30 group">
+          <.icon
+            name="hero-paper-airplane"
+            class="size-5 group-hover:scale-110 transition-transform"
+          />
+        </button>
+      </div>
     </form>
   </div>
 </div>

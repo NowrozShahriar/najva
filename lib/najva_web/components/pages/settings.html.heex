@@ -1,40 +1,114 @@
-<div class="lg:w-2/3 xl:w-1/2 mx-auto">
-  <h1 class="font-semibold text-2xl p-4">Settings</h1>
-  <ul class="list">
-    <!-- Themes -->
-    <li>
-      <details class="collapse bg-base-100 border-base-300 border" open>
-        <summary class="collapse-title font-semibold">Themes</summary>
-        <div class="collapse-content">
-          <.theme_toggle />
-        </div>
-      </details>
-    </li>
-    <!-- Account Settings -->
-    <li class="list-row">
-      <.link class="hover:underline" navigate={~p"/settings/account"}>
-        Account Settings <span class="font-semibold">&xrarr;</span>
-      </.link>
-    </li>
-    <!-- Log Out -->
-    <li class="list-row">
-      <p class="text-error cursor-pointer" onclick="log_out_modal.showModal()">Log Out</p>
-      <dialog id="log_out_modal" class="modal">
-        <div class="modal-box w-auto">
-          <h1 class="text-xl font-semibold text-center">Log Out</h1>
-          <div class="modal-action">
-            <form method="dialog">
-              <.link class="btn btn-soft btn-error mr-2" href={~p"/log-out"} method="delete">
-                Confirm
-              </.link>
-              <button class="btn btn-accent ml-2">Cancel</button>
-            </form>
+<div class="h-full flex flex-col bg-base-100 sm:rounded-2xl overflow-hidden border border-base-300 shadow-xl overflow-y-auto">
+  <div class="p-6 border-b border-base-300">
+    <h1 class="text-3xl font-black tracking-tight text-base-content">Settings</h1>
+    <p class="text-xs font-bold opacity-40 uppercase tracking-[0.2em] mt-1">
+      Configure your experience
+    </p>
+  </div>
+
+  <div class="p-4 sm:p-8 space-y-8 max-w-3xl mx-auto w-full">
+    <!-- Themes Section -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-2 px-2">
+        <.icon name="hero-swatch" class="size-5 text-primary" />
+        <h2 class="font-black text-sm uppercase tracking-widest opacity-60">Appearance</h2>
+      </div>
+
+      <div class="card bg-base-200/50 border border-base-300 rounded-3xl overflow-hidden">
+        <div class="collapse collapse-arrow">
+          <input type="checkbox" checked />
+          <div class="collapse-title font-bold flex items-center gap-3">
+            Theme Customization
+          </div>
+          <div class="collapse-content px-4 pb-4">
+            <div class="bg-base-100 rounded-2xl p-2 border border-base-300">
+              <.theme_toggle />
+            </div>
           </div>
         </div>
-        <form method="dialog" class="modal-backdrop">
-          <button>close</button>
+      </div>
+    </section>
+    
+<!-- Account Section -->
+    <section class="space-y-4">
+      <div class="flex items-center gap-2 px-2">
+        <.icon name="hero-user-circle" class="size-5 text-secondary" />
+        <h2 class="font-black text-sm uppercase tracking-widest opacity-60">Account</h2>
+      </div>
+
+      <div class="card bg-base-200/50 border border-base-300 rounded-3xl overflow-hidden divide-y divide-base-300">
+        <.link
+          navigate={~p"/settings/account"}
+          class="flex items-center justify-between p-5 hover:bg-base-300/50 transition-colors group"
+        >
+          <div class="flex items-center gap-4">
+            <div class="size-10 bg-base-100 rounded-xl flex items-center justify-center border border-base-300 shadow-sm">
+              <.icon name="hero-identification" class="size-5 opacity-60" />
+            </div>
+            <div>
+              <p class="font-bold">Account Details</p>
+              <p class="text-xs opacity-50">Email, password, and security</p>
+            </div>
+          </div>
+          <.icon
+            name="hero-chevron-right"
+            class="size-5 opacity-30 group-hover:opacity-100 transition-opacity"
+          />
+        </.link>
+
+        <div
+          class="flex items-center justify-between p-5 hover:bg-error/5 hover:text-error transition-all group cursor-pointer"
+          onclick="log_out_modal.showModal()"
+        >
+          <div class="flex items-center gap-4">
+            <div class="size-10 bg-base-100 rounded-xl flex items-center justify-center border border-base-300 shadow-sm group-hover:border-error/20">
+              <.icon
+                name="hero-arrow-right-start-on-rectangle"
+                class="size-5 opacity-60 group-hover:text-error"
+              />
+            </div>
+            <div>
+              <p class="font-bold">Log Out</p>
+              <p class="text-xs opacity-50">Securely end your session</p>
+            </div>
+          </div>
+          <.icon
+            name="hero-chevron-right"
+            class="size-5 opacity-30 group-hover:opacity-100 transition-opacity"
+          />
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<!-- Logout Modal -->
+  <dialog id="log_out_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box bg-base-100 border border-base-300 rounded-[2rem] p-8">
+      <div class="size-16 bg-error/10 text-error rounded-2xl flex items-center justify-center mx-auto mb-6">
+        <.icon name="hero-exclamation-triangle" class="size-10" />
+      </div>
+      <h3 class="font-black text-2xl text-center">Confirm Logout</h3>
+      <p class="py-4 text-center opacity-60 font-medium">
+        Are you sure you want to end your session? You'll need to log back in to access your messages.
+      </p>
+
+      <div class="modal-action flex flex-col sm:flex-row gap-3">
+        <form method="dialog" class="w-full">
+          <div class="flex flex-col sm:flex-row gap-3 w-full">
+            <button class="btn btn-ghost flex-1 rounded-xl font-bold">Cancel</button>
+            <.link
+              class="btn btn-error flex-1 rounded-xl font-bold shadow-lg shadow-error/20"
+              href={~p"/log-out"}
+              method="delete"
+            >
+              Log Out
+            </.link>
+          </div>
         </form>
-      </dialog>
-    </li>
-  </ul>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop bg-base-900/40 backdrop-blur-sm">
+      <button>close</button>
+    </form>
+  </dialog>
 </div>

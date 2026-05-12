@@ -41,30 +41,6 @@ defmodule NajvaWeb.Router do
     end
   end
 
-  ## Authentication routes
-
-  scope "/", NajvaWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    live_session :require_authenticated_user,
-      on_mount: [{NajvaWeb.UserAuth, :require_authenticated}] do
-      live "/", Live.Root, :root
-      live "/profile", Live.Root, :profile
-      live "/messages", Live.Root, :messages
-      live "/messages/:peer", Live.Root, :chat
-      live "/contacts", Live.Root, :contacts
-      live "/favourites", Live.Root, :favourites
-      live "/saved", Live.Root, :saved
-      live "/archive", Live.Root, :archive
-      live "/settings", Live.Root, :settings
-      live "/settings/account", Live.AccountSettings, :edit
-      live "/settings/confirm-email/:token", Live.AccountSettings, :confirm_email
-    end
-
-    post "/update-password", UserSessionController, :update_password
-    delete "/settings/account", UserSessionController, :delete_account
-  end
-
   scope "/", NajvaWeb do
     pipe_through [:browser]
 
@@ -78,5 +54,29 @@ defmodule NajvaWeb.Router do
 
     post "/log-in", UserSessionController, :login
     delete "/log-out", UserSessionController, :logout
+  end
+
+  ## Authentication routes
+
+  scope "/", NajvaWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    live_session :require_authenticated_user,
+      on_mount: [{NajvaWeb.UserAuth, :require_authenticated}] do
+      live "/", Live.Root, :root
+      live "/messages", Live.Root, :messages
+      live "/messages/:peer", Live.Root, :chat
+      live "/contacts", Live.Root, :contacts
+      live "/favourites", Live.Root, :favourites
+      live "/saved", Live.Root, :saved
+      live "/archive", Live.Root, :archive
+      live "/settings", Live.Root, :settings
+      live "/settings/account", Live.AccountSettings, :edit
+      live "/settings/confirm-email/:token", Live.AccountSettings, :confirm_email
+      live "/:peer", Live.Root, :profile
+    end
+
+    post "/update-password", UserSessionController, :update_password
+    delete "/settings/account", UserSessionController, :delete_account
   end
 end

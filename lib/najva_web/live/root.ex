@@ -2,7 +2,7 @@ defmodule NajvaWeb.Live.Root do
   use NajvaWeb, :live_view
   import NajvaWeb.Components
   alias NajvaWeb.Pages
-  alias Najva.Chat
+  alias Najva.{Chat, Profiles}
 
   on_mount {NajvaWeb.UserAuth, :mount_current_scope}
 
@@ -24,7 +24,7 @@ defmodule NajvaWeb.Live.Root do
         <% :settings -> %>
           <Pages.settings />
         <% :chat -> %>
-          <Pages.chat messages={@streams.messages} peer={@peer} />
+          <Pages.chat messages={@streams.messages} peer={@peer_username || @peer} />
         <% _ -> %>
           <button class="btn" phx-click="send_test_message">Send Test Message</button>
       <% end %>
@@ -35,7 +35,7 @@ defmodule NajvaWeb.Live.Root do
   @impl true
   def mount(_params, _session, socket) do
     user_id = socket.assigns.current_scope.user.id
-    chat_list = Chat.ConversationBuffer.list_chats(user_id)
+    chat_list = Chat.list_chats(user_id)
 
     socket =
       socket
@@ -100,7 +100,7 @@ defmodule NajvaWeb.Live.Root do
         case Chat.ConversationBuffer.reset_new_msg_count(message.owner, message.peer) do
           {:ok, record} ->
             socket
-            |> stream_insert(:chat_list, record, at: 0)
+            |> stream_insert(:chat_list, Chat.enrich_conversation(record), at: 0)
             |> stream_insert(:messages, message)
 
           _ ->
@@ -109,7 +109,7 @@ defmodule NajvaWeb.Live.Root do
       else
         case Chat.ConversationBuffer.get_conversation(message.owner, message.peer) do
           {:ok, record} ->
-            stream_insert(socket, :chat_list, record, at: 0)
+            stream_insert(socket, :chat_list, Chat.enrich_conversation(record), at: 0)
 
           _ ->
             socket
@@ -129,28 +129,37 @@ defmodule NajvaWeb.Live.Root do
   @impl true
   def terminate(_reason, _socket), do: :ok
 
-  defp apply_action(socket, :chat, %{"peer" => peer}) do
+  defp apply_action(socket, :chat, %{"peer" => peer_username}) do
     user_id = socket.assigns.current_scope.user.id
-    messages = Chat.get_messages(user_id, peer)
 
-    socket =
-      socket
-      |> assign(peer: peer)
-      |> stream(:messages, messages, reset: true)
+    case Profiles.get_profile_by_username(peer_username) do
+      {:ok, profile} ->
+        peer_id = profile.id
+        messages = Chat.get_messages(user_id, peer_id)
 
-    case Chat.ConversationBuffer.reset_new_msg_count(user_id, peer) do
-      {:ok, record} -> stream_insert(socket, :chat_list, record)
-      :ignore -> socket
-      _ -> socket
+        socket =
+          socket
+          |> assign(peer: peer_id, peer_username: peer_username)
+          |> stream(:messages, messages, reset: true)
+
+        case Chat.ConversationBuffer.reset_new_msg_count(user_id, peer_id) do
+          {:ok, record} -> stream_insert(socket, :chat_list, Chat.enrich_conversation(record))
+          :ignore -> socket
+          _ -> socket
+        end
+
+      {:error, _} ->
+        socket
+        |> put_flash(:error, "User not found")
+        |> push_navigate(to: ~p"/")
     end
   end
 
-  defp apply_action(socket, :profile, _params) do
-    user_id = socket.assigns.current_scope.user.id
-    case Najva.Profiles.get_profile(user_id) do
+  defp apply_action(socket, :profile, %{"peer" => peer}) do
+    case Profiles.get_profile_by_username(peer) do
       {:ok, profile} ->
         socket
-        |> assign(peer: nil, profile: profile)
+        |> assign(peer: profile.id, profile: profile)
         |> stream(:messages, [], reset: true)
 
       {:error, _reason} ->

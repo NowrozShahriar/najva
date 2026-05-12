@@ -4,6 +4,7 @@ defmodule Najva.Profiles.Profile do
 
   @primary_key {:id, :string, autogenerate: false}
   @foreign_key_type :string
+  @derive {Phoenix.Param, key: :username}
   schema "profiles" do
     field :username, :string
     field :status, Ecto.Enum, values: [active: 0, unpublished: 1, warning: 2], default: :active

@@ -66,6 +66,11 @@ defmodule Najva.Chat do
     )
   end
 
+  def list_chats(owner, before_time \\ nil) do
+    ConversationBuffer.list_chats(owner, before_time)
+    |> Enum.map(&enrich_conversation/1)
+  end
+
   def get_messages(owner, peer) do
     import Ecto.Query
 
@@ -74,5 +79,15 @@ defmodule Najva.Chat do
       order_by: [asc: m.time]
     )
     |> Repo.all()
+  end
+
+  def enrich_conversation({:conversation, {o, p}, o2, lm, t, c, r, m} = _record) do
+    username =
+      case Najva.Profiles.get_profile_by_id(p) do
+        {:ok, profile} -> profile.username
+        _ -> p
+      end
+
+    {:conversation, {o, p}, o2, lm, t, c, r, Map.put(m, :peer_username, username)}
   end
 end

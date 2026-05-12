@@ -1,5 +1,6 @@
 defmodule NajvaWeb.Components do
   use NajvaWeb, :html
+
   #   @doc """
   #   Button component for Layouts.theme_toggle.
   #
@@ -291,7 +292,7 @@ defmodule NajvaWeb.Components do
         
     <!-- Profile icon -->
         <.link
-          patch="/profile"
+          patch={~p"/#{@current_scope.user}"}
           id="account-btn"
           title="Account"
           class={profile_icon <> if @live_action != :profile, do: profile_icon_inactive, else: profile_icon_active}
@@ -325,12 +326,12 @@ defmodule NajvaWeb.Components do
       <li
         :for={
           {id,
-           {:conversation, {owner, peer}, _owner, last_msg, timestamp, unread_count, _msg_id, _meta}} <-
+           {:conversation, {owner, peer}, _owner, last_msg, timestamp, unread_count, _msg_id, meta}} <-
             @chat_list
         }
         id={id}
         phx-click="open_chat"
-        phx-value-peer={peer}
+        phx-value-peer={meta[:peer_username] || peer}
         class="list-row hover:bg-base-200 active:bg-base-200 mx-0.5 cursor-default items-center gap-2 px-2 py-2 transition-all duration-200"
       >
         <div class="">
@@ -339,7 +340,7 @@ defmodule NajvaWeb.Components do
           src="https://img.daisyui.com/images/profile/demo/1@94.webp"
           /> --%>
           <div class="bg-secondary text-secondary-content flex size-11 items-center justify-center rounded-full text-xl font-bold uppercase">
-            {String.at(peer, 0)}
+            {String.at(meta[:peer_username] || peer, 0)}
           </div>
         </div>
         <div class="flex flex-col gap-0.5 overflow-hidden">
@@ -348,15 +349,16 @@ defmodule NajvaWeb.Components do
               {if peer == owner do
                 "Saved Messages"
               else
-                peer
+                meta[:peer_username] || peer
               end}
             </h3>
             <div class="flex items-center opacity-60">
-              <p class="text-xs whitespace-nowrap ml-1">
-                {timestamp
-                |> DateTime.from_unix!(:millisecond)
-                |> Calendar.strftime("%H:%M")}
-              </p>
+              <time
+                id={"chat-time-#{id}"}
+                datetime={timestamp}
+                phx-hook="SmartTime"
+                class="text-xs whitespace-nowrap ml-1"
+              />
               <button><.icon name="hero-ellipsis-vertical" class="size-4" /></button>
             </div>
           </div>
@@ -378,5 +380,12 @@ defmodule NajvaWeb.Components do
       </li>
     </ul>
     """
+  end
+
+  def joined_date(<<time::binary-size(9), _::binary>>) do
+    time
+    |> String.to_integer(32)
+    |> DateTime.from_unix!(:millisecond)
+    |> Calendar.strftime("%B %Y")
   end
 end

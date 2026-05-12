@@ -1,106 +1,110 @@
-<div class="h-full flex flex-col overflow-y-auto bg-zinc-50 dark:bg-zinc-950">
-  <!-- Header / Cover Area -->
-  <div class="relative h-48 sm:h-72 flex-none">
-    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
-      <%= if @profile.cover_url do %>
-        <img src={@profile.cover_url} class="w-full h-full object-cover" />
-      <% else %>
-        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.5),transparent)]">
-        </div>
-      <% end %>
+<%= if @profile do %>
+  <div class="h-full flex flex-col bg-base-100 sm:rounded-lg overflow-hidden border border-base-300 shadow-sm overflow-y-auto">
+    <!-- Header / Cover Area -->
+    <div class="relative h-44 sm:h-64 flex-none">
+      <div class="absolute inset-0 bg-gradient-to-br from-primary/80 via-secondary/80 to-accent/80">
+        <%= if @profile.cover_url do %>
+          <img src={@profile.cover_url} class="w-full h-full object-cover" />
+        <% else %>
+          <div class="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.4),transparent)]">
+          </div>
+        <% end %>
+      </div>
+      <div class="absolute inset-0 bg-black/5"></div>
     </div>
-    <div class="absolute inset-0 bg-black/5"></div>
-  </div>
-
-  <!-- Content Area -->
-  <div class="relative px-4 sm:px-8 pb-12">
-    <div class="max-w-5xl mx-auto">
-      <!-- Profile Card Overlapping Header -->
-      <div class="relative -mt-24 sm:-mt-32 bg-white dark:bg-zinc-900 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 border border-zinc-200/50 dark:border-zinc-800/50 overflow-hidden">
-        <div class="p-6 sm:p-12">
-          <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <!-- Avatar & Identity -->
-            <div class="flex flex-col md:flex-row items-center md:items-end gap-8 text-center md:text-left">
-              <div class="relative">
-                <div class="w-32 h-32 sm:w-44 sm:h-44 rounded-[2rem] overflow-hidden bg-zinc-100 dark:bg-zinc-800 border-8 border-white dark:border-zinc-900 shadow-2xl transform transition-transform duration-500 hover:rotate-2">
-                  <%= if @profile.avatar_url do %>
-                    <img src={@profile.avatar_url} class="w-full h-full object-cover" />
-                  <% else %>
-                    <div class="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">
-                      <.icon name="hero-user" class="w-20 h-20" />
-                    </div>
-                  <% end %>
-                </div>
-                <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-green-500 border-4 border-white dark:border-zinc-900 rounded-2xl shadow-lg">
-                </div>
-              </div>
-
-              <div class="space-y-2 pb-2">
-                <h1 class="text-4xl sm:text-5xl font-black text-zinc-900 dark:text-white tracking-tight">
-                  {@profile.display_name || @profile.username}
-                </h1>
-                <div class="flex items-center justify-center md:justify-start gap-2">
-                  <span class="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-bold rounded-lg uppercase tracking-wider">
-                    @{@profile.username}
-                  </span>
-                  <span class="text-zinc-400 dark:text-zinc-600">•</span>
-                  <span class="text-zinc-500 dark:text-zinc-500 font-medium capitalize">
-                    {@profile.status}
-                  </span>
-                </div>
+    
+<!-- Content Area -->
+    <div class="relative px-4 sm:px-8 pb-12">
+      <div class="max-w-4xl mx-auto">
+        <!-- Identity Section Overlapping Header -->
+        <div class="-mt-20 sm:-mt-28 relative z-10">
+          <div class="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
+            <div class="avatar online">
+              <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] ring ring-base-100 ring-offset-base-100 ring-offset-4 shadow-2xl">
+                <%= if @profile.avatar_url do %>
+                  <img src={@profile.avatar_url} />
+                <% else %>
+                  <div class="w-full h-full flex items-center justify-center bg-base-300 text-base-content/20">
+                    <.icon name="hero-user" class="w-16 h-16" />
+                  </div>
+                <% end %>
               </div>
             </div>
 
-            <!-- Actions -->
-            <div class="flex items-center gap-4 pb-2">
-              <%= if @current_scope.user.id == @profile.id do %>
-                <.link
-                  patch={~p"/settings"}
-                  class="flex items-center justify-center gap-2 px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black rounded-2xl hover:scale-[1.03] active:scale-[0.97] transition-all shadow-2xl shadow-zinc-500/20"
-                >
-                  <.icon name="hero-pencil-square" class="w-5 h-5" /> Edit Profile
-                </.link>
-              <% else %>
-                <.link
-                  navigate={~p"/messages/#{@profile.id}"}
-                  class="flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:scale-[1.03] active:scale-[0.97] transition-all shadow-2xl shadow-indigo-500/30"
-                >
-                  <.icon name="hero-chat-bubble-bottom-center-text" class="w-5 h-5" />
-                  Send Message
-                </.link>
-              <% end %>
+            <div class="flex-1 space-y-3 pb-2">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-1">
+                  <h1 class="text-3xl sm:text-4xl font-black text-base-content tracking-tight capitalize">
+                    {@profile.display_name || @profile.username}
+                  </h1>
+                  <div class="flex items-center justify-center md:justify-start gap-2">
+                    <div class="badge badge-primary badge-sm font-bold tracking-wider">
+                      @{@profile.username}
+                    </div>
+                    <span class="opacity-30">•</span>
+                    <div class="badge badge-ghost badge-sm font-medium capitalize">
+                      {@profile.status}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <%= if @current_scope.user.id == @profile.id do %>
+                    <.link
+                      patch={~p"/settings"}
+                      class="btn btn-neutral btn-sm sm:btn-md rounded-xl shadow-sm"
+                    >
+                      <.icon name="hero-pencil-square" class="size-4" /> Edit
+                    </.link>
+                  <% else %>
+                    <.link
+                      navigate={~p"/messages/#{@profile.username}"}
+                      class="btn btn-primary btn-sm sm:btn-md rounded-xl shadow-sm"
+                    >
+                      <.icon name="hero-chat-bubble-bottom-center-text" class="size-4" /> Message
+                    </.link>
+                  <% end %>
+                  <button class="btn btn-ghost btn-square btn-sm sm:btn-md rounded-xl">
+                    <.icon name="hero-ellipsis-horizontal" class="size-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-
-          <!-- Main Info Sections -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-16 border-t border-zinc-100 dark:border-zinc-800 pt-12">
-            <!-- Sidebar: Details -->
-            <div class="lg:col-span-4 space-y-10">
-              <div class="space-y-4">
-                <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+        </div>
+        
+<!-- Main Info Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-12">
+          <!-- Sidebar: Details -->
+          <div class="lg:col-span-4 space-y-6">
+            <div class="card bg-base-200/50 border border-base-300 rounded-3xl">
+              <div class="card-body p-6 space-y-4">
+                <h3 class="text-[10px] font-black opacity-40 uppercase tracking-[0.2em]">
                   Biography
                 </h3>
-                <p class="text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium text-lg">
-                  {@profile.bio || "This user hasn't shared a bio yet. Keep it mysterious!"}
+                <p class="text-sm font-medium leading-relaxed">
+                  {@profile.bio || "No bio yet."}
                 </p>
               </div>
+            </div>
 
-              <div class="space-y-6 bg-zinc-50 dark:bg-zinc-800/30 p-8 rounded-[2rem]">
-                <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+            <div class="card bg-base-200/50 border border-base-300 rounded-3xl">
+              <div class="card-body p-6 space-y-5">
+                <h3 class="text-[10px] font-black opacity-40 uppercase tracking-[0.2em]">
                   Information
                 </h3>
-                <div class="space-y-5">
-                  <div class="flex items-center gap-4 text-zinc-700 dark:text-zinc-300">
-                    <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 shadow-sm">
-                      <.icon name="hero-map-pin" class="w-5 h-5 text-indigo-500" />
+                <div class="space-y-4">
+                  <div class="flex items-center gap-3">
+                    <div class="size-8 flex items-center justify-center rounded-lg bg-base-100 border border-base-300 shadow-sm">
+                      <.icon name="hero-map-pin" class="size-4 text-primary" />
                     </div>
                     <div>
-                      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                      <p class="text-[9px] font-black opacity-40 uppercase tracking-widest leading-none mb-1">
                         Location
                       </p>
-                      <p class="font-bold">
+                      <p class="text-xs font-bold">
                         <%= if Enum.empty?(@profile.region) do %>
-                          Planet Earth
+                          Unknown
                         <% else %>
                           {Enum.join(@profile.region, ", ")}
                         <% end %>
@@ -108,51 +112,63 @@
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-4 text-zinc-700 dark:text-zinc-300">
-                    <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-zinc-800 shadow-sm">
-                      <.icon name="hero-calendar-days" class="w-5 h-5 text-purple-500" />
+                  <div class="flex items-center gap-3">
+                    <div class="size-8 flex items-center justify-center rounded-lg bg-base-100 border border-base-300 shadow-sm">
+                      <.icon name="hero-calendar-days" class="size-4 text-secondary" />
                     </div>
                     <div>
-                      <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                      <p class="text-[9px] font-black opacity-40 uppercase tracking-widest leading-none mb-1">
                         Joined
                       </p>
-                      <p class="font-bold">May 2026</p>
+                      <p class="text-xs font-bold">{joined_date(@profile.id)}</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
+          
+<!-- Main: Activity / Showcase -->
+          <div class="lg:col-span-8 space-y-6">
+            <div class="flex items-center justify-between px-2">
+              <h3 class="text-[10px] font-black opacity-40 uppercase tracking-[0.2em]">
+                Recent Activity
+              </h3>
+              <div class="h-px flex-1 bg-base-300 ml-6"></div>
+            </div>
 
-            <!-- Main: Activity / Showcase -->
-            <div class="lg:col-span-8 space-y-8">
-              <div class="flex items-center justify-between">
-                <h3 class="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
-                  Recent Activity
-                </h3>
-                <div class="h-px flex-1 bg-zinc-100 dark:bg-zinc-800 ml-6"></div>
+            <div class="flex flex-col items-center justify-center py-16 px-10 bg-base-200/20 rounded-3xl border-2 border-dashed border-base-300/50">
+              <div class="size-16 bg-base-100 rounded-2xl flex items-center justify-center shadow-sm border border-base-300 mb-4 group hover:scale-105 transition-transform">
+                <.icon
+                  name="hero-cube-transparent"
+                  class="size-8 opacity-20 group-hover:text-primary group-hover:opacity-100 transition-all"
+                />
               </div>
-
-              <div class="flex flex-col items-center justify-center py-24 px-10 bg-zinc-50 dark:bg-zinc-800/20 rounded-[2.5rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800/50">
-                <div class="w-20 h-20 bg-white dark:bg-zinc-900 rounded-3xl flex items-center justify-center shadow-xl shadow-zinc-500/5 mb-6 group hover:scale-110 transition-transform duration-500">
-                  <.icon
-                    name="hero-cube-transparent"
-                    class="w-10 h-10 text-zinc-300 dark:text-zinc-700 group-hover:text-indigo-500 transition-colors"
-                  />
-                </div>
-                <h4 class="text-xl font-black text-zinc-900 dark:text-white">
-                  Nothing to show yet
-                </h4>
-                <p class="text-zinc-500 dark:text-zinc-400 text-center max-w-sm mt-3 font-medium leading-relaxed">
-                  Activity and shared content will appear here once the user starts interacting with the platform.
-                </p>
-                <button class="mt-8 px-6 py-2 text-zinc-400 dark:text-zinc-600 font-bold hover:text-zinc-900 dark:hover:text-white transition-colors">
-                  View full history →
-                </button>
-              </div>
+              <h4 class="font-bold">
+                Nothing to show yet
+              </h4>
+              <p class="text-xs opacity-50 text-center max-w-xs mt-2 leading-relaxed">
+                Activity and shared content will appear here once interactions begin.
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+<% else %>
+  <div class="flex h-full flex-col items-center justify-center space-y-4">
+    <div class="size-20 bg-base-200 rounded-3xl flex items-center justify-center border border-base-300 shadow-inner">
+      <.icon name="hero-user" class="size-10 opacity-20" />
+    </div>
+    <div class="text-center">
+      <h2 class="text-2xl font-black">Profile Not Found</h2>
+      <p class="text-sm opacity-50">
+        The user you are looking for does not exist or has been removed.
+      </p>
+    </div>
+    <.link navigate={~p"/"} class="btn btn-primary rounded-xl">
+      Go Home
+    </.link>
+  </div>
+<% end %>

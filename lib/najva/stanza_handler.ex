@@ -15,14 +15,22 @@ defmodule Najva.StanzaHandler do
     map = Fxmap.decode(n)
 
     case map do
-      %{"n" => %{"@type" => type}} when type == "chat" ->
+      %{"n" => %{"@type" => "chat", "content" => content}} ->
+        time =
+          case content["@time"] do
+            nil -> System.os_time(:millisecond)
+            t when is_integer(t) -> t
+            t when is_binary(t) -> String.to_integer(t)
+            _ -> System.os_time(:millisecond)
+          end
+
         message = %{
           owner: to_user,
           peer: peer,
-          msg_id: map["n"]["content"]["@id"],
+          msg_id: content["@id"],
           state: :received,
-          content: map["n"]["content"]["@cdata"],
-          time: map["n"]["content"]["@time"]
+          content: content["@cdata"],
+          time: time
         }
 
         Chat.receive_message(message)

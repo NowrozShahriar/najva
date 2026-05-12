@@ -44,7 +44,7 @@ defmodule Najva.Profiles do
   Gets a profile.
   Tries Mnesia first for speed, falls back to Repo if not found.
   """
-  def get_profile(id) do
+  def get_profile_by_id(id) do
     case ProfileBuffer.get_by_id(id) do
       {:ok, record} ->
         {:ok, record_to_struct(record)}
@@ -66,6 +66,30 @@ defmodule Najva.Profiles do
                 sync_to_cache(profile)
                 {:ok, profile}
             end
+        end
+    end
+  end
+
+  @doc """
+  Gets a profile by username.
+  Tries Mnesia first, then falls back to Repo.
+  """
+  def get_profile_by_username(username) do
+    case ProfileBuffer.get_by_username(username) do
+      {:ok, record} ->
+        {:ok, record_to_struct(record)}
+
+      {:error, :not_found} ->
+        case Repo.get_by(Profile, username: username) do
+          nil ->
+            case Repo.get_by(User, username: username) do
+              nil -> {:error, :user_not_found}
+              user -> generate_profile(user)
+            end
+
+          profile ->
+            sync_to_cache(profile)
+            {:ok, profile}
         end
     end
   end
