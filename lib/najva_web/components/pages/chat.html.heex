@@ -3,8 +3,8 @@
   <div class="px-4 py-3 border-b border-base-300 bg-base-100/80 backdrop-blur-md flex items-center justify-between sticky top-0 z-10">
     <div class="flex items-center gap-3">
       <div class="avatar online placeholder">
-        <div class="bg-primary text-primary-content size-10 rounded-2xl font-black shadow-lg shadow-primary/20">
-          <span>{String.at(@peer || "?", 0) |> String.upcase()}</span>
+        <div class="bg-primary text-primary-content size-10 rounded-2xl font-black shadow-lg shadow-primary/20 text-center leading-10 uppercase">
+          {String.at(@peer || "?", 0) |> String.upcase()}
         </div>
       </div>
       <div>

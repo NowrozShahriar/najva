@@ -18,9 +18,10 @@ defmodule Najva.Mnesia do
     # Each buffer's init_table/0 should handle table creation if missing.
     Najva.Chat.ConversationBuffer.init_table()
     Najva.Profiles.ProfileBuffer.init_table()
+    Najva.Profiles.PresenceBuffer.init_table()
 
     # 4. Wait for all critical tables to be loaded from disk/memory
-    case :mnesia.wait_for_tables([:conversation, :profile], 5000) do
+    case :mnesia.wait_for_tables([:conversation, :profile, :presence], 5000) do
       :ok -> :ok
       {:timeout, tables} -> {:error, {:timeout, tables}}
       {:error, reason} -> {:error, reason}

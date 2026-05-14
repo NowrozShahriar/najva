@@ -2,6 +2,7 @@ defmodule Najva.UserSession do
   use GenServer, restart: :transient
 
   alias Najva.{Ejabberd, UserSessionRegistry, UserSessionSupervisor, StanzaHandler}
+  alias Najva.Profiles.PresenceBuffer
 
   @idle_timeout 30_000
 
@@ -57,6 +58,7 @@ defmodule Najva.UserSession do
     }
 
     Ejabberd.open_session(jid)
+    PresenceBuffer.set_presence(user_id, true)
 
     {:ok, %{user_id: user_id, jid: jid, monitors: %{}, timer_ref: nil}}
   end
@@ -114,8 +116,8 @@ defmodule Najva.UserSession do
   end
 
   @impl true
-  def terminate(_reason, %{jid: jid}) do
+  def terminate(_reason, %{user_id: user_id, jid: jid}) do
     Ejabberd.close_session(jid)
-    :ok
+    PresenceBuffer.set_presence(user_id, false)
   end
 end
