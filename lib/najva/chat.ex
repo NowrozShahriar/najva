@@ -82,8 +82,14 @@ defmodule Najva.Chat do
   end
 
   def enrich_conversation({:conversation, {o, p}, o2, lm, t, c, r, m} = _record) do
+    {uid, host} =
+      case p do
+        <<id::binary-size(18)>> -> {id, nil}
+        <<id::binary-size(18), "@", host::binary>> -> {id, host}
+      end
+
     username =
-      case Najva.Profiles.get_profile_by_id(p) do
+      case Najva.Profiles.get_profile_by_id(uid, host) do
         {:ok, profile} -> profile.username
         _ -> p
       end

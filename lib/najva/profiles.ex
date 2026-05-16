@@ -44,8 +44,8 @@ defmodule Najva.Profiles do
   Gets a profile.
   Tries Mnesia first for speed, falls back to Repo if not found.
   """
-  def get_profile_by_id(id) do
-    case ProfileBuffer.get_by_id(id) do
+  def get_profile_by_id(id, host \\ nil) do
+    case ProfileBuffer.get_by_id(id, host) do
       {:ok, record} ->
         {:ok, record_to_struct(record)}
 
@@ -63,7 +63,7 @@ defmodule Najva.Profiles do
                 end
 
               profile ->
-                sync_to_cache(profile)
+                ProfileBuffer.sync_profile(profile)
                 {:ok, profile}
             end
         end
@@ -88,7 +88,7 @@ defmodule Najva.Profiles do
             end
 
           profile ->
-            sync_to_cache(profile)
+            ProfileBuffer.sync_profile(profile)
             {:ok, profile}
         end
     end
@@ -113,7 +113,7 @@ defmodule Najva.Profiles do
     Multi.new()
     |> Multi.insert_or_update(:profile, Profile.changeset(profile, attrs))
     |> Multi.run(:mnesia_sync, fn _repo, %{profile: profile} ->
-      ProfileBuffer.add_profile(profile)
+      ProfileBuffer.sync_profile(profile)
     end)
     |> Repo.transaction()
     |> case do
@@ -123,16 +123,8 @@ defmodule Najva.Profiles do
     end
   end
 
-  @doc """
-  Directly syncs a profile from Postgres to Mnesia.
-  Useful for initialization or recovery.
-  """
-  def sync_to_cache(%Profile{} = profile) do
-    ProfileBuffer.add_profile(profile)
-  end
-
   defp record_to_struct(
-         {:profile, id, username, status, display_name, bio, avatar, cover, region, meta}
+         {:profile, {id, _host}, username, status, display_name, bio, avatar, cover, region, meta}
        ) do
     %Profile{
       id: id,
@@ -150,7 +142,7 @@ defmodule Najva.Profiles do
   @doc """
   Deletes a profile from the cache.
   """
-  def delete_profile_cache(id) do
-    ProfileBuffer.delete_profile(id)
+  def delete_profile_cache(id, host \\ nil) do
+    ProfileBuffer.delete_profile(id, host)
   end
 end

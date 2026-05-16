@@ -30,11 +30,14 @@ defmodule Najva.Profiles.ProfileBuffer do
     end
   end
 
-  @doc "Writes a profile record to Mnesia (disc_copies)"
-  def add_profile(%Najva.Profiles.Profile{} = profile) do
+  @doc """
+  Syncs a profile from Postgres to Mnesia.
+  Used for initial population and recovery.
+  """
+  def sync_profile(%Najva.Profiles.Profile{} = profile, host \\ nil) do
     record = {
       :profile,
-      profile.id,
+      {profile.id, host},
       profile.username,
       profile.status,
       profile.display_name,
@@ -50,9 +53,8 @@ defmodule Najva.Profiles.ProfileBuffer do
     end
   end
 
-  @doc "Fast O(1) lookup by primary key (id)"
-  def get_by_id(id) do
-    case :mnesia.dirty_read(:profile, id) do
+  def get_by_id(id, host \\ nil) do
+    case :mnesia.dirty_read(:profile, {id, host}) do
       [record] -> {:ok, record}
       [] -> {:error, :not_found}
     end
@@ -67,7 +69,7 @@ defmodule Najva.Profiles.ProfileBuffer do
   end
 
   @doc "Deletes a profile record from Mnesia"
-  def delete_profile(id) do
-    :mnesia.dirty_delete(:profile, id)
+  def delete_profile(id, host \\ nil) do
+    :mnesia.dirty_delete(:profile, {id, host})
   end
 end
